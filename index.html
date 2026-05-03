@@ -1,0 +1,2001 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arya Vysya Press - Document Builder</title>
+<meta name="description" content="Create and export professional quotations and tax invoices for Arya Vysya Press with live preview and PDF-ready layout.">
+<meta name="keywords" content="quotation generator, tax invoice builder, PDF export, Arya Vysya Press">
+<meta name="author" content="Arya Vysya Press">
+<meta name="robots" content="index,follow">
+<meta property="og:title" content="Arya Vysya Press - Document Builder">
+<meta property="og:description" content="Build quotation and invoice documents with live editing and export settings.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#f5a800">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23f5a800'/%3E%3Ctext x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial,sans-serif' font-size='28' font-weight='700' fill='%231a1a1a'%3EAV%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold: #F5A800;
+  --gold-dark: #d48f00;
+  --ink: #1a1a1a;
+  --muted: #666;
+  --border: #ccc;
+  --light: #f9f9f9;
+  --red: #cc0000;
+  --blue: #0a2d6e;
+  --app-bg: #f0f0f0;
+  --sidebar-w: 260px;
+}
+
+body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(--ink); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+/* â•â• TOP NAV â•â• */
+.topnav {
+  background: #1a1a1a;
+  color: white;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  position: sticky; top: 0; z-index: 200;
+}
+.topnav-brand { font-size: 1rem; font-weight: 700; letter-spacing: 1px; }
+.topnav-brand span { color: var(--gold); }
+.topnav-actions { display: flex; gap: 10px; }
+
+/* â•â• TABS â•â• */
+.tab-bar {
+  background: white;
+  border-bottom: 2px solid var(--gold);
+  display: flex;
+  padding: 0 24px;
+  gap: 0;
+}
+.tab {
+  padding: 12px 28px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--muted);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.15s;
+  letter-spacing: 0.5px;
+}
+.tab:hover { color: var(--ink); }
+.tab.active { color: var(--gold-dark); border-bottom-color: var(--gold); }
+
+/* â•â• BODY LAYOUT â•â• */
+.app-body { display: flex; flex: 1; gap: 0; min-width: 0; }
+
+/* â•â• LEFT SIDEBAR â€” FORM â•â• */
+.form-panel {
+  width: var(--sidebar-w);
+  min-width: 240px;
+  max-width: 320px;
+  background: white;
+  border-right: 1px solid #e0e0e0;
+  overflow-y: auto;
+  height: calc(100vh - 98px);
+  position: sticky;
+  top: 98px;
+  flex-shrink: 0;
+  padding: 0 0 40px;
+}
+
+.panel-section { padding: 14px 16px 10px; border-bottom: 1px solid #eee; }
+.panel-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+  margin-bottom: 10px;
+}
+
+.field { margin-bottom: 10px; }
+.field label { display: block; font-size: 0.68rem; font-weight: 600; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.field input, .field select, .field textarea {
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  color: var(--ink);
+  outline: none;
+  transition: border 0.15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--gold); }
+.field textarea { resize: vertical; min-height: 52px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.field-help {
+  margin-top: 4px;
+  font-size: 0.66rem;
+  color: #777;
+  line-height: 1.4;
+}
+
+.mobile-blocker {
+  display: none;
+  min-height: 100vh;
+  padding: 32px 20px;
+  background: linear-gradient(180deg, #111 0%, #1f1f1f 100%);
+  color: #fff;
+  align-items: center;
+  justify-content: center;
+}
+.mobile-blocker-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 24px 20px;
+  text-align: center;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+.mobile-blocker-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+.mobile-blocker-text {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+/* â•â• RIGHT â€” PREVIEW â•â• */
+.preview-panel {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.preview-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  max-width: 780px;
+}
+.preview-label { font-size: 0.72rem; font-weight: 600; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; flex: 1; min-width: 220px; }
+
+/* â•â• DOCUMENT SHEET â•â• */
+.doc-sheet {
+  width: min(780px, 100%);
+  min-height: 1040px;
+  background: white;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.12);
+  position: relative;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Gold left bar */
+.doc-sheet::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 22px;
+  background: var(--gold);
+  z-index: 1;
+}
+
+.doc-inner { margin-left: 22px; padding: 0; }
+
+/* â•â• LETTERHEAD â•â• */
+.lh {
+  padding: 18px 28px 12px 22px;
+  position: relative;
+}
+
+.lh-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.lh-logo { display: flex; align-items: center; gap: 10px; }
+.lh-logo img { height: 64px; width: auto; }
+.lh-logo-placeholder {
+  height: 64px; width: 80px;
+  background: #1a1a1a;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 2px;
+}
+.lh-logo-placeholder span { color: white; font-size: 0.5rem; font-weight: 700; text-align: center; line-height: 1.3; padding: 4px; }
+
+.lh-brand { text-align: right; }
+.lh-brand .cursive {
+  font-family: 'Dancing Script', cursive;
+  font-size: 2.4rem;
+  color: var(--red);
+  line-height: 1;
+  display: block;
+}
+.lh-brand .tagline {
+  font-style: italic;
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+  display: block;
+}
+.lh-brand .gstin {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--ink);
+  display: block;
+  margin-top: 2px;
+}
+
+.lh-address {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--ink);
+  margin-top: 6px;
+  line-height: 1.6;
+}
+.lh-address strong { font-style: italic; }
+
+.lh-divider {
+  border: none;
+  border-top: 2.5px double #555;
+  margin: 8px 0 0;
+}
+
+/* â•â• DOCUMENT CONTENT AREA â•â• */
+.doc-content { padding: 14px 28px 28px 22px; }
+.doc-content, .doc-content * { word-break: break-word; }
+
+/* â•â• QUOTATION SPECIFICS â•â• */
+.q-to {
+  font-size: 0.82rem;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.q-to-label { font-weight: 700; min-width: 28px; }
+.q-to-val { border-bottom: 1px dashed #aaa; flex: 1; padding: 2px 4px; font-weight: 700; }
+.q-to-gst { font-size: 0.75rem; color: var(--ink); white-space: nowrap; }
+
+.q-subject {
+  font-size: 0.82rem;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.q-subject-label { font-weight: 700; }
+.q-subject-val { padding: 1px 4px; font-size: 0.82rem; }
+
+.q-body { font-size: 0.78rem; line-height: 1.65; margin-bottom: 14px; color: #222; }
+.q-dear { font-size: 0.82rem; font-weight: 700; margin-bottom: 5px; }
+
+/* â•â• INVOICE SPECIFICS â•â• */
+.inv-title {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.inv-parties {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 12px;
+  margin-bottom: 0;
+}
+
+.inv-parties > div:first-child,
+.inv-party-right {
+  border: 1px solid #aaa;
+}
+
+.inv-party { padding: 10px 12px; font-size: 0.74rem; line-height: 1.65; }
+.inv-party:first-child { border-bottom: 1px solid #aaa; }
+
+.inv-party-right { display: flex; flex-direction: column; }
+.inv-party-row { display: flex; border-bottom: 1px solid #aaa; font-size: 0.74rem; }
+.inv-party-row:last-child { border-bottom: none; }
+.inv-party-cell { padding: 7px 10px; flex: 1; }
+.inv-party-cell:not(:last-child) { border-right: 1px solid #aaa; }
+.inv-party-cell strong { display: block; font-size: 0.68rem; font-weight: 700; }
+.inv-party-label { font-weight: 700; font-size: 0.73rem; }
+.inv-party-name { font-weight: 700; font-size: 0.8rem; color: #111; }
+.inv-party-gstin { font-weight: 700; }
+
+/* â•â• ITEMS TABLE â•â• */
+.items-wrap { margin-top: 20px; }
+.items-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.76rem;
+}
+.items-tbl th {
+  background: #f5f5f5;
+  font-weight: 700;
+  padding: 7px 8px;
+  border: 1px solid #bbb;
+  text-align: left;
+  font-size: 0.73rem;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+.items-tbl td {
+  padding: 6px 8px;
+  border: 1px solid #bbb;
+  vertical-align: middle;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+.items-tbl .center { text-align: center; }
+.items-tbl .right { text-align: right; }
+.items-tbl .bold { font-weight: 700; }
+
+/* Allow long descriptions to wrap, but keep numbers/headers on one line. */
+.items-tbl td:nth-child(2) {
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.items-tbl td input {
+  border: none;
+  background: transparent;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.76rem;
+  color: var(--ink);
+  width: 100%;
+  outline: none;
+  padding: 1px 2px;
+}
+.items-tbl td input:focus { background: #fffbe6; border-radius: 2px; }
+
+/* â•â• ADD ROW BUTTON (inside table area) â•â• */
+.add-row-area { padding: 6px 0; border-bottom: 1px solid #bbb; }
+.add-row-btn {
+  background: none;
+  border: 1px dashed var(--gold);
+  color: var(--gold-dark);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  margin: 4px 0 4px 8px;
+  transition: all 0.15s;
+}
+.add-row-btn:hover { background: var(--gold); color: white; }
+
+/* â•â• TOTALS â•â• */
+.q-totals { margin-top: 16px; font-size: 0.8rem; }
+.q-grand { font-weight: 700; font-size: 0.82rem; margin-bottom: 3px; }
+.q-grand-words { font-weight: 700; font-size: 0.78rem; }
+
+.inv-totals-row { border: 1px solid #bbb; border-top: none; }
+.inv-amount-words { padding: 8px 12px; font-size: 0.76rem; border-bottom: 1px solid #bbb; }
+.inv-amount-words strong { display: block; }
+
+/* â•â• CLOSING / FOOTER â•â• */
+.q-closing { font-size: 0.78rem; line-height: 1.65; margin-top: 20px; margin-bottom: 12px; }
+.q-contact { font-size: 0.78rem; line-height: 1.9; }
+.q-contact strong { display: block; font-size: 0.78rem; }
+
+.inv-bank { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #bbb; }
+.inv-bank-left { padding: 10px 14px; font-size: 0.76rem; line-height: 1.9; border-right: 1px solid #bbb; }
+.inv-bank-right { padding: 10px 14px; display: flex; align-items: flex-end; justify-content: flex-end; }
+.inv-sig { text-align: center; font-size: 0.78rem; }
+.inv-sig strong { display: block; font-size: 0.8rem; font-weight: 700; }
+
+/* â•â• EDITABLE FIELDS (click-to-edit) â•â• */
+[contenteditable="true"] { outline: none; cursor: text; }
+[contenteditable="true"]:hover { background: #fffbe6; border-radius: 2px; }
+[contenteditable="true"]:focus { background: #fff8dc; border-radius: 2px; box-shadow: 0 0 0 1.5px var(--gold); }
+
+/* â•â• INLINE EDIT HINTS â•â• */
+.edit-hint {
+  font-size: 0.6rem;
+  color: #bbb;
+  font-style: italic;
+  text-align: right;
+  padding: 4px 28px 0;
+}
+
+/* â•â• BUTTONS â•â• */
+.btn {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 3px;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all 0.15s;
+  letter-spacing: 0.3px;
+  touch-action: manipulation;
+}
+.btn-gold { background: var(--gold); color: #1a1a1a; border-color: var(--gold); }
+.btn-gold:hover { background: var(--gold-dark); border-color: var(--gold-dark); }
+.btn-outline { background: transparent; border-color: #ccc; color: #555; }
+.btn-outline:hover { border-color: #555; color: #222; }
+.btn-dark { background: #1a1a1a; color: white; }
+.btn-dark:hover { background: #333; }
+.btn-sm { padding: 5px 12px; font-size: 0.7rem; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* â•â• EXPORT MODAL â•â• */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+.modal-backdrop.open { display: flex; }
+.modal-card {
+  width: 100%;
+  max-width: 430px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
+  padding: 18px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+.modal-title {
+  font-size: 0.88rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.modal-sub {
+  font-size: 0.74rem;
+  color: #666;
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+.modal-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.modal-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: #333;
+}
+.modal-check input { width: auto; }
+
+/* TOAST + SPINNER FEEDBACK */
+.toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  max-width: 320px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  padding: 10px 12px;
+  border-radius: 6px;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 1200;
+  will-change: transform, opacity;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.toast.success { border-left: 4px solid #1fbf75; }
+.toast.error { border-left: 4px solid #cc0000; }
+
+.export-spinner {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 26, 0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+.export-spinner.show { display: flex; }
+.export-spinner-box {
+  background: #fff;
+  border-radius: 10px;
+  min-width: 220px;
+  padding: 16px 18px;
+  box-shadow: 0 20px 42px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.export-spinner-icon {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e4e4e4;
+  border-top-color: var(--gold-dark);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+.export-spinner-text {
+  font-size: 0.78rem;
+  color: #333;
+  font-weight: 600;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* â•â• REMOVE BUTTON â•â• */
+.rm-btn {
+  background: none;
+  border: none;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  border-radius: 2px;
+  transition: all 0.15s;
+  line-height: 1;
+}
+.rm-btn:hover { color: #cc0000; background: #ffe0e0; }
+
+/* â•â• SECTION TOGGLE (invoice-only / quote-only) â•â• */
+.mode-section { display: none; }
+.mode-section.visible { display: block; }
+.mode-section-inline { display: none; }
+.mode-section-inline.visible { display: contents; }
+
+/* â•â• PRINT â•â• */
+@media print {
+  .topnav, .tab-bar, .form-panel, .preview-controls, .add-row-btn, .rm-btn, .add-row-area, .edit-hint { display: none !important; }
+  .app-body { display: block; }
+  .preview-panel { padding: 0; }
+  .doc-sheet { box-shadow: none; width: 100%; }
+  [contenteditable]:hover, [contenteditable]:focus { background: transparent !important; box-shadow: none !important; }
+}
+
+@media (max-width: 1200px) {
+  :root { --sidebar-w: 300px; }
+  .preview-panel { padding: 22px; }
+  .form-panel { min-width: 220px; }
+}
+
+@media (max-width: 992px) {
+  .topnav,
+  .tab-bar,
+  .app-body,
+  .modal-backdrop {
+    display: none !important;
+  }
+  .mobile-blocker {
+    display: flex;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- â•â• TOP NAV â•â• -->
+<nav class="topnav" aria-label="Primary actions">
+  <div class="topnav-brand">ARYA VYSYA PRESS &mdash; <span>Document Builder</span></div>
+  <div class="topnav-actions">
+    <button class="btn btn-outline btn-sm" id="btn-reset-top">Reset</button>
+    <button class="btn btn-gold btn-sm" data-export-btn="true" id="btn-export-top">Save PDF</button>
+  </div>
+</nav>
+
+<!-- â•â• TABS â•â• -->
+<div class="tab-bar" role="tablist" aria-label="Document type">
+  <button class="tab active" data-mode="quotation" role="tab" aria-selected="true" aria-controls="d-quotation">Quotation</button>
+  <button class="tab" data-mode="invoice" role="tab" aria-selected="false" aria-controls="d-invoice">Tax Invoice</button>
+</div>
+
+<!-- â•â• BODY â•â• -->
+<div class="app-body">
+
+  <!-- â•â• LEFT FORM PANEL â•â• -->
+  <aside class="form-panel">
+
+    <!-- LETTERHEAD EDIT -->
+    <div class="panel-section">
+      <div class="panel-title">Letterhead Settings</div>
+      <div class="field">
+        <label>Company Name (cursive)</label>
+        <input type="text" id="f-company" value="Arya Vysya Press">
+      </div>
+      <div class="field" style="margin-top:6px;">
+        <label>Tagline</label>
+        <input type="text" id="f-tagline" value="Quality Printers &amp; Binders">
+      </div>
+      <div class="field">
+        <label>GSTIN</label>
+        <input type="text" id="f-gstin" value="37BCIPS4640H1ZB">
+      </div>
+      <div class="field">
+        <label>Address Line 1</label>
+        <input type="text" id="f-addr1" value="# 26-4-10, Krishnamurthy Road, Near Gymkhana Club">
+      </div>
+      <div class="field">
+        <label>Address Line 2 (City)</label>
+        <input type="text" id="f-addr2" value="VIJAYAWADA - 520 003.">
+      </div>
+      <div class="field">
+        <label>Cell</label>
+        <input type="text" id="f-cell" value="9515858993">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="text" id="f-email" value="aryavysya1942@gmail.com">
+      </div>
+      <div class="field">
+        <label>Logo Upload</label>
+        <input type="file" id="f-logo" accept="image/*">
+        <div class="field-help">Accepted: JPG, JPEG, PNG, WEBP, SVG, GIF, BMP and other browser-supported image files.</div>
+        <button type="button" class="btn btn-outline btn-sm" style="margin-top:6px;" id="btn-clear-logo">Remove Logo</button>
+      </div>
+    </div>
+
+    <!-- QUOTATION FORM -->
+    <div class="panel-section mode-section visible" id="fp-quotation">
+      <div class="panel-title">Quotation Details</div>
+      <div class="field">
+        <label>To (Client Name + Location)</label>
+        <input type="text" id="f-q-to" value="Pernod Ricard India, Vijayawada">
+      </div>
+      <div class="field">
+        <label>Client GST IN</label>
+        <input type="text" id="f-q-cgst" value="37AAACS4781P1ZO">
+      </div>
+      <div class="field">
+        <label>Subject</label>
+        <input type="text" id="f-q-subject" value="Final Quotation for FSSAI Manufacturing Poster requirements">
+      </div>
+      <div class="field">
+        <label>Opening Body Text</label>
+        <textarea id="f-q-body">Thank you for your enquiry. We are pleased to submit the final curated quotation, shared after successful completion of the delivery, as per the agreed scope and requirements.</textarea>
+      </div>
+      <div class="field">
+        <label>Closing Paragraph</label>
+        <textarea id="f-q-closing">Kindly proceed with initiating the Purchase Order (PO) process based on the attached quotation and arrange to raise the PO accordingly.</textarea>
+      </div>
+      <div class="field">
+        <label>Contact Person</label>
+        <input type="text" id="f-q-cname" value="Sai Susheel Gupta Sanagapalli">
+      </div>
+      <div class="field">
+        <label>Contact Number</label>
+        <input type="text" id="f-q-cphone" value="+91 9515858993">
+      </div>
+      <div class="field">
+        <label>Contact Mail</label>
+        <input type="text" id="f-q-cmail" value="srujansgifting@gmail.com">
+      </div>
+    </div>
+
+    <!-- INVOICE FORM -->
+    <div class="panel-section mode-section" id="fp-invoice">
+      <div class="panel-title">Invoice Details</div>
+      <div class="field">
+        <label>Invoice No</label>
+        <input type="text" id="f-inv-no" value="8">
+      </div>
+      <div class="field">
+        <label>Invoice Date</label>
+        <input type="date" id="f-inv-date" value="2026-04-21">
+      </div>
+      <div class="field">
+        <label>Place of Supply</label>
+        <input type="text" id="f-inv-pos" value="Andhra Pradesh">
+      </div>
+      <div class="field">
+        <label>Terms of Payment</label>
+        <input type="text" id="f-inv-terms" value="30 Days">
+      </div>
+      <div class="field">
+        <label>Reference No &amp; Date</label>
+        <input type="text" id="f-inv-ref" value="101BVS/H1/2513651/2026 | 10/04/2026">
+      </div>
+      <div class="field">
+        <label>Buyer's Order No</label>
+        <input type="text" id="f-inv-bon" value="101BVS/H1/2513651/2026">
+      </div>
+      <div class="field">
+        <label>Buyer's Order Date</label>
+        <input type="date" id="f-inv-bod" value="2026-04-10">
+      </div>
+      <div class="field">
+        <label>Consignee Name</label>
+        <input type="text" id="f-inv-cname" value="Pernod Ricard India Private Limited">
+      </div>
+      <div class="field">
+        <label>Consignee Address</label>
+        <textarea id="f-inv-caddr">(LESSEE) At B.V.S. Distilleries Pvt. Ltd., Godavarru Village, Kankipadu Mandal, Krishna District - 521151, State - Andhra Pradesh</textarea>
+      </div>
+      <div class="field">
+        <label>Consignee GSTIN</label>
+        <input type="text" id="f-inv-cgst" value="37AAACS4781P1ZO">
+      </div>
+      <div class="field">
+        <label>Buyer Name</label>
+        <input type="text" id="f-inv-bname" value="Pernod Ricard India Private Limited">
+      </div>
+      <div class="field">
+        <label>Buyer Address</label>
+        <textarea id="f-inv-baddr">(LESSEE) At B.V.S. Distilleries Pvt. Ltd., Godavarru Village, Kankipadu Mandal, Krishna District - 521151, State - Andhra Pradesh</textarea>
+      </div>
+      <div class="field">
+        <label>Buyer GSTIN</label>
+        <input type="text" id="f-inv-bgst" value="37AAACS4781P1ZO">
+      </div>
+    </div>
+
+    <!-- BANK DETAILS -->
+    <div class="panel-section mode-section" id="fp-bank">
+      <div class="panel-title">Bank Details</div>
+      <div class="field">
+        <label>Account Name</label>
+        <input type="text" id="f-bank-aname" value="ARYA VYSYA PRESS">
+      </div>
+      <div class="field">
+        <label>Bank Name &amp; Branch</label>
+        <input type="text" id="f-bank-bname" value="ICICI BANK, KRISHNA NAGAR BRANCH, VIJAYAWADA">
+      </div>
+      <div class="field">
+        <label>Account No</label>
+        <input type="text" id="f-bank-ano" value="438005000506">
+      </div>
+      <div class="field">
+        <label>IFSC</label>
+        <input type="text" id="f-bank-ifsc" value="ICIC0004380">
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- â•â• RIGHT PREVIEW â•â• -->
+  <div class="preview-panel">
+    <div class="preview-controls">
+      <span class="preview-label">Live document preview - click any text to edit inline</span>
+      <button class="btn btn-gold btn-sm" data-export-btn="true" id="btn-export-preview" aria-label="Export PDF from preview">PDF</button>
+    </div>
+
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â• DOCUMENT SHEET â•â•â•â•â•â•â•â•â•â•â•â• -->
+    <div class="doc-sheet" id="doc-sheet">
+      <div class="doc-inner">
+
+        <!-- LETTERHEAD -->
+        <div class="lh">
+          <div class="lh-top">
+            <div class="lh-logo">
+              <img id="d-logo-img" alt="Company Logo" style="display:none;">
+              <div class="lh-logo-placeholder"><span>ARYA<br>VYSYA<br>PRESS</span></div>
+            </div>
+            <div class="lh-brand">
+              <span class="cursive" id="d-company" contenteditable="true">Arya Vysya Press</span>
+              <span class="tagline" id="d-tagline" contenteditable="true">Quality Printers &amp; Binders</span>
+              <span class="gstin"><strong>GSTIN : </strong><span id="d-gstin" contenteditable="true">37BCIPS4640H1ZB</span></span>
+            </div>
+          </div>
+          <div class="lh-address">
+            <strong># <span id="d-addr1" contenteditable="true">26-4-10, Krishnamurthy Road,</span> Near Gymkhana Club, <span id="d-addr2" contenteditable="true">VIJAYAWADA - 520 003.</span></strong><br>
+            CELL: <span id="d-cell" contenteditable="true">9515858993</span>, EMAIL: <span id="d-email" contenteditable="true">aryavysya1942@gmail.com</span>
+          </div>
+          <hr class="lh-divider">
+        </div>
+
+        <!-- â•â•â• QUOTATION CONTENT â•â•â• -->
+        <div class="doc-content mode-section visible" id="d-quotation">
+
+          <!-- To / Subject -->
+          <div class="q-to">
+            <span class="q-to-label">To :</span>
+            <span class="q-to-val">
+              <span id="d-q-to" contenteditable="true">Pernod Ricard India, Vijayawada</span>
+              &nbsp;|&nbsp; <span class="q-to-gst"><strong>GST IN:</strong><span id="d-q-cgst" contenteditable="true">37AAACS4781P1ZO</span></span>
+            </span>
+          </div>
+          <div class="q-subject">
+            <span class="q-subject-label">Subject:</span>
+            <span class="q-subject-val" id="d-q-subject" contenteditable="true">Final Quotation for FSSAI Manufacturing Poster requirements</span>
+          </div>
+
+          <!-- Dear Sir -->
+          <div class="q-dear">Dear Sir,</div>
+          <div class="q-body" id="d-q-body" contenteditable="true">Thank you for your enquiry. We are pleased to submit the final curated quotation, shared after successful completion of the delivery, as per the agreed scope and requirements.</div>
+
+          <!-- Items Table -->
+          <div class="items-wrap">
+            <table class="items-tbl" id="q-table">
+              <thead>
+                <tr>
+                  <th style="width:38px">S.No</th>
+                  <th>Description</th>
+                  <th style="width:56px">HSN</th>
+                  <th style="width:80px">UnitPrice</th>
+                  <th style="width:48px">Qty</th>
+                  <th style="width:72px">Sub Total</th>
+                  <th style="width:60px">Gst</th>
+                  <th style="width:72px">Total</th>
+                  <th style="width:24px"></th>
+                </tr>
+              </thead>
+              <tbody id="q-tbody"></tbody>
+            </table>
+            <div class="add-row-area">
+              <button class="add-row-btn" data-add-row="q">+ Add Line Item</button>
+            </div>
+          </div>
+
+          <!-- Grand Total -->
+          <div class="q-totals" style="margin-top:14px;">
+            <div class="q-grand">Grand Total (Including GST): <span id="q-grand-amt">Rs 0</span></div>
+            <div class="q-grand-words">Grand Total (Including Words): <span id="q-grand-words">Zero rupees only.</span></div>
+          </div>
+
+          <!-- Closing -->
+          <div class="q-closing" id="d-q-closing" contenteditable="true">Kindly proceed with initiating the Purchase Order (PO) process based on the attached quotation and arrange to raise the PO accordingly.</div>
+
+          <!-- Contact -->
+          <div class="q-contact">
+            <strong>For any queries regarding the quotation, please reach out to :</strong>
+            <span><strong>Name:</strong> <span id="d-q-cname" contenteditable="true">Sai Susheel Gupta Sanagapalli</span></span>
+            <span><strong>Contact No:</strong> <span id="d-q-cphone" contenteditable="true">+91 9515858993</span></span>
+            <span><strong>Mail:</strong> <span id="d-q-cmail" contenteditable="true">srujansgifting@gmail.com</span></span>
+          </div>
+        </div>
+
+        <!-- â•â•â• INVOICE CONTENT â•â•â• -->
+        <div class="doc-content mode-section" id="d-invoice">
+
+          <div class="inv-title">TAX INVOICE</div>
+
+          <!-- Parties grid -->
+          <div class="inv-parties">
+            <!-- LEFT: Consignee + Buyer -->
+            <div>
+              <div class="inv-party" style="border-bottom:1px solid #aaa;">
+                <div class="inv-party-label">Consignee (Ship to)</div>
+                <div class="inv-party-name" id="d-inv-cname" contenteditable="true">Pernod Ricard India Private Limited</div>
+                <div id="d-inv-caddr" contenteditable="true" style="font-size:0.72rem;line-height:1.6;">(LESSEE) At B.V.S. Distilleries Pvt. Ltd., Godavarru Village, Kankipadu Mandal, Krishna District - 521151, State - Andhra Pradesh,</div>
+                <div style="font-size:0.73rem;">GSTIN-<strong><span id="d-inv-cgst" contenteditable="true">37AAACS4781P1ZO</span></strong></div>
+              </div>
+              <div class="inv-party">
+                <div class="inv-party-label">Buyer (Bill to)</div>
+                <div class="inv-party-name" id="d-inv-bname" contenteditable="true">Pernod Ricard India Private Limited</div>
+                <div id="d-inv-baddr" contenteditable="true" style="font-size:0.72rem;line-height:1.6;">(LESSEE) At B.V.S. Distilleries Pvt. Ltd., Godavarru Village, Kankipadu Mandal, Krishna District - 521151, State - Andhra Pradesh,</div>
+                <div style="font-size:0.73rem;">GSTIN-<strong><span id="d-inv-bgst" contenteditable="true">37AAACS4781P1ZO</span></strong></div>
+              </div>
+            </div>
+            <!-- RIGHT: Invoice meta -->
+            <div class="inv-party-right">
+              <div class="inv-party-row">
+                <div class="inv-party-cell"><strong>Invoice No:</strong> <span id="d-inv-no" contenteditable="true">8</span></div>
+                <div class="inv-party-cell"><strong>Date:</strong> <span id="d-inv-date" contenteditable="true">21/04/2026</span></div>
+              </div>
+              <div class="inv-party-row">
+                <div class="inv-party-cell"><strong>Place of Supply:</strong><br><span id="d-inv-pos" contenteditable="true">Andhra Pradesh</span></div>
+                <div class="inv-party-cell"><strong>Terms of Payment:</strong><br><span id="d-inv-terms" contenteditable="true">30 Days</span></div>
+              </div>
+              <div class="inv-party-row">
+                <div class="inv-party-cell" style="grid-column:1/-1;"><strong>ReferenceNo. &amp; Date:</strong><br><span id="d-inv-ref" contenteditable="true">101BVS/H1/2513651/2026 | 10/04/2026</span></div>
+              </div>
+              <div class="inv-party-row" style="flex:1;">
+                <div class="inv-party-cell"><strong>Buyer's Order No:</strong><br><span id="d-inv-bon" contenteditable="true">101BVS/H1/2513651/2026</span></div>
+                <div class="inv-party-cell"><strong>Dated:</strong><br><span id="d-inv-bod" contenteditable="true">10/04/2026</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Invoice Items Table -->
+          <div class="items-wrap" style="margin-top:18px;">
+            <table class="items-tbl" id="i-table">
+              <thead>
+                <tr>
+                  <th style="width:38px">S.No</th>
+                  <th>Item Description</th>
+                  <th style="width:56px">HSN</th>
+                  <th style="width:80px">Unit Price</th>
+                  <th style="width:54px">Qty</th>
+                  <th style="width:72px">Sub Total</th>
+                  <th style="width:60px">GST</th>
+                  <th style="width:72px">Total</th>
+                  <th style="width:24px"></th>
+                </tr>
+              </thead>
+              <tbody id="i-tbody"></tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="4" class="bold" style="border:1px solid #bbb;padding:7px 8px;">Total</td>
+                  <td class="bold" style="border:1px solid #bbb;padding:7px 8px;"></td>
+                  <td class="bold right" style="border:1px solid #bbb;padding:7px 8px;" id="i-subtotal-total"></td>
+                  <td class="bold right" style="border:1px solid #bbb;padding:7px 8px;" id="i-gst-total"></td>
+                  <td class="bold right" style="border:1px solid #bbb;padding:7px 8px;" id="i-grand-total"></td>
+                  <td style="border:1px solid #bbb;"></td>
+                </tr>
+              </tfoot>
+            </table>
+            <div class="add-row-area">
+              <button class="add-row-btn" data-add-row="i">+ Add Line Item</button>
+            </div>
+          </div>
+
+          <!-- Amount in words -->
+          <div class="inv-totals-row">
+            <div class="inv-amount-words">
+              <strong>Amount Chargeable (in words):</strong>
+              <span id="i-words">Zero rupees only.</span>
+            </div>
+          </div>
+
+          <!-- Bank Details -->
+          <div class="inv-bank">
+            <div class="inv-bank-left">
+              <strong>Bank Details:</strong><br>
+              <strong>Account Name:</strong> <span id="d-bank-aname" contenteditable="true">ARYA VYSYA PRESS</span><br>
+              <strong>Bank Name:</strong> <span id="d-bank-bname" contenteditable="true">ICICI BANK, KRISHNA NAGAR BRANCH, VIJAYAWADA</span><br>
+              <strong>Account No:</strong> <span id="d-bank-ano" contenteditable="true">438005000506</span><br>
+              <strong>IFSC:</strong> <span id="d-bank-ifsc" contenteditable="true">ICIC0004380</span>
+            </div>
+            <div class="inv-bank-right">
+              <div class="inv-sig">
+                <br><br>
+                <strong>For Arya Vysya Press</strong>
+                Authorized Signatory
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /invoice content -->
+
+      </div><!-- /doc-inner -->
+    </div><!-- /doc-sheet -->
+
+  </div><!-- /preview-panel -->
+</div><!-- /app-body -->
+
+<div class="mobile-blocker">
+  <div class="mobile-blocker-card">
+    <div class="mobile-blocker-title">Desktop Only</div>
+    <div class="mobile-blocker-text">
+      This website is optimized for desktop use only. Please open it on a laptop or desktop browser for the correct layout and PDF export experience.
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="export-modal">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="export-modal-title">
+    <div class="modal-title" id="export-modal-title">Export Settings</div>
+    <div class="modal-sub">Choose your PDF output options. These settings are remembered for your next export.</div>
+
+    <div class="field">
+      <label>Paper Size</label>
+      <select id="export-paper">
+        <option value="A4">A4</option>
+        <option value="Letter">Letter</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Orientation</label>
+      <select id="export-orientation">
+        <option value="portrait">Portrait</option>
+        <option value="landscape">Landscape</option>
+      </select>
+    </div>
+
+    <label class="modal-check" for="export-auto-print">
+      <input type="checkbox" id="export-auto-print" checked>
+      Auto open print dialog after export window opens
+    </label>
+
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" id="btn-export-cancel">Cancel</button>
+      <button type="button" class="btn btn-gold" id="btn-export-confirm">Export</button>
+    </div>
+  </div>
+</div>
+
+<div class="export-spinner" id="export-spinner" aria-hidden="true">
+  <div class="export-spinner-box" role="status" aria-live="polite" aria-atomic="true">
+    <div class="export-spinner-icon" aria-hidden="true"></div>
+    <div class="export-spinner-text" id="export-spinner-text">Preparing export...</div>
+  </div>
+</div>
+
+<div class="toast" id="app-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// STATE
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+let mode = 'quotation';
+let qRows = [];
+let iRows = [];
+const APP_CONFIG = {
+  exportPrefsKey: 'avp_export_settings_v1',
+  stateKey: 'avp_document_state_v1',
+  maxLogoFileMB: 5,
+  saveDebounceMs: 300
+};
+const FORM_SYNC_MAP = {
+  'f-company': { to: 'd-company' },
+  'f-tagline': { to: 'd-tagline' },
+  'f-gstin': { to: 'd-gstin' },
+  'f-addr1': { to: 'd-addr1' },
+  'f-addr2': { to: 'd-addr2' },
+  'f-cell': { to: 'd-cell' },
+  'f-email': { to: 'd-email' },
+  'f-q-to': { to: 'd-q-to' },
+  'f-q-cgst': { to: 'd-q-cgst' },
+  'f-q-subject': { to: 'd-q-subject' },
+  'f-q-body': { to: 'd-q-body' },
+  'f-q-closing': { to: 'd-q-closing' },
+  'f-q-cname': { to: 'd-q-cname' },
+  'f-q-cphone': { to: 'd-q-cphone' },
+  'f-q-cmail': { to: 'd-q-cmail' },
+  'f-inv-no': { to: 'd-inv-no' },
+  'f-inv-date': { to: 'd-inv-date', date: true },
+  'f-inv-pos': { to: 'd-inv-pos' },
+  'f-inv-terms': { to: 'd-inv-terms' },
+  'f-inv-ref': { to: 'd-inv-ref' },
+  'f-inv-bon': { to: 'd-inv-bon' },
+  'f-inv-bod': { to: 'd-inv-bod', date: true },
+  'f-inv-cname': { to: 'd-inv-cname' },
+  'f-inv-caddr': { to: 'd-inv-caddr' },
+  'f-inv-cgst': { to: 'd-inv-cgst' },
+  'f-inv-bname': { to: 'd-inv-bname' },
+  'f-inv-baddr': { to: 'd-inv-baddr' },
+  'f-inv-bgst': { to: 'd-inv-bgst' },
+  'f-bank-aname': { to: 'd-bank-aname' },
+  'f-bank-bname': { to: 'd-bank-bname' },
+  'f-bank-ano': { to: 'd-bank-ano' },
+  'f-bank-ifsc': { to: 'd-bank-ifsc' }
+};
+let persistTimer = null;
+let rowIdCounter = 0;
+let defaultFormValues = {};
+let toastTimer = null;
+const UX_CONFIG = {
+  toastMs: {
+    success: 2400,
+    error: 4200
+  },
+  exportMinBusyMs: 550
+};
+
+function nextRowId() {
+  rowIdCounter += 1;
+  return `${Date.now()}_${rowIdCounter}`;
+}
+
+function normalizeRow(row) {
+  return {
+    id: row && row.id ? row.id : nextRowId(),
+    desc: String((row && row.desc) || ''),
+    hsn: String((row && row.hsn) || ''),
+    price: Number((row && row.price) || 0),
+    qty: Number((row && row.qty) || 0),
+    gstPct: Number((row && row.gstPct) || 18)
+  };
+}
+
+function queuePersist() {
+  if (persistTimer) clearTimeout(persistTimer);
+  persistTimer = setTimeout(persistAppState, APP_CONFIG.saveDebounceMs);
+}
+
+function persistAppState() {
+  const state = {
+    mode,
+    qRows,
+    iRows,
+    formValues: {},
+    logoSrc: document.getElementById('d-logo-img')?.getAttribute('src') || ''
+  };
+
+  document.querySelectorAll('.form-panel input, .form-panel textarea, .form-panel select').forEach(el => {
+    if (!el.id || el.type === 'file') return;
+    state.formValues[el.id] = el.value;
+  });
+
+  try {
+    localStorage.setItem(APP_CONFIG.stateKey, JSON.stringify(state));
+  } catch (e) {
+    // Ignore storage failures.
+  }
+}
+
+function restoreAppState() {
+  try {
+    const raw = localStorage.getItem(APP_CONFIG.stateKey);
+    if (!raw) return false;
+    const state = JSON.parse(raw);
+
+    qRows = Array.isArray(state.qRows) ? state.qRows.map(normalizeRow) : [];
+    iRows = Array.isArray(state.iRows) ? state.iRows.map(normalizeRow) : [];
+    mode = state.mode === 'invoice' ? 'invoice' : 'quotation';
+
+    if (state.formValues && typeof state.formValues === 'object') {
+      Object.keys(state.formValues).forEach(id => {
+        const el = document.getElementById(id);
+        if (!el || el.type === 'file') return;
+        el.value = state.formValues[id];
+      });
+
+      document.querySelectorAll('.form-panel input, .form-panel textarea, .form-panel select').forEach(el => {
+        if (el.type === 'file') return;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    }
+
+    if (state.logoSrc) {
+      const img = document.getElementById('d-logo-img');
+      const placeholder = document.querySelector('.lh-logo-placeholder');
+      if (img && placeholder) {
+        img.src = state.logoSrc;
+        img.style.display = 'block';
+        placeholder.style.display = 'none';
+      }
+    }
+
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function installEditableGuards() {
+  document.querySelectorAll('[contenteditable="true"]').forEach(el => {
+    el.setAttribute('role', 'textbox');
+    el.setAttribute('tabindex', '0');
+
+    el.addEventListener('paste', e => {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text');
+      insertPlainTextAtCursor(text);
+    });
+
+    el.addEventListener('drop', e => {
+      e.preventDefault();
+      const text = e.dataTransfer ? (e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('text')) : '';
+      insertPlainTextAtCursor(text);
+    });
+
+    el.addEventListener('input', () => {
+      sanitizeEditable(el);
+      queuePersist();
+    });
+
+    el.addEventListener('blur', () => {
+      sanitizeEditable(el);
+      queuePersist();
+    });
+
+    sanitizeEditable(el);
+  });
+}
+
+function insertPlainTextAtCursor(text) {
+  const safeText = String(text || '');
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  const range = sel.getRangeAt(0);
+  range.deleteContents();
+  const node = document.createTextNode(safeText);
+  range.insertNode(node);
+  range.setStartAfter(node);
+  range.setEndAfter(node);
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+function sanitizeEditable(el) {
+  if (!el) return;
+  const plain = (el.textContent || '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+  if (el.childElementCount > 0 || el.innerHTML !== plain) {
+    el.textContent = plain;
+  }
+}
+
+function showToast(message, type, timeoutMs) {
+  const toast = document.getElementById('app-toast');
+  if (!toast) return;
+  toast.textContent = message;
+  toast.classList.remove('success', 'error', 'show');
+  const resolvedType = type === 'error' ? 'error' : 'success';
+  const duration = typeof timeoutMs === 'number'
+    ? timeoutMs
+    : (resolvedType === 'error' ? UX_CONFIG.toastMs.error : UX_CONFIG.toastMs.success);
+
+  toast.classList.add(resolvedType);
+  toast.classList.add('show');
+
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, duration);
+}
+
+function setExportSpinner(isBusy, message) {
+  const spinner = document.getElementById('export-spinner');
+  const text = document.getElementById('export-spinner-text');
+  if (!spinner) return;
+  spinner.classList.toggle('show', !!isBusy);
+  spinner.setAttribute('aria-hidden', isBusy ? 'false' : 'true');
+  if (text && message) text.textContent = message;
+}
+
+function bindFormSyncEvents() {
+  Object.keys(FORM_SYNC_MAP).forEach(fromId => {
+    const config = FORM_SYNC_MAP[fromId];
+    const from = document.getElementById(fromId);
+    if (!from) return;
+    from.addEventListener('input', () => {
+      if (config.date) syncDate(fromId, config.to);
+      else sync(fromId, config.to);
+    });
+  });
+}
+
+function improveFormAccessibility() {
+  document.querySelectorAll('.field').forEach(field => {
+    const label = field.querySelector('label');
+    const control = field.querySelector('input, textarea, select');
+    if (!label || !control) return;
+    if (!label.getAttribute('for') && control.id) label.setAttribute('for', control.id);
+  });
+
+  const topExport = document.getElementById('btn-export-top');
+  const topReset = document.getElementById('btn-reset-top');
+  if (topExport) topExport.setAttribute('aria-label', 'Open export settings');
+  if (topReset) topReset.setAttribute('aria-label', 'Reset all document values');
+}
+
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// MODE SWITCH
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+function setMode(m, tabEl) {
+  mode = m;
+
+  const resolvedTab = tabEl || (m === 'invoice' ? document.querySelectorAll('.tab')[1] : document.querySelectorAll('.tab')[0]);
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.remove('active');
+    t.setAttribute('aria-selected', 'false');
+    t.setAttribute('tabindex', '-1');
+  });
+  if (resolvedTab) resolvedTab.classList.add('active');
+  if (resolvedTab) {
+    resolvedTab.setAttribute('aria-selected', 'true');
+    resolvedTab.setAttribute('tabindex', '0');
+  }
+
+  // Form panels
+  document.querySelectorAll('.mode-section').forEach(el => el.classList.remove('visible'));
+  document.querySelectorAll('#fp-quotation, #d-quotation').forEach(el => el.classList.remove('visible'));
+  document.querySelectorAll('#fp-invoice, #fp-bank, #d-invoice').forEach(el => el.classList.remove('visible'));
+
+  if (m === 'quotation') {
+    document.getElementById('fp-quotation').classList.add('visible');
+    document.getElementById('d-quotation').classList.add('visible');
+  } else {
+    document.getElementById('fp-invoice').classList.add('visible');
+    document.getElementById('fp-bank').classList.add('visible');
+    document.getElementById('d-invoice').classList.add('visible');
+  }
+
+  queuePersist();
+}
+
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// SYNC: sidebar input â†’ preview span
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+function sync(fromId, toId) {
+  const from = document.getElementById(fromId);
+  const to = document.getElementById(toId);
+  if (from && to) to.textContent = from.value;
+  queuePersist();
+}
+
+function syncDate(fromId, toId) {
+  const from = document.getElementById(fromId);
+  const to = document.getElementById(toId);
+  if (!from || !to) return;
+  const d = new Date(from.value);
+  if (!isNaN(d)) to.textContent = d.toLocaleDateString('en-IN', { day:'2-digit', month:'2-digit', year:'numeric' }).replace(/\//g, '/');
+  queuePersist();
+}
+
+function setExportBusy(isBusy) {
+  document.querySelectorAll('[data-export-btn="true"]').forEach(btn => {
+    if (!btn.dataset.label) btn.dataset.label = btn.textContent;
+    btn.disabled = isBusy;
+    btn.textContent = isBusy ? 'Preparing PDF...' : btn.dataset.label;
+    btn.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+  });
+
+  setExportSpinner(isBusy, isBusy ? 'Preparing your PDF document...' : 'Preparing your PDF document...');
+}
+
+function getExportSettings() {
+  const defaults = { paper: 'A4', orientation: 'portrait', autoPrint: true };
+  try {
+    const raw = localStorage.getItem(APP_CONFIG.exportPrefsKey);
+    if (!raw) return defaults;
+    const parsed = JSON.parse(raw);
+    const paper = parsed.paper === 'Letter' ? 'Letter' : 'A4';
+    const orientation = parsed.orientation === 'landscape' ? 'landscape' : 'portrait';
+    const autoPrint = parsed.autoPrint !== false;
+    return { paper, orientation, autoPrint };
+  } catch (e) {
+    return defaults;
+  }
+}
+
+function saveExportSettings(settings) {
+  try {
+    localStorage.setItem(APP_CONFIG.exportPrefsKey, JSON.stringify(settings));
+  } catch (e) {
+    // Ignore storage failures.
+  }
+}
+
+function resetToDefaults() {
+  if (!confirm('This will clear all current edits and restore defaults. Continue?')) return;
+
+  qRows = [];
+  iRows = [];
+
+  Object.keys(defaultFormValues).forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || el.type === 'file') return;
+    el.value = defaultFormValues[id];
+  });
+
+  clearLogo();
+
+  document.querySelectorAll('.form-panel input, .form-panel textarea, .form-panel select').forEach(el => {
+    if (el.type === 'file') return;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+
+  const qSeed = [
+    { desc:'Foam Board (5mm) - 24/36', hsn:'', price:900, qty:5, gstPct:18 },
+    { desc:'Adhesive Tape -1 Inch', hsn:'4820', price:335, qty:4, gstPct:18 },
+    { desc:'Foam Board (5mm) - 12/18', hsn:'', price:230, qty:10, gstPct:18 },
+  ];
+  qSeed.forEach(s => qRows.push({ id: nextRowId(), ...s }));
+
+  const iSeed = [
+    { desc:'Tshirts (S,M,L)', hsn:'4820', price:600, qty:15, gstPct:18 },
+    { desc:'Tshirts (XL,XXL)', hsn:'4820', price:650, qty:2, gstPct:18 },
+    { desc:'Posters (4/6)', hsn:'', price:850, qty:2, gstPct:18 },
+    { desc:'Goodies', hsn:'', price:293.38, qty:18, gstPct:18 },
+  ];
+  iSeed.forEach(s => iRows.push({ id: nextRowId(), ...s }));
+
+  renderRows('q');
+  renderRows('i');
+  setMode('quotation');
+
+  try {
+    localStorage.removeItem(APP_CONFIG.stateKey);
+  } catch (e) {
+    // Ignore storage failures.
+  }
+
+  queuePersist();
+  showToast('Defaults restored.', 'success');
+}
+
+function bindStaticEvents() {
+  bindFormSyncEvents();
+  bindRowTableEvents();
+
+  document.querySelectorAll('.tab[data-mode]').forEach(tab => {
+    tab.addEventListener('click', () => setMode(tab.dataset.mode, tab));
+    tab.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const tabs = Array.from(document.querySelectorAll('.tab[data-mode]'));
+      const idx = tabs.indexOf(tab);
+      const nextIdx = e.key === 'ArrowRight' ? (idx + 1) % tabs.length : (idx - 1 + tabs.length) % tabs.length;
+      const nextTab = tabs[nextIdx];
+      if (!nextTab) return;
+      nextTab.focus();
+      setMode(nextTab.dataset.mode, nextTab);
+    });
+  });
+
+  document.querySelectorAll('[data-export-btn="true"]').forEach(btn => {
+    btn.addEventListener('click', openExportDialog);
+  });
+
+  const resetTop = document.getElementById('btn-reset-top');
+  if (resetTop) resetTop.addEventListener('click', resetToDefaults);
+
+  document.querySelectorAll('[data-add-row]').forEach(btn => {
+    btn.addEventListener('click', () => addRow(btn.dataset.addRow));
+  });
+
+  const logoInput = document.getElementById('f-logo');
+  if (logoInput) logoInput.addEventListener('change', () => uploadLogo(logoInput));
+
+  const clearLogoBtn = document.getElementById('btn-clear-logo');
+  if (clearLogoBtn) clearLogoBtn.addEventListener('click', clearLogo);
+
+  const modal = document.getElementById('export-modal');
+  if (modal) {
+    modal.addEventListener('click', e => {
+      if (e.target === modal) closeExportDialog();
+    });
+  }
+
+  const cancel = document.getElementById('btn-export-cancel');
+  if (cancel) cancel.addEventListener('click', closeExportDialog);
+
+  const confirm = document.getElementById('btn-export-confirm');
+  if (confirm) confirm.addEventListener('click', confirmExport);
+
+  window.addEventListener('beforeunload', persistAppState);
+}
+
+function openExportDialog() {
+  const modal = document.getElementById('export-modal');
+  if (!modal) return;
+  const settings = getExportSettings();
+  const paper = document.getElementById('export-paper');
+  const orientation = document.getElementById('export-orientation');
+  const autoPrint = document.getElementById('export-auto-print');
+  if (paper) paper.value = settings.paper;
+  if (orientation) orientation.value = settings.orientation;
+  if (autoPrint) autoPrint.checked = !!settings.autoPrint;
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (paper) paper.focus();
+}
+
+function closeExportDialog() {
+  const modal = document.getElementById('export-modal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function confirmExport() {
+  const settings = {
+    paper: document.getElementById('export-paper')?.value === 'Letter' ? 'Letter' : 'A4',
+    orientation: document.getElementById('export-orientation')?.value === 'landscape' ? 'landscape' : 'portrait',
+    autoPrint: !!document.getElementById('export-auto-print')?.checked
+  };
+  saveExportSettings(settings);
+  closeExportDialog();
+  savePDF(settings);
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeExportDialog();
+});
+
+function uploadLogo(fileInput) {
+  const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+  if (!file) return;
+
+  if (!file.type || !file.type.startsWith('image/')) {
+    showToast('Please select a valid image file.', 'error');
+    fileInput.value = '';
+    return;
+  }
+
+  if (file.size > APP_CONFIG.maxLogoFileMB * 1024 * 1024) {
+    showToast(`Logo size should be under ${APP_CONFIG.maxLogoFileMB} MB.`, 'error');
+    fileInput.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = document.getElementById('d-logo-img');
+    const placeholder = document.querySelector('.lh-logo-placeholder');
+    if (!img || !placeholder) return;
+    img.src = e.target.result;
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+    queuePersist();
+  };
+  reader.onerror = function() {
+    showToast('Unable to load the selected image. Please try another file.', 'error');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearLogo() {
+  const fileInput = document.getElementById('f-logo');
+  const img = document.getElementById('d-logo-img');
+  const placeholder = document.querySelector('.lh-logo-placeholder');
+  if (fileInput) fileInput.value = '';
+  if (img) {
+    img.removeAttribute('src');
+    img.style.display = 'none';
+  }
+  if (placeholder) placeholder.style.display = 'flex';
+  queuePersist();
+}
+
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// LINE ITEMS
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+function addRow(tbl) {
+  const id = nextRowId();
+  const row = { id, desc:'', hsn:'', price:0, qty:1, gstPct:18 };
+  if (tbl === 'q') { qRows.push(row); renderRows('q'); }
+  else             { iRows.push(row); renderRows('i'); }
+  queuePersist();
+}
+
+function removeRow(tbl, id) {
+  if (tbl === 'q') qRows = qRows.filter(r => r.id !== id);
+  else             iRows = iRows.filter(r => r.id !== id);
+  renderRows(tbl);
+  queuePersist();
+}
+
+function bindRowTableEvents() {
+  ['q', 'i'].forEach(tbl => {
+    const tbody = document.getElementById(`${tbl}-tbody`);
+    if (!tbody) return;
+
+    tbody.addEventListener('input', e => {
+      const target = e.target;
+      if (!(target instanceof HTMLInputElement)) return;
+      const rowId = target.dataset.rowId;
+      const field = target.dataset.field;
+      if (!rowId || !field) return;
+      updateRowField(tbl, rowId, field, target.value);
+    });
+
+    tbody.addEventListener('click', e => {
+      const btn = e.target.closest('.rm-btn');
+      if (!btn) return;
+      const rowId = btn.dataset.rowId;
+      if (!rowId) return;
+      removeRow(tbl, rowId);
+    });
+  });
+}
+
+function updateRowField(tbl, id, field, val) {
+  const rows = tbl === 'q' ? qRows : iRows;
+  const row = rows.find(r => r.id === id);
+  if (!row) return;
+  row[field] = (field === 'desc' || field === 'hsn') ? val : (parseFloat(val) || 0);
+  updateRowCalc(tbl, id);
+  updateTotals(tbl);
+  queuePersist();
+}
+
+function updateRowCalc(tbl, id) {
+  const rows = tbl === 'q' ? qRows : iRows;
+  const row = rows.find(r => r.id === id);
+  if (!row) return;
+  const sub = row.price * row.qty;
+  const gst = sub * (row.gstPct / 100);
+  const total = sub + gst;
+  const prefix = tbl + '-row-';
+  setText(prefix + id + '-sub', fmt(sub));
+  setText(prefix + id + '-gst', fmt(gst));
+  setText(prefix + id + '-total', fmt(total));
+}
+
+function renderRows(tbl) {
+  const rows = tbl === 'q' ? qRows : iRows;
+  const tbody = document.getElementById(tbl + '-tbody');
+  const labels = tbl === 'q'
+    ? ['S.No', 'Description', 'HSN', 'Unit Price', 'Qty', 'Sub Total', 'GST', 'Total', 'Action']
+    : ['S.No', 'Item Description', 'HSN', 'Unit Price', 'Qty', 'Sub Total', 'GST', 'Total', 'Action'];
+  tbody.innerHTML = '';
+  rows.forEach((row, idx) => {
+    const sub = row.price * row.qty;
+    const gst = sub * (row.gstPct / 100);
+    const total = sub + gst;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="center" data-label="${labels[0]}">${idx + 1}</td>
+      <td data-label="${labels[1]}"><input value="${escapeHtml(row.desc)}" placeholder="Description" data-row-id="${row.id}" data-field="desc" aria-label="Description row ${idx + 1}"></td>
+      <td data-label="${labels[2]}"><input value="${escapeHtml(row.hsn)}" placeholder="HSN" style="width:50px;" data-row-id="${row.id}" data-field="hsn" aria-label="HSN row ${idx + 1}"></td>
+      <td data-label="${labels[3]}"><input type="number" value="${row.price || ''}" placeholder="0.00" step="0.01" style="width:70px;" data-row-id="${row.id}" data-field="price" aria-label="Unit price row ${idx + 1}"></td>
+      <td data-label="${labels[4]}"><input type="number" value="${row.qty}" placeholder="1" step="0.01" style="width:42px;" data-row-id="${row.id}" data-field="qty" aria-label="Quantity row ${idx + 1}"></td>
+      <td class="right" data-label="${labels[5]}" id="${tbl}-row-${row.id}-sub">${fmt(sub)}</td>
+      <td class="right" data-label="${labels[6]}" id="${tbl}-row-${row.id}-gst">${fmt(gst)}</td>
+      <td class="right bold" data-label="${labels[7]}" id="${tbl}-row-${row.id}-total">${fmt(total)}</td>
+      <td data-label="${labels[8]}"><button class="rm-btn" type="button" data-row-id="${row.id}" aria-label="Remove row ${idx + 1}">x</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  updateTotals(tbl);
+}
+
+function updateTotals(tbl) {
+  const rows = tbl === 'q' ? qRows : iRows;
+  let subTotal = 0, gstTotal = 0, grandTotal = 0;
+  rows.forEach(row => {
+    const sub = row.price * row.qty;
+    const gst = sub * (row.gstPct / 100);
+    subTotal += sub;
+    gstTotal += gst;
+    grandTotal += sub + gst;
+  });
+
+  if (tbl === 'q') {
+    setText('q-grand-amt', 'Rs ' + fmtIN(grandTotal));
+    setText('q-grand-words', toWords(Math.round(grandTotal)));
+  } else {
+    setText('i-subtotal-total', fmt(subTotal));
+    setText('i-gst-total', fmt(gstTotal));
+    setText('i-grand-total', fmt(grandTotal));
+    setText('i-words', toWords(Math.round(grandTotal)));
+  }
+}
+
+function fmt(n) { return 'Rs ' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function fmtIN(n) { return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// NUMBER TO WORDS (Indian system)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+function toWords(n) {
+  if (n === 0) return 'Zero rupees only.';
+  const ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine',
+    'Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+  const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+  function belowHundred(n) {
+    if (n < 20) return ones[n];
+    return tens[Math.floor(n/10)] + (n%10 ? ' ' + ones[n%10] : '');
+  }
+  function belowThousand(n) {
+    if (n < 100) return belowHundred(n);
+    return ones[Math.floor(n/100)] + ' Hundred' + (n%100 ? ' ' + belowHundred(n%100) : '');
+  }
+  let result = '';
+  const cr = Math.floor(n / 10000000); n %= 10000000;
+  const lakh = Math.floor(n / 100000); n %= 100000;
+  const thou = Math.floor(n / 1000); n %= 1000;
+  const rest = n;
+  if (cr) result += belowThousand(cr) + ' Crore ';
+  if (lakh) result += belowThousand(lakh) + ' Lakh ';
+  if (thou) result += belowThousand(thou) + ' Thousand ';
+  if (rest) result += belowThousand(rest);
+  return result.trim() + ' rupees only.';
+}
+
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// PDF SAVE â€” exports ONLY the active tab section
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+function savePDF(options) {
+  const exportStartedAt = Date.now();
+  const finishExportBusy = () => {
+    const elapsed = Date.now() - exportStartedAt;
+    const delay = Math.max(0, UX_CONFIG.exportMinBusyMs - elapsed);
+    setTimeout(() => setExportBusy(false), delay);
+  };
+
+  setExportBusy(true);
+  const settings = options || getExportSettings();
+
+  try {
+    const activeContent = document.querySelector('.doc-content.mode-section.visible');
+    const sourceSheet = document.getElementById('doc-sheet');
+    const letterhead = sourceSheet ? sourceSheet.querySelector('.lh') : null;
+    if (!activeContent || !sourceSheet || !letterhead) {
+      showToast('Unable to prepare PDF. Please refresh and try again.', 'error');
+      finishExportBusy();
+      return;
+    }
+
+    const isQuote = activeContent.id === 'd-quotation';
+    const docLabel = isQuote ? 'Quotation' : 'Invoice';
+    const pageSpec = `${settings.paper} ${settings.orientation}`;
+
+    const exportSheet = document.createElement('div');
+    exportSheet.className = 'doc-sheet';
+
+    const exportInner = document.createElement('div');
+    exportInner.className = 'doc-inner';
+    exportInner.appendChild(letterhead.cloneNode(true));
+
+    const activeClone = activeContent.cloneNode(true);
+    activeClone.classList.remove('mode-section');
+    activeClone.classList.add('visible');
+    exportInner.appendChild(activeClone);
+    exportSheet.appendChild(exportInner);
+
+    exportSheet.querySelectorAll('.add-row-btn, .rm-btn, .add-row-area, .edit-hint').forEach(el => el.remove());
+    exportSheet.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+    exportSheet.querySelectorAll('td input').forEach(inp => {
+      const span = document.createElement('span');
+      span.textContent = inp.value;
+      inp.replaceWith(span);
+    });
+
+    const styleTags = Array.from(document.querySelectorAll('style')).map(tag => tag.outerHTML).join('\n');
+    const stylesheetLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map(link => link.outerHTML).join('\n');
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Arya Vysya Press - ${docLabel}</title>
+  ${stylesheetLinks}
+  ${styleTags}
+  <style>
+    body {
+      margin: 0;
+      background: #f0f0f0;
+      font-family: 'Inter', sans-serif;
+      color: #1a1a1a;
+    }
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
+    .export-wrap {
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+    }
+    .export-wrap .doc-sheet {
+      width: 780px;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    .export-wrap .doc-sheet::before { width: 22px !important; }
+    .export-wrap .doc-inner { margin-left: 22px !important; }
+    .export-wrap .lh { padding: 18px 28px 12px 22px !important; }
+    .export-wrap .doc-content { padding: 14px 28px 28px 22px !important; }
+    .export-wrap .lh-top {
+      flex-direction: row !important;
+      align-items: flex-start !important;
+      justify-content: space-between !important;
+      gap: 0 !important;
+    }
+    .export-wrap .lh-brand { text-align: right !important; }
+    .export-wrap .lh-brand .cursive { font-size: 2.4rem !important; }
+    .export-wrap .inv-parties {
+      grid-template-columns: 1fr 1fr !important;
+      column-gap: 12px !important;
+    }
+    .export-wrap .inv-bank { grid-template-columns: 1fr 1fr !important; }
+    .export-wrap .inv-bank-left {
+      border-right: 1px solid #bbb !important;
+      border-bottom: none !important;
+    }
+    .export-wrap .items-wrap { overflow-x: visible !important; }
+    .export-wrap .items-tbl { min-width: 0 !important; }
+    @media print {
+      .no-print { display: none !important; }
+      body { margin: 0; background: white; }
+      .export-wrap {
+        display: block;
+        padding: 0;
+      }
+      .doc-sheet {
+        width: 780px !important;
+        max-width: 780px !important;
+        min-width: 780px !important;
+        box-shadow: none;
+        margin: 0 auto !important;
+      }
+    }
+    @page {
+      size: ${pageSpec};
+      margin: 0;
+    }
+
+    .no-print {
+      background: #1a1a1a;
+      color: white;
+      padding: 11px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .no-print button {
+      background: #F5A800;
+      border: none;
+      color: #1a1a1a;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 8px 20px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="no-print">
+    <span>Arya Vysya Press - ${docLabel} | Review once and click Save as PDF</span>
+    <button id="print-btn" type="button">Save as PDF (Ctrl+P)</button>
+  </div>
+
+  <div class="export-wrap">
+    ${exportSheet.outerHTML}
+  </div>
+
+  <script>
+    const printButton = document.getElementById('print-btn');
+    if (printButton) {
+      printButton.addEventListener('click', function() {
+        window.print();
+      });
+    }
+    window.onload = function() {
+      ${settings.autoPrint ? 'setTimeout(function(){ window.print(); }, 500);' : ''}
+    };
+  <\/script>
+</body>
+</html>`;
+
+    const existingFrame = document.getElementById('pdf-print-frame');
+    if (existingFrame) existingFrame.remove();
+
+    const frame = document.createElement('iframe');
+    frame.id = 'pdf-print-frame';
+    frame.style.position = 'fixed';
+    frame.style.right = '0';
+    frame.style.bottom = '0';
+    frame.style.width = '0';
+    frame.style.height = '0';
+    frame.style.border = '0';
+    frame.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(frame);
+
+    const cleanupFrame = () => {
+      setTimeout(() => {
+        const currentFrame = document.getElementById('pdf-print-frame');
+        if (currentFrame) currentFrame.remove();
+      }, 1000);
+    };
+
+    frame.onload = function() {
+      setExportSpinner(true, 'Opening print preview...');
+      finishExportBusy();
+      const printWindow = frame.contentWindow;
+
+      if (!printWindow) {
+        showToast('Export failed. Please try again.', 'error');
+        cleanupFrame();
+        return;
+      }
+
+      showToast('PDF export is ready. Use the print dialog to save.', 'success');
+
+      if (!settings.autoPrint) return;
+
+      printWindow.onafterprint = cleanupFrame;
+      setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+      }, 500);
+    };
+
+    const frameDoc = frame.contentWindow ? frame.contentWindow.document : frame.contentDocument;
+    if (!frameDoc) {
+      showToast('Export failed. Please try again.', 'error');
+      finishExportBusy();
+      cleanupFrame();
+      return;
+    }
+
+    frameDoc.open();
+    frameDoc.write(html);
+    frameDoc.close();
+  } catch (err) {
+    showToast('Export failed. Please try again.', 'error');
+    finishExportBusy();
+  }
+}
+
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// INIT â€” seed sample rows
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+(function init() {
+  bindStaticEvents();
+  improveFormAccessibility();
+  installEditableGuards();
+
+  // Snapshot initial defaults for reset operation.
+  document.querySelectorAll('.form-panel input, .form-panel textarea, .form-panel select').forEach(el => {
+    if (el.id && el.type !== 'file') defaultFormValues[el.id] = el.value;
+  });
+
+  const restored = restoreAppState();
+
+  // Set today's date
+  const today = new Date().toISOString().split('T')[0];
+  const invDateEl = document.getElementById('f-inv-date');
+  if (invDateEl && !invDateEl.value) invDateEl.value = today;
+
+  if (!restored) {
+    // Seed quotation rows
+    const qSeed = [
+      { desc:'Foam Board (5mm) - 24/36', hsn:'', price:900, qty:5, gstPct:18 },
+      { desc:'Adhesive Tape -1 Inch', hsn:'4820', price:335, qty:4, gstPct:18 },
+      { desc:'Foam Board (5mm) - 12/18', hsn:'', price:230, qty:10, gstPct:18 },
+    ];
+    qSeed.forEach(s => { const r = { id: nextRowId(), ...s }; qRows.push(r); });
+
+    // Seed invoice rows
+    const iSeed = [
+      { desc:'Tshirts (S,M,L)', hsn:'4820', price:600, qty:15, gstPct:18 },
+      { desc:'Tshirts (XL,XXL)', hsn:'4820', price:650, qty:2, gstPct:18 },
+      { desc:'Posters (4/6)', hsn:'', price:850, qty:2, gstPct:18 },
+      { desc:'Goodies', hsn:'', price:293.38, qty:18, gstPct:18 },
+    ];
+    iSeed.forEach(s => { const r = { id: nextRowId(), ...s }; iRows.push(r); });
+  }
+
+  renderRows('q');
+  renderRows('i');
+
+  setMode(mode);
+  queuePersist();
+})();
+</script>
+</body>
+</html>
+
