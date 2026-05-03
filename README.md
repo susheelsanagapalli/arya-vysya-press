@@ -1,1 +1,0 @@
-# arya-vysya-press
