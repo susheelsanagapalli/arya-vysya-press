@@ -5,10 +5,11 @@ export const APP_KEYS = {
 };
 
 export const DEFAULT_GOOGLE_CONFIG = {
-  clientId: '',
-  appsScriptUrl: '',
+  clientId: '908002559329-fqjvqhbn8ktc7s6sif7te1s98eabbrqg.apps.googleusercontent.com',
+  appsScriptUrl: 'https://script.google.com/macros/s/AKfycby7S5PKZ14rlsPsKDESUX1WKfeTzxro6HBfSHiQlHL-TRY4lvDtqf2H6vrMBX8fcUUt/exec',
   spreadsheetId: '',
-  driveRootId: ''
+  driveRootId: '',
+  autoCreateRoot: true
 };
 
 export const REQUIRED_SHEETS = [

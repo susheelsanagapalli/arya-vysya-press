@@ -6,7 +6,18 @@ import { GoogleDriveService } from './googleDriveService.js';
 
 export class GoogleIntegrationService {
   constructor() {
-    this.config = { ...DEFAULT_GOOGLE_CONFIG, ...(readJson(APP_KEYS.googleConfig, {}) || {}) };
+    const saved = readJson(APP_KEYS.googleConfig, {}) || {};
+    this.config = { ...DEFAULT_GOOGLE_CONFIG };
+    Object.keys(DEFAULT_GOOGLE_CONFIG).forEach(key => {
+      const value = saved[key];
+      if (typeof DEFAULT_GOOGLE_CONFIG[key] === 'boolean') {
+        this.config[key] = typeof value === 'boolean' ? value : DEFAULT_GOOGLE_CONFIG[key];
+      } else {
+        this.config[key] = (value === undefined || value === null || String(value).trim() === '')
+          ? DEFAULT_GOOGLE_CONFIG[key]
+          : value;
+      }
+    });
     this.sheets = new GoogleSheetsService(this.post.bind(this));
     this.drive = new GoogleDriveService(this.post.bind(this));
   }
@@ -59,7 +70,7 @@ export class GoogleIntegrationService {
     });
 
     const drive = await this.drive.initializeDriveStructure({
-      rootFolderId: this.config.driveRootId || '',
+      rootFolderId: this.config.autoCreateRoot ? '' : (this.config.driveRootId || ''),
       rootFolderName: 'Arya Vysya Press'
     });
 

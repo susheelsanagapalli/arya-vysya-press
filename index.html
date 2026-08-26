@@ -1274,6 +1274,13 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
             <label for="s-drive-root-id">Drive Root Folder ID</label>
             <input id="s-drive-root-id" type="text" placeholder="Folder ID (optional if auto-create)">
           </div>
+          <div class="field">
+            <label for="s-auto-create-root">Google Drive Root</label>
+            <select id="s-auto-create-root">
+              <option value="true">Automatically create</option>
+              <option value="false">Use existing folder ID</option>
+            </select>
+          </div>
         </div>
 
         <div class="settings-actions">
@@ -2421,11 +2428,13 @@ function hydrateGoogleConfigToUi() {
   const urlEl = document.getElementById('s-google-apps-script-url');
   const sheetEl = document.getElementById('s-business-sheet-id');
   const rootEl = document.getElementById('s-drive-root-id');
+  const autoRootEl = document.getElementById('s-auto-create-root');
 
   if (idEl) idEl.value = cfg.clientId || '';
   if (urlEl) urlEl.value = cfg.appsScriptUrl || '';
   if (sheetEl) sheetEl.value = cfg.spreadsheetId || '';
   if (rootEl) rootEl.value = cfg.driveRootId || '';
+  if (autoRootEl) autoRootEl.value = cfg.autoCreateRoot === false ? 'false' : 'true';
 }
 
 function collectGoogleConfigFromUi() {
@@ -2433,7 +2442,8 @@ function collectGoogleConfigFromUi() {
     clientId: document.getElementById('s-google-client-id')?.value?.trim() || '',
     appsScriptUrl: document.getElementById('s-google-apps-script-url')?.value?.trim() || '',
     spreadsheetId: document.getElementById('s-business-sheet-id')?.value?.trim() || '',
-    driveRootId: document.getElementById('s-drive-root-id')?.value?.trim() || ''
+    driveRootId: document.getElementById('s-drive-root-id')?.value?.trim() || '',
+    autoCreateRoot: document.getElementById('s-auto-create-root')?.value !== 'false'
   };
 }
 
