@@ -70,7 +70,7 @@ export class GoogleIntegrationService {
     });
 
     const drive = await this.drive.initializeDriveStructure({
-      rootFolderId: this.config.autoCreateRoot ? '' : (this.config.driveRootId || ''),
+      rootFolderId: this.config.driveRootId || '',
       rootFolderName: 'Arya Vysya Press'
     });
 
