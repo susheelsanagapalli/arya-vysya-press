@@ -585,6 +585,313 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 .mode-section-inline { display: none; }
 .mode-section-inline.visible { display: contents; }
 
+/* MANAGEMENT SHELL */
+.mgmt-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+.mgmt-sidebar {
+  background: #111;
+  color: #fff;
+  border-right: 1px solid #272727;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.mgmt-brand {
+  padding: 18px 16px;
+  border-bottom: 1px solid #232323;
+}
+
+.mgmt-brand-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+}
+
+.mgmt-brand-sub {
+  margin-top: 4px;
+  font-size: 0.68rem;
+  color: #bdbdbd;
+}
+
+.mgmt-nav {
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.mgmt-nav-btn {
+  border: 1px solid transparent;
+  color: #efefef;
+  background: transparent;
+  text-align: left;
+  width: 100%;
+  border-radius: 8px;
+  padding: 10px 11px;
+  font-size: 0.78rem;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+}
+
+.mgmt-nav-btn:hover { background: rgba(245, 168, 0, 0.08); }
+.mgmt-nav-btn.active {
+  background: rgba(245, 168, 0, 0.15);
+  border-color: rgba(245, 168, 0, 0.35);
+  color: #fff;
+}
+
+.mgmt-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mgmt-header {
+  padding: 14px 18px;
+  background: #fff;
+  border-bottom: 1px solid #e6e6e6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 220;
+}
+
+.mgmt-menu-btn {
+  display: none;
+}
+
+.mgmt-header-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+
+.mgmt-header-sub {
+  margin-top: 2px;
+  font-size: 0.72rem;
+  color: #666;
+}
+
+.mgmt-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.integration-chip {
+  background: #f3f8f3;
+  color: #1a5d2f;
+  border: 1px solid #cde8d3;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.mgmt-view {
+  display: none;
+  padding: 16px;
+}
+
+.mgmt-view.visible { display: block; }
+
+.view-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.view-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+}
+
+.view-sub {
+  margin-top: 3px;
+  font-size: 0.72rem;
+  color: #666;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.kpi-card {
+  background: #fff;
+  border: 1px solid #e7e7e7;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.kpi-label {
+  font-size: 0.68rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.kpi-value {
+  margin-top: 6px;
+  font-size: 1.06rem;
+  font-weight: 700;
+}
+
+.register-card {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.register-toolbar {
+  padding: 10px;
+  border-bottom: 1px solid #ececec;
+  background: #fcfcfc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  width: min(330px, 100%);
+  padding: 8px 10px;
+  border: 1px solid #d8d8d8;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  background: #fff;
+}
+
+.register-table-wrap {
+  overflow: auto;
+  max-height: 420px;
+}
+
+.register-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.74rem;
+}
+
+.register-table th,
+.register-table td {
+  border-bottom: 1px solid #ededed;
+  padding: 8px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.register-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #fafafa;
+  font-size: 0.69rem;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+}
+
+.badge-converted,
+.badge-paid { background: #edf9f0; color: #1f6e39; border-color: #cfe9d7; }
+.badge-partially-paid,
+.badge-issued,
+.badge-sent { background: #fff8e6; color: #8a6200; border-color: #f2d580; }
+.badge-unpaid,
+.badge-draft { background: #eef3ff; color: #254b9f; border-color: #cad8ff; }
+.badge-overdue,
+.badge-rejected,
+.badge-cancelled { background: #ffecec; color: #8f2525; border-color: #efb8b8; }
+
+.muted-note {
+  font-size: 0.72rem;
+  color: #666;
+  line-height: 1.6;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.settings-grid .field {
+  margin-bottom: 0;
+}
+
+.status-line {
+  margin-top: 10px;
+  font-size: 0.72rem;
+  color: #333;
+}
+
+.status-line strong {
+  color: #111;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid #d8d8d8;
+  background: #f7f7f7;
+  color: #444;
+  padding: 3px 8px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+
+.settings-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.section-gap { margin-top: 12px; }
+.right-text { text-align: right; }
+
+.builder-shell {
+  background: #f4f4f4;
+  border: 1px solid #e4e4e4;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.builder-shell .topnav { position: sticky; top: 0; z-index: 205; }
+
+.builder-shell .form-panel { top: 98px; }
+
 /* â•â• PRINT â•â• */
 @media print {
   .topnav, .tab-bar, .form-panel, .preview-controls, .add-row-btn, .rm-btn, .add-row-area, .edit-hint { display: none !important; }
@@ -601,24 +908,400 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 }
 
 @media (max-width: 992px) {
-  .topnav,
-  .tab-bar,
-  .app-body,
-  .modal-backdrop {
+  body {
+    overflow-x: hidden;
+  }
+
+  .mgmt-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .mgmt-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: min(84vw, 280px);
+    z-index: 300;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+  }
+
+  .mgmt-shell.nav-open .mgmt-sidebar {
+    transform: translateX(0);
+  }
+
+  .mgmt-main {
+    width: 100%;
+  }
+
+  .mgmt-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+  }
+
+  .mgmt-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .builder-shell .app-body {
+    display: block;
+  }
+
+  .builder-shell .form-panel,
+  .builder-shell .preview-panel {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    position: static;
+    height: auto;
+  }
+
+  .builder-shell .preview-panel {
+    padding: 14px;
+  }
+
+  .builder-shell .doc-sheet {
+    width: 100%;
+    min-height: 0;
+  }
+
+  .builder-shell .tab-bar {
+    overflow-x: auto;
+  }
+
+  .builder-shell .topnav {
+    position: static;
+  }
+
+  .mobile-blocker {
     display: none !important;
   }
-  .mobile-blocker {
-    display: flex;
+}
+
+@media (max-width: 680px) {
+  .mgmt-header {
+    padding: 10px 12px;
+  }
+
+  .mgmt-view {
+    padding: 10px;
+  }
+
+  .topnav {
+    padding: 10px 12px;
+  }
+
+  .topnav-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .preview-label {
+    min-width: 0;
+  }
+
+  .register-table th,
+  .register-table td {
+    padding: 7px 6px;
+  }
+}
+
+@media (max-width: 1320px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>
 </head>
 <body>
 
+<div class="mgmt-shell" id="mgmt-shell">
+  <aside class="mgmt-sidebar" aria-label="Main navigation">
+    <div class="mgmt-brand">
+      <div class="mgmt-brand-title">ARYA VYSYA PRESS</div>
+      <div class="mgmt-brand-sub">Document Management</div>
+    </div>
+    <div class="mgmt-nav" role="tablist" aria-label="Application sections">
+      <button class="mgmt-nav-btn active" data-view-target="dashboard">Dashboard</button>
+      <button class="mgmt-nav-btn" data-view-target="customers">Customers</button>
+      <button class="mgmt-nav-btn" data-view-target="quotations">Quotations</button>
+      <button class="mgmt-nav-btn" data-view-target="invoices">Invoices</button>
+      <button class="mgmt-nav-btn" data-view-target="payments">Payments</button>
+      <button class="mgmt-nav-btn" data-view-target="letterheads">Letterheads</button>
+      <button class="mgmt-nav-btn" data-view-target="templates">Templates</button>
+      <button class="mgmt-nav-btn" data-view-target="settings">Settings</button>
+      <button class="mgmt-nav-btn" data-view-target="builder">Builder</button>
+    </div>
+  </aside>
+
+  <main class="mgmt-main">
+    <header class="mgmt-header">
+      <div>
+        <button class="btn btn-outline btn-sm mgmt-menu-btn" id="btn-mgmt-menu" aria-label="Open navigation menu">Menu</button>
+        <div class="mgmt-header-title">Arya Vysya Press</div>
+        <div class="mgmt-header-sub">Customer -> Quotation -> Invoice -> Payment</div>
+      </div>
+      <div class="mgmt-actions">
+        <span class="integration-chip" id="google-connection-chip">Google: Not Connected</span>
+        <button class="btn btn-outline btn-sm" id="btn-new-quotation">+ New Quotation</button>
+        <button class="btn btn-gold btn-sm" id="btn-new-invoice">+ New Invoice</button>
+      </div>
+    </header>
+
+    <section class="mgmt-view visible" id="view-dashboard">
+      <div class="view-head">
+        <div>
+          <div class="view-title">Dashboard</div>
+          <div class="view-sub">Business overview from the operational register</div>
+        </div>
+      </div>
+
+      <div class="kpi-grid" id="dashboard-kpis">
+        <div class="kpi-card"><div class="kpi-label">Customers</div><div class="kpi-value" id="kpi-customers">0</div></div>
+        <div class="kpi-card"><div class="kpi-label">Quotations</div><div class="kpi-value" id="kpi-quotations">0</div></div>
+        <div class="kpi-card"><div class="kpi-label">Invoices</div><div class="kpi-value" id="kpi-invoices">0</div></div>
+        <div class="kpi-card"><div class="kpi-label">Outstanding</div><div class="kpi-value" id="kpi-outstanding">Rs 0.00</div></div>
+        <div class="kpi-card"><div class="kpi-label">Paid This Month</div><div class="kpi-value" id="kpi-paid-this-month">Rs 0.00</div></div>
+        <div class="kpi-card"><div class="kpi-label">Pending Payments</div><div class="kpi-value" id="kpi-pending">Rs 0.00</div></div>
+        <div class="kpi-card"><div class="kpi-label">Overdue</div><div class="kpi-value" id="kpi-overdue">Rs 0.00</div></div>
+        <div class="kpi-card"><div class="kpi-label">Quotation Conversion</div><div class="kpi-value" id="kpi-conversion">0%</div></div>
+      </div>
+
+      <div class="register-card">
+        <div class="register-toolbar">
+          <strong>Overdue Invoices</strong>
+        </div>
+        <div class="register-table-wrap">
+          <table class="register-table">
+            <thead>
+              <tr>
+                <th>Invoice</th>
+                <th>Customer</th>
+                <th>Balance Due</th>
+                <th>Due Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="dashboard-overdue-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="mgmt-view" id="view-customers">
+      <div class="view-head">
+        <div>
+          <div class="view-title">Customers</div>
+          <div class="view-sub">Customer master and company details</div>
+        </div>
+        <button class="btn btn-gold btn-sm" id="btn-add-customer">+ Create New Customer</button>
+      </div>
+      <div class="register-card">
+        <div class="register-toolbar">
+          <input class="search-input" id="search-customers" placeholder="Search name, company, GSTIN, phone">
+        </div>
+        <div class="register-table-wrap">
+          <table class="register-table">
+            <thead>
+              <tr>
+                <th>Customer ID</th>
+                <th>Customer</th>
+                <th>Company</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>GSTIN</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="customers-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="mgmt-view" id="view-quotations">
+      <div class="view-head">
+        <div>
+          <div class="view-title">Quotations Register</div>
+          <div class="view-sub">Manage quotation lifecycle and conversion</div>
+        </div>
+      </div>
+      <div class="register-card">
+        <div class="register-toolbar">
+          <input class="search-input" id="search-quotations" placeholder="Search number, customer, company, status">
+        </div>
+        <div class="register-table-wrap">
+          <table class="register-table">
+            <thead>
+              <tr>
+                <th>Quotation No.</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Invoice</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="quotations-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="mgmt-view" id="view-invoices">
+      <div class="view-head">
+        <div>
+          <div class="view-title">Invoices Register</div>
+          <div class="view-sub">Track balance due and payment status</div>
+        </div>
+      </div>
+      <div class="register-card">
+        <div class="register-toolbar">
+          <input class="search-input" id="search-invoices" placeholder="Search invoice, customer, status">
+        </div>
+        <div class="register-table-wrap">
+          <table class="register-table">
+            <thead>
+              <tr>
+                <th>Invoice No.</th>
+                <th>Invoice Date</th>
+                <th>Customer</th>
+                <th>Grand Total</th>
+                <th>Amount Paid</th>
+                <th>Balance Due</th>
+                <th>Due Date</th>
+                <th>Payment Status</th>
+                <th>Source Quotation</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="invoices-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="mgmt-view" id="view-payments">
+      <div class="view-head">
+        <div>
+          <div class="view-title">Payments Register</div>
+          <div class="view-sub">Payment recording and transaction trace</div>
+        </div>
+      </div>
+      <div class="register-card">
+        <div class="register-toolbar">
+          <input class="search-input" id="search-payments" placeholder="Search payment ID, invoice, customer, reference">
+        </div>
+        <div class="register-table-wrap">
+          <table class="register-table">
+            <thead>
+              <tr>
+                <th>Payment ID</th>
+                <th>Payment Date</th>
+                <th>Invoice</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Mode</th>
+                <th>Reference</th>
+              </tr>
+            </thead>
+            <tbody id="payments-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="mgmt-view" id="view-letterheads">
+      <div class="view-head">
+        <div>
+          <div class="view-title">Letterheads</div>
+          <div class="view-sub">Multiple letterhead support starts in Google integration phase</div>
+        </div>
+      </div>
+      <div class="register-card" style="padding:12px;">
+        <div class="muted-note">Current builder letterhead stays active. Next phase will store Letterhead ID, logo file ID, and revision metadata in the business register.</div>
+      </div>
+    </section>
+
+    <section class="mgmt-view" id="view-templates">
+      <div class="view-head">
+        <div>
+          <div class="view-title">Templates</div>
+          <div class="view-sub">Template registry to be synchronized with Google Sheets</div>
+        </div>
+      </div>
+      <div class="register-card" style="padding:12px;">
+        <div class="muted-note">Template manager foundation is prepared in this release. Next phase will support reusable line-item packs and default terms.</div>
+      </div>
+    </section>
+
+    <section class="mgmt-view" id="view-settings">
+      <div class="view-head">
+        <div>
+          <div class="view-title">Settings</div>
+          <div class="view-sub">Google Drive and Business Register configuration</div>
+        </div>
+      </div>
+      <div class="register-card" style="padding:12px;">
+        <div class="settings-grid">
+          <div class="field">
+            <label for="s-google-client-id">Google Client ID</label>
+            <input id="s-google-client-id" type="text" placeholder="YOUR_GOOGLE_CLIENT_ID">
+          </div>
+          <div class="field">
+            <label for="s-google-apps-script-url">Apps Script Web App URL</label>
+            <input id="s-google-apps-script-url" type="text" placeholder="https://script.google.com/macros/s/.../exec">
+          </div>
+          <div class="field">
+            <label for="s-business-sheet-id">Business Register Spreadsheet ID</label>
+            <input id="s-business-sheet-id" type="text" placeholder="Spreadsheet ID (optional for first setup)">
+          </div>
+          <div class="field">
+            <label for="s-drive-root-id">Drive Root Folder ID</label>
+            <input id="s-drive-root-id" type="text" placeholder="Folder ID (optional if auto-create)">
+          </div>
+        </div>
+
+        <div class="settings-actions">
+          <button class="btn btn-gold btn-sm" id="btn-save-google-config">Save Config</button>
+          <button class="btn btn-outline btn-sm" id="btn-test-google-connection">Test Connection</button>
+          <button class="btn btn-outline btn-sm" id="btn-init-google-workspace">Initialize Workspace</button>
+          <button class="btn btn-outline btn-sm" id="btn-sync-business-register">Sync Register</button>
+        </div>
+
+        <div class="status-line"><strong>Google Drive:</strong> <span class="pill" id="status-drive">Not Connected</span></div>
+        <div class="status-line"><strong>Google Sheets:</strong> <span class="pill" id="status-sheets">Not Connected</span></div>
+        <div class="status-line"><strong>Connected Account:</strong> <span id="status-account">--</span></div>
+        <div class="status-line"><strong>Business Register:</strong> <span id="status-sheet-name">--</span></div>
+        <div class="status-line"><strong>Drive Root:</strong> <span id="status-drive-root">--</span></div>
+        <div class="status-line" id="status-sync-message">Save your configuration and test connection.</div>
+      </div>
+    </section>
+
+    <section class="mgmt-view" id="view-builder">
+      <div class="builder-shell">
+
 <!-- â•â• TOP NAV â•â• -->
 <nav class="topnav" aria-label="Primary actions">
   <div class="topnav-brand">ARYA VYSYA PRESS &mdash; <span>Document Builder</span></div>
   <div class="topnav-actions">
+    <button class="btn btn-gold btn-sm" id="btn-export-save-top">Export &amp; Save</button>
+    <button class="btn btn-outline btn-sm" id="btn-save-quotation">Save Quotation</button>
+    <button class="btn btn-outline btn-sm" id="btn-save-invoice">Save Invoice</button>
     <button class="btn btn-outline btn-sm" id="btn-reset-top">Reset</button>
     <button class="btn btn-gold btn-sm" data-export-btn="true" id="btn-export-top">Save PDF</button>
   </div>
@@ -796,6 +1479,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
   <div class="preview-panel">
     <div class="preview-controls">
       <span class="preview-label">Live document preview - click any text to edit inline</span>
+      <button class="btn btn-outline btn-sm" id="btn-export-save-preview">Export &amp; Save</button>
       <button class="btn btn-gold btn-sm" data-export-btn="true" id="btn-export-preview" aria-label="Export PDF from preview">PDF</button>
     </div>
 
@@ -993,6 +1677,11 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
   </div><!-- /preview-panel -->
 </div><!-- /app-body -->
 
+      </div>
+    </section>
+  </main>
+</div>
+
 <div class="mobile-blocker">
   <div class="mobile-blocker-card">
     <div class="mobile-blocker-title">Desktop Only</div>
@@ -1044,7 +1733,16 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 
 <div class="toast" id="app-toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
-<script>
+<script type="module">
+import { GoogleIntegrationService } from './js/services/googleIntegrationService.js';
+import { BusinessStateService } from './js/services/businessStateService.js';
+import { CustomerService } from './js/services/customerService.js';
+import { QuotationService } from './js/services/quotationService.js';
+import { InvoiceService } from './js/services/invoiceService.js';
+import { PaymentService } from './js/services/paymentService.js';
+import { LetterheadService } from './js/services/letterheadService.js';
+import { TemplateService } from './js/services/templateService.js';
+
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // STATE
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -1102,6 +1800,840 @@ const UX_CONFIG = {
   },
   exportMinBusyMs: 550
 };
+
+const BIZ_CONFIG = {
+  stateKey: 'avp_business_register_v1'
+};
+
+const PAYMENT_MODES = ['Cash', 'UPI', 'Bank Transfer', 'Cheque', 'Card', 'Other'];
+
+let bizState = {
+  counters: {
+    customer: 0,
+    quotation: 0,
+    invoice: 0,
+    payment: 0
+  },
+  customers: [],
+  quotations: [],
+  invoices: [],
+  payments: []
+};
+
+let activeView = 'dashboard';
+let currentInvoiceSource = null;
+
+const googleIntegration = new GoogleIntegrationService();
+const stateService = new BusinessStateService();
+
+const customerService = new CustomerService(
+  () => stateService.getState(),
+  () => stateService.saveState(),
+  kind => stateService.nextId(kind),
+  () => businessNowIso()
+);
+
+const quotationService = new QuotationService(
+  () => stateService.getState(),
+  () => stateService.saveState(),
+  kind => stateService.nextId(kind),
+  () => businessNowIso(),
+  rows => computeTotals(rows)
+);
+
+const invoiceService = new InvoiceService(
+  () => stateService.getState(),
+  () => stateService.saveState(),
+  kind => stateService.nextId(kind),
+  () => businessNowIso(),
+  rows => computeTotals(rows)
+);
+
+const paymentService = new PaymentService(
+  () => stateService.getState(),
+  () => stateService.saveState(),
+  kind => stateService.nextId(kind),
+  () => businessNowIso()
+);
+
+const letterheadService = new LetterheadService(
+  () => stateService.getState(),
+  () => stateService.saveState(),
+  kind => stateService.nextId(kind),
+  () => businessNowIso()
+);
+
+const templateService = new TemplateService(
+  () => stateService.getState(),
+  () => stateService.saveState(),
+  kind => stateService.nextId(kind),
+  () => businessNowIso()
+);
+
+function businessNowIso() {
+  return new Date().toISOString();
+}
+
+function todayIsoDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function formatDateForTable(value) {
+  if (!value) return '--';
+  const d = new Date(value);
+  if (isNaN(d)) return '--';
+  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function getDatePlusDays(dateStr, days) {
+  const d = new Date(dateStr);
+  if (isNaN(d)) return todayIsoDate();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function parseCurrency(value) {
+  const numeric = String(value || '').replace(/[^\d.-]/g, '');
+  return parseFloat(numeric) || 0;
+}
+
+function formatMoney(amount) {
+  const num = Number(amount || 0);
+  return 'Rs ' + fmtIN(num);
+}
+
+function buildStatusBadge(status) {
+  const normalized = String(status || 'Draft').toLowerCase().replace(/\s+/g, '-');
+  return `<span class="badge badge-${normalized}">${escapeHtml(String(status || 'Draft'))}</span>`;
+}
+
+function loadBusinessState() {
+  const state = stateService.getState();
+  bizState = {
+    counters: state.counters || bizState.counters,
+    customers: Array.isArray(state.customers) ? state.customers : [],
+    quotations: Array.isArray(state.quotations) ? state.quotations : [],
+    invoices: Array.isArray(state.invoices) ? state.invoices : [],
+    payments: Array.isArray(state.payments) ? state.payments : [],
+    letterheads: Array.isArray(state.letterheads) ? state.letterheads : [],
+    templates: Array.isArray(state.templates) ? state.templates : []
+  };
+}
+
+function saveBusinessState() {
+  stateService.state = bizState;
+  stateService.saveState();
+}
+
+function nextBusinessId(kind) {
+  const id = stateService.nextId(kind);
+  bizState.counters = { ...stateService.getState().counters };
+  return id;
+}
+
+function computeTotals(rows) {
+  return (rows || []).reduce((acc, row) => {
+    const price = Number(row.price || 0);
+    const qty = Number(row.qty || 0);
+    const pct = Number(row.gstPct || 0);
+    const sub = price * qty;
+    const gst = sub * (pct / 100);
+    acc.subtotal += sub;
+    acc.gst += gst;
+    acc.total += sub + gst;
+    return acc;
+  }, { subtotal: 0, gst: 0, total: 0 });
+}
+
+function normalizePaymentStatus(invoice) {
+  if (!invoice || invoice.status === 'Cancelled') return 'Cancelled';
+  const total = Number(invoice.grandTotal || 0);
+  const paid = Number(invoice.amountPaid || 0);
+  const balance = Number(invoice.balanceDue || 0);
+  if (paid >= total && total > 0) return 'Paid';
+  if (paid > 0 && paid < total) {
+    if (invoice.dueDate && new Date(invoice.dueDate) < new Date(todayIsoDate())) return 'Overdue';
+    return 'Partially Paid';
+  }
+  if (balance > 0 && invoice.dueDate && new Date(invoice.dueDate) < new Date(todayIsoDate())) return 'Overdue';
+  return 'Unpaid';
+}
+
+function recalcInvoiceFinancials(invoice) {
+  const total = Number(invoice.grandTotal || 0);
+  const paid = Number(invoice.amountPaid || 0);
+  invoice.balanceDue = Math.max(0, total - paid);
+  invoice.paymentStatus = normalizePaymentStatus(invoice);
+  invoice.lastUpdated = businessNowIso();
+}
+
+function setInputValue(inputId, value) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  el.value = value;
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+function ensureCustomerFromCurrentBuilder() {
+  const qNameRaw = (document.getElementById('f-q-to')?.value || '').trim();
+  const qGstin = (document.getElementById('f-q-cgst')?.value || '').trim();
+  const invCompany = (document.getElementById('f-inv-cname')?.value || '').trim();
+  const invGstin = (document.getElementById('f-inv-cgst')?.value || '').trim();
+
+  const fallbackName = invCompany || qNameRaw || 'Unnamed Customer';
+  const customerName = qNameRaw || invCompany || 'Unnamed Customer';
+  const companyName = invCompany || qNameRaw || fallbackName;
+  const gstin = qGstin || invGstin;
+  const phone = (document.getElementById('f-cell')?.value || '').trim();
+  const email = (document.getElementById('f-email')?.value || '').trim();
+
+  return customerService.upsertFromBuilder({
+    customerName,
+    companyName,
+    contactPerson: customerName,
+    phone,
+    email,
+    billingAddress: document.getElementById('f-inv-baddr')?.value || '',
+    shippingAddress: document.getElementById('f-inv-caddr')?.value || '',
+    gstin,
+    status: 'Active'
+  });
+}
+
+function saveQuotationRecord() {
+  const customer = ensureCustomerFromCurrentBuilder();
+  const quotation = quotationService.createFromBuilder({
+    customerId: customer.id,
+    customerName: customer.customerName,
+    companyName: customer.companyName,
+    quotationDate: todayIsoDate(),
+    paymentTerms: document.getElementById('f-inv-terms')?.value || '30 Days',
+    notes: document.getElementById('f-q-closing')?.value || '',
+    status: 'Issued',
+    createdBy: 'Local User',
+    items: qRows.map(normalizeRow)
+  });
+
+  bizState = stateService.getState();
+  saveBusinessState();
+  renderBusinessViews();
+  showToast(`Quotation ${quotation.quotationNumber} saved.`, 'success');
+  return quotation;
+}
+
+function saveInvoiceRecord() {
+  const customer = ensureCustomerFromCurrentBuilder();
+  const invoiceDate = document.getElementById('f-inv-date')?.value || todayIsoDate();
+  const dueDate = getDatePlusDays(invoiceDate, 30);
+
+  const source = currentInvoiceSource ? {
+    quotationId: currentInvoiceSource.quotationId,
+    quotationNumber: currentInvoiceSource.quotationNumber
+  } : {
+    quotationId: '',
+    quotationNumber: ''
+  };
+
+  const invoice = invoiceService.createFromBuilder({
+    quotationId: source.quotationId,
+    quotationNumber: source.quotationNumber,
+    customerId: customer.id,
+    customerName: customer.customerName,
+    companyName: customer.companyName,
+    invoiceDate,
+    dueDate,
+    paymentTerms: document.getElementById('f-inv-terms')?.value || '30 Days',
+    notes: document.getElementById('f-inv-ref')?.value || '',
+    status: 'Issued',
+    sourceDocumentId: source.quotationId || '',
+    createdBy: 'Local User',
+    items: iRows.map(normalizeRow)
+  });
+
+  bizState = stateService.getState();
+
+  setInputValue('f-inv-no', invoice.invoiceNumber);
+
+  if (source.quotationId) {
+    quotationService.markConverted(source.quotationId, invoice.id);
+  }
+
+  currentInvoiceSource = null;
+  saveBusinessState();
+  renderBusinessViews();
+  showToast(`Invoice ${invoice.invoiceNumber} saved.`, 'success');
+  return invoice;
+}
+
+async function exportAndSaveActiveDocument() {
+  let savedRecord = null;
+
+  if (mode === 'quotation') {
+    savedRecord = saveQuotationRecord();
+  } else {
+    savedRecord = saveInvoiceRecord();
+  }
+
+  savePDF(getExportSettings());
+
+  if (!googleIntegration.canCallApi()) {
+    showToast('Document saved locally. Configure Google settings to enable cloud sync.', 'success');
+    return;
+  }
+
+  try {
+    await googleIntegration.syncBusinessRegister({
+      customers: bizState.customers,
+      quotations: bizState.quotations,
+      invoices: bizState.invoices,
+      payments: bizState.payments,
+      letterheads: bizState.letterheads || [],
+      templates: bizState.templates || []
+    });
+
+    const idLabel = savedRecord
+      ? (savedRecord.quotationNumber || savedRecord.invoiceNumber || savedRecord.id)
+      : 'Document';
+    showToast(`${idLabel} exported and synced to Google Sheets.`, 'success');
+  } catch (error) {
+    showToast('PDF exported. Business register sync failed. Use Sync Register in Settings.', 'error');
+  }
+}
+
+function loadQuotationIntoInvoiceBuilder(quotationId, forceDuplicate) {
+  const quote = bizState.quotations.find(q => q.id === quotationId);
+  if (!quote) {
+    showToast('Quotation not found.', 'error');
+    return;
+  }
+
+  if (quote.status === 'Converted' && quote.convertedInvoiceId && !forceDuplicate) {
+    const allowAnother = confirm(`This quotation is already converted to invoice ${quote.convertedInvoiceId}. Create another invoice?`);
+    if (!allowAnother) return;
+  }
+
+  setInputValue('f-inv-cname', quote.companyName || quote.customerName);
+  setInputValue('f-inv-bname', quote.companyName || quote.customerName);
+  setInputValue('f-inv-cgst', document.getElementById('f-q-cgst')?.value || '');
+  setInputValue('f-inv-bgst', document.getElementById('f-q-cgst')?.value || '');
+  setInputValue('f-inv-date', todayIsoDate());
+  setInputValue('f-inv-terms', quote.paymentTerms || '30 Days');
+  setInputValue('f-inv-ref', `Source Quotation ${quote.quotationNumber}`);
+
+  iRows = (quote.items || []).map(item => ({
+    id: nextRowId(),
+    desc: item.desc,
+    hsn: item.hsn,
+    price: Number(item.price || 0),
+    qty: Number(item.qty || 0),
+    gstPct: Number(item.gstPct || 18)
+  }));
+  renderRows('i');
+
+  currentInvoiceSource = {
+    quotationId: quote.id,
+    quotationNumber: quote.quotationNumber,
+    customerId: quote.customerId
+  };
+
+  setMode('invoice');
+  switchView('builder');
+  showToast(`Invoice draft loaded from ${quote.quotationNumber}.`, 'success');
+}
+
+function recordPaymentAgainstInvoice(invoiceId) {
+  const invoice = bizState.invoices.find(inv => inv.id === invoiceId);
+  if (!invoice) {
+    showToast('Invoice not found.', 'error');
+    return;
+  }
+
+  const amountRaw = prompt(`Record payment for ${invoice.invoiceNumber}. Balance due: ${formatMoney(invoice.balanceDue)}\nEnter amount received:`);
+  if (amountRaw === null) return;
+
+  const amount = parseCurrency(amountRaw);
+  if (amount <= 0) {
+    showToast('Payment amount must be greater than zero.', 'error');
+    return;
+  }
+
+  const projected = Number(invoice.amountPaid || 0) + amount;
+  if (projected > Number(invoice.grandTotal || 0)) {
+    const allowOverpay = confirm('Payment exceeds invoice grand total. Continue with overpayment?');
+    if (!allowOverpay) return;
+  }
+
+  const modePrompt = prompt(`Payment mode (${PAYMENT_MODES.join(', ')}):`, 'UPI');
+  if (modePrompt === null) return;
+  const modeValue = String(modePrompt || 'Other').trim();
+  const paymentMode = PAYMENT_MODES.includes(modeValue) ? modeValue : 'Other';
+
+  const paymentDate = prompt('Payment date (YYYY-MM-DD):', todayIsoDate()) || todayIsoDate();
+  const reference = prompt('Transaction reference:', '') || '';
+  const bankAccount = prompt('Bank / Account:', '') || '';
+  const notes = prompt('Notes:', '') || '';
+
+  paymentService.record({
+    invoiceId: invoice.id,
+    invoiceNumber: invoice.invoiceNumber,
+    quotationId: invoice.quotationId || '',
+    customerId: invoice.customerId,
+    customerName: invoice.customerName,
+    paymentDate,
+    amountReceived: amount,
+    paymentMode,
+    transactionReference: reference,
+    bankAccount,
+    notes,
+    recordedBy: 'Local User'
+  });
+
+  bizState = stateService.getState();
+  invoice.amountPaid = Number(invoice.amountPaid || 0) + amount;
+  recalcInvoiceFinancials(invoice);
+
+  saveBusinessState();
+  renderBusinessViews();
+  showToast('Payment recorded successfully.', 'success');
+}
+
+function switchView(viewKey) {
+  activeView = viewKey;
+  document.querySelectorAll('.mgmt-view').forEach(el => el.classList.remove('visible'));
+  const current = document.getElementById(`view-${viewKey}`);
+  if (current) current.classList.add('visible');
+
+  document.querySelectorAll('.mgmt-nav-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.viewTarget === viewKey);
+  });
+}
+
+function renderCustomersView() {
+  const body = document.getElementById('customers-tbody');
+  if (!body) return;
+  const q = (document.getElementById('search-customers')?.value || '').toLowerCase().trim();
+  const rows = bizState.customers.filter(c => {
+    if (!q) return true;
+    return [c.id, c.customerName, c.companyName, c.phone, c.email, c.gstin]
+      .some(v => String(v || '').toLowerCase().includes(q));
+  });
+
+  body.innerHTML = rows.map(c => `
+    <tr>
+      <td>${escapeHtml(c.id)}</td>
+      <td>${escapeHtml(c.customerName || '--')}</td>
+      <td>${escapeHtml(c.companyName || '--')}</td>
+      <td>${escapeHtml(c.phone || '--')}</td>
+      <td>${escapeHtml(c.email || '--')}</td>
+      <td>${escapeHtml(c.gstin || '--')}</td>
+      <td>${buildStatusBadge(c.status || 'Active')}</td>
+    </tr>
+  `).join('');
+
+  if (!rows.length) body.innerHTML = '<tr><td colspan="7">No customers found.</td></tr>';
+}
+
+function renderQuotationsView() {
+  const body = document.getElementById('quotations-tbody');
+  if (!body) return;
+  const q = (document.getElementById('search-quotations')?.value || '').toLowerCase().trim();
+  const rows = bizState.quotations.filter(item => {
+    if (!q) return true;
+    return [item.quotationNumber, item.customerName, item.companyName, item.status]
+      .some(v => String(v || '').toLowerCase().includes(q));
+  });
+
+  body.innerHTML = rows.map(item => `
+    <tr>
+      <td>${escapeHtml(item.quotationNumber || item.id)}</td>
+      <td>${formatDateForTable(item.quotationDate)}</td>
+      <td>${escapeHtml(item.customerName || '--')}</td>
+      <td class="right-text">${formatMoney(item.grandTotal || 0)}</td>
+      <td>${buildStatusBadge(item.status || 'Draft')}</td>
+      <td>${escapeHtml(item.convertedInvoiceId || '--')}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" data-quotation-action="create-invoice" data-quotation-id="${escapeHtml(item.id)}">Create Invoice</button>
+      </td>
+    </tr>
+  `).join('');
+
+  if (!rows.length) body.innerHTML = '<tr><td colspan="7">No quotations found.</td></tr>';
+}
+
+function renderInvoicesView() {
+  const body = document.getElementById('invoices-tbody');
+  if (!body) return;
+  const q = (document.getElementById('search-invoices')?.value || '').toLowerCase().trim();
+
+  bizState.invoices.forEach(recalcInvoiceFinancials);
+
+  const rows = bizState.invoices.filter(item => {
+    if (!q) return true;
+    return [item.invoiceNumber, item.customerName, item.paymentStatus, item.quotationNumber]
+      .some(v => String(v || '').toLowerCase().includes(q));
+  });
+
+  body.innerHTML = rows.map(item => `
+    <tr>
+      <td>${escapeHtml(item.invoiceNumber || item.id)}</td>
+      <td>${formatDateForTable(item.invoiceDate)}</td>
+      <td>${escapeHtml(item.customerName || '--')}</td>
+      <td class="right-text">${formatMoney(item.grandTotal || 0)}</td>
+      <td class="right-text">${formatMoney(item.amountPaid || 0)}</td>
+      <td class="right-text">${formatMoney(item.balanceDue || 0)}</td>
+      <td>${formatDateForTable(item.dueDate)}</td>
+      <td>${buildStatusBadge(item.paymentStatus || 'Unpaid')}</td>
+      <td>${escapeHtml(item.quotationNumber || '--')}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" data-invoice-action="record-payment" data-invoice-id="${escapeHtml(item.id)}">Record Payment</button>
+      </td>
+    </tr>
+  `).join('');
+
+  if (!rows.length) body.innerHTML = '<tr><td colspan="10">No invoices found.</td></tr>';
+}
+
+function renderPaymentsView() {
+  const body = document.getElementById('payments-tbody');
+  if (!body) return;
+  const q = (document.getElementById('search-payments')?.value || '').toLowerCase().trim();
+  const rows = bizState.payments.filter(item => {
+    if (!q) return true;
+    return [item.id, item.invoiceNumber, item.customerName, item.transactionReference]
+      .some(v => String(v || '').toLowerCase().includes(q));
+  });
+
+  body.innerHTML = rows.map(item => `
+    <tr>
+      <td>${escapeHtml(item.id)}</td>
+      <td>${formatDateForTable(item.paymentDate)}</td>
+      <td>${escapeHtml(item.invoiceNumber || '--')}</td>
+      <td>${escapeHtml(item.customerName || '--')}</td>
+      <td class="right-text">${formatMoney(item.amountReceived || 0)}</td>
+      <td>${escapeHtml(item.paymentMode || '--')}</td>
+      <td>${escapeHtml(item.transactionReference || '--')}</td>
+    </tr>
+  `).join('');
+
+  if (!rows.length) body.innerHTML = '<tr><td colspan="7">No payments found.</td></tr>';
+}
+
+function renderDashboardView() {
+  const customerCount = bizState.customers.length;
+  const quotationCount = bizState.quotations.length;
+  const invoiceCount = bizState.invoices.length;
+
+  const totals = bizState.invoices.reduce((acc, inv) => {
+    recalcInvoiceFinancials(inv);
+    acc.outstanding += Number(inv.balanceDue || 0);
+    if (inv.paymentStatus === 'Unpaid' || inv.paymentStatus === 'Partially Paid' || inv.paymentStatus === 'Overdue') {
+      acc.pending += Number(inv.balanceDue || 0);
+    }
+    if (inv.paymentStatus === 'Overdue') acc.overdue += Number(inv.balanceDue || 0);
+    return acc;
+  }, { outstanding: 0, pending: 0, overdue: 0 });
+
+  const now = new Date();
+  const paidThisMonth = bizState.payments.reduce((acc, pay) => {
+    const d = new Date(pay.paymentDate || pay.createdDate);
+    if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) {
+      acc += Number(pay.amountReceived || 0);
+    }
+    return acc;
+  }, 0);
+
+  const converted = bizState.quotations.filter(q => q.status === 'Converted').length;
+  const conversionRate = quotationCount ? Math.round((converted / quotationCount) * 100) : 0;
+
+  setText('kpi-customers', String(customerCount));
+  setText('kpi-quotations', String(quotationCount));
+  setText('kpi-invoices', String(invoiceCount));
+  setText('kpi-outstanding', formatMoney(totals.outstanding));
+  setText('kpi-paid-this-month', formatMoney(paidThisMonth));
+  setText('kpi-pending', formatMoney(totals.pending));
+  setText('kpi-overdue', formatMoney(totals.overdue));
+  setText('kpi-conversion', `${conversionRate}%`);
+
+  const overdueBody = document.getElementById('dashboard-overdue-tbody');
+  if (!overdueBody) return;
+
+  const overdueRows = bizState.invoices.filter(inv => inv.paymentStatus === 'Overdue');
+  overdueBody.innerHTML = overdueRows.map(inv => `
+    <tr>
+      <td>${escapeHtml(inv.invoiceNumber || inv.id)}</td>
+      <td>${escapeHtml(inv.customerName || '--')}</td>
+      <td class="right-text">${formatMoney(inv.balanceDue || 0)}</td>
+      <td>${formatDateForTable(inv.dueDate)}</td>
+      <td><button class="btn btn-outline btn-sm" data-invoice-action="record-payment" data-invoice-id="${escapeHtml(inv.id)}">Record Payment</button></td>
+    </tr>
+  `).join('');
+
+  if (!overdueRows.length) overdueBody.innerHTML = '<tr><td colspan="5">No overdue invoices.</td></tr>';
+}
+
+function renderBusinessViews() {
+  renderDashboardView();
+  renderCustomersView();
+  renderQuotationsView();
+  renderInvoicesView();
+  renderPaymentsView();
+}
+
+function addCustomerFromPrompt() {
+  const customerName = (prompt('Customer name:') || '').trim();
+  if (!customerName) return;
+  const companyName = (prompt('Company name:', customerName) || customerName).trim();
+  const phone = (prompt('Phone:') || '').trim();
+  const email = (prompt('Email:') || '').trim();
+  const gstin = (prompt('GSTIN:') || '').trim();
+
+  const customer = {
+    id: nextBusinessId('customer'),
+    customerName,
+    companyName,
+    contactPerson: customerName,
+    phone,
+    email,
+    billingAddress: '',
+    shippingAddress: '',
+    gstin,
+    pan: '',
+    state: '',
+    stateCode: '',
+    pincode: '',
+    customerType: 'Business',
+    notes: '',
+    driveFolderId: '',
+    createdDate: businessNowIso(),
+    lastUpdated: businessNowIso(),
+    status: 'Active'
+  };
+
+  bizState.customers.push(customer);
+  saveBusinessState();
+  renderBusinessViews();
+  showToast(`Customer ${customer.id} created.`, 'success');
+}
+
+function hydrateGoogleConfigToUi() {
+  const cfg = googleIntegration.getConfig();
+  const idEl = document.getElementById('s-google-client-id');
+  const urlEl = document.getElementById('s-google-apps-script-url');
+  const sheetEl = document.getElementById('s-business-sheet-id');
+  const rootEl = document.getElementById('s-drive-root-id');
+
+  if (idEl) idEl.value = cfg.clientId || '';
+  if (urlEl) urlEl.value = cfg.appsScriptUrl || '';
+  if (sheetEl) sheetEl.value = cfg.spreadsheetId || '';
+  if (rootEl) rootEl.value = cfg.driveRootId || '';
+}
+
+function collectGoogleConfigFromUi() {
+  return {
+    clientId: document.getElementById('s-google-client-id')?.value?.trim() || '',
+    appsScriptUrl: document.getElementById('s-google-apps-script-url')?.value?.trim() || '',
+    spreadsheetId: document.getElementById('s-business-sheet-id')?.value?.trim() || '',
+    driveRootId: document.getElementById('s-drive-root-id')?.value?.trim() || ''
+  };
+}
+
+function updateGoogleStatusUi(payload) {
+  const driveStatus = document.getElementById('status-drive');
+  const sheetsStatus = document.getElementById('status-sheets');
+  const account = document.getElementById('status-account');
+  const sheetName = document.getElementById('status-sheet-name');
+  const driveRoot = document.getElementById('status-drive-root');
+  const sync = document.getElementById('status-sync-message');
+  const chip = document.getElementById('google-connection-chip');
+
+  const hasApi = googleIntegration.canCallApi();
+  if (driveStatus) driveStatus.textContent = payload?.drive || (hasApi ? 'Configured' : 'Not Connected');
+  if (sheetsStatus) sheetsStatus.textContent = payload?.sheets || (hasApi ? 'Configured' : 'Not Connected');
+  if (account) account.textContent = payload?.accountEmail || '--';
+  if (sheetName) sheetName.textContent = payload?.spreadsheetName || '--';
+  if (driveRoot) driveRoot.textContent = payload?.driveRoot || googleIntegration.getConfig().driveRootId || '--';
+  if (sync) sync.textContent = payload?.message || 'Configuration saved locally.';
+  if (chip) chip.textContent = hasApi ? 'Google: Configured' : 'Google: Not Connected';
+}
+
+async function handleGoogleTestConnection() {
+  try {
+    updateGoogleStatusUi({ message: 'Testing connection...' });
+    const result = await googleIntegration.testConnection();
+    updateGoogleStatusUi({
+      drive: 'Connected',
+      sheets: 'Connected',
+      accountEmail: result?.data?.accountEmail || '--',
+      spreadsheetName: result?.data?.spreadsheetName || '--',
+      driveRoot: result?.data?.driveRootId || '--',
+      message: 'Google connection test successful.'
+    });
+    showToast('Google connection successful.', 'success');
+  } catch (error) {
+    updateGoogleStatusUi({
+      drive: 'Error',
+      sheets: 'Error',
+      message: error.message || 'Connection test failed.'
+    });
+    showToast(error.message || 'Google connection failed.', 'error');
+  }
+}
+
+async function handleGoogleInitializeWorkspace() {
+  try {
+    updateGoogleStatusUi({ message: 'Initializing Drive and Business Register...' });
+    const result = await googleIntegration.initializeWorkspace();
+    const cfg = googleIntegration.getConfig();
+    const sheetIdEl = document.getElementById('s-business-sheet-id');
+    const rootIdEl = document.getElementById('s-drive-root-id');
+    if (sheetIdEl) sheetIdEl.value = cfg.spreadsheetId || '';
+    if (rootIdEl) rootIdEl.value = cfg.driveRootId || '';
+
+    updateGoogleStatusUi({
+      drive: 'Connected',
+      sheets: 'Connected',
+      spreadsheetName: result?.register?.spreadsheetName || 'Arya Vysya Press - Business Register',
+      driveRoot: result?.drive?.rootFolderId || cfg.driveRootId || '--',
+      message: 'Workspace initialized successfully.'
+    });
+    showToast('Google workspace initialized.', 'success');
+  } catch (error) {
+    updateGoogleStatusUi({ message: error.message || 'Workspace initialization failed.' });
+    showToast(error.message || 'Failed to initialize workspace.', 'error');
+  }
+}
+
+async function handleGoogleSyncRegister() {
+  try {
+    updateGoogleStatusUi({ message: 'Syncing local register to Google Sheets...' });
+    await googleIntegration.syncBusinessRegister({
+      customers: bizState.customers,
+      quotations: bizState.quotations,
+      invoices: bizState.invoices,
+      payments: bizState.payments,
+      letterheads: bizState.letterheads || [],
+      templates: bizState.templates || []
+    });
+    updateGoogleStatusUi({
+      drive: 'Connected',
+      sheets: 'Connected',
+      message: 'Business register sync completed successfully.'
+    });
+    showToast('Business register synced to Google Sheets.', 'success');
+  } catch (error) {
+    updateGoogleStatusUi({ message: error.message || 'Business register sync failed.' });
+    showToast(error.message || 'Failed to sync register.', 'error');
+  }
+}
+
+function toggleMobileNav(forceClose) {
+  const shell = document.getElementById('mgmt-shell');
+  if (!shell) return;
+  if (forceClose) {
+    shell.classList.remove('nav-open');
+    return;
+  }
+  shell.classList.toggle('nav-open');
+}
+
+function bindBusinessEvents() {
+  document.querySelectorAll('.mgmt-nav-btn[data-view-target]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      switchView(btn.dataset.viewTarget);
+      toggleMobileNav(true);
+    });
+  });
+
+  const menuBtn = document.getElementById('btn-mgmt-menu');
+  if (menuBtn) menuBtn.addEventListener('click', () => toggleMobileNav());
+
+  const toBuilderQuote = document.getElementById('btn-new-quotation');
+  const toBuilderInvoice = document.getElementById('btn-new-invoice');
+  if (toBuilderQuote) {
+    toBuilderQuote.addEventListener('click', () => {
+      switchView('builder');
+      setMode('quotation');
+    });
+  }
+  if (toBuilderInvoice) {
+    toBuilderInvoice.addEventListener('click', () => {
+      currentInvoiceSource = null;
+      switchView('builder');
+      setMode('invoice');
+    });
+  }
+
+  const addCustomer = document.getElementById('btn-add-customer');
+  if (addCustomer) addCustomer.addEventListener('click', addCustomerFromPrompt);
+
+  const saveGoogleConfigBtn = document.getElementById('btn-save-google-config');
+  if (saveGoogleConfigBtn) {
+    saveGoogleConfigBtn.addEventListener('click', () => {
+      const nextCfg = collectGoogleConfigFromUi();
+      googleIntegration.setConfig(nextCfg);
+      updateGoogleStatusUi({ message: 'Google configuration saved locally.' });
+      showToast('Google configuration saved.', 'success');
+    });
+  }
+
+  const testGoogleConnectionBtn = document.getElementById('btn-test-google-connection');
+  if (testGoogleConnectionBtn) {
+    testGoogleConnectionBtn.addEventListener('click', handleGoogleTestConnection);
+  }
+
+  const initGoogleWorkspaceBtn = document.getElementById('btn-init-google-workspace');
+  if (initGoogleWorkspaceBtn) {
+    initGoogleWorkspaceBtn.addEventListener('click', handleGoogleInitializeWorkspace);
+  }
+
+  const syncRegisterBtn = document.getElementById('btn-sync-business-register');
+  if (syncRegisterBtn) {
+    syncRegisterBtn.addEventListener('click', handleGoogleSyncRegister);
+  }
+
+  ['search-customers', 'search-quotations', 'search-invoices', 'search-payments'].forEach(id => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.addEventListener('input', renderBusinessViews);
+  });
+
+  const quotationsBody = document.getElementById('quotations-tbody');
+  if (quotationsBody) {
+    quotationsBody.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-quotation-action]');
+      if (!btn) return;
+      const quotationId = btn.dataset.quotationId;
+      if (!quotationId) return;
+      if (btn.dataset.quotationAction === 'create-invoice') {
+        loadQuotationIntoInvoiceBuilder(quotationId);
+      }
+    });
+  }
+
+  ['invoices-tbody', 'dashboard-overdue-tbody'].forEach(id => {
+    const body = document.getElementById(id);
+    if (!body) return;
+    body.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-invoice-action]');
+      if (!btn) return;
+      const invoiceId = btn.dataset.invoiceId;
+      if (!invoiceId) return;
+      if (btn.dataset.invoiceAction === 'record-payment') {
+        recordPaymentAgainstInvoice(invoiceId);
+      }
+    });
+  });
+
+  document.addEventListener('click', e => {
+    if (window.innerWidth > 992) return;
+    const sidebar = document.querySelector('.mgmt-sidebar');
+    const menuButton = document.getElementById('btn-mgmt-menu');
+    if (!sidebar || !menuButton) return;
+    const clickedInsideSidebar = sidebar.contains(e.target);
+    const clickedMenu = menuButton.contains(e.target);
+    if (!clickedInsideSidebar && !clickedMenu) toggleMobileNav(true);
+  });
+}
 
 function nextRowId() {
   rowIdCounter += 1;
@@ -1451,6 +2983,38 @@ function bindStaticEvents() {
 
   const resetTop = document.getElementById('btn-reset-top');
   if (resetTop) resetTop.addEventListener('click', resetToDefaults);
+
+  const saveQuotationBtn = document.getElementById('btn-save-quotation');
+  if (saveQuotationBtn) {
+    saveQuotationBtn.addEventListener('click', () => {
+      setMode('quotation');
+      saveQuotationRecord();
+      switchView('quotations');
+    });
+  }
+
+  const saveInvoiceBtn = document.getElementById('btn-save-invoice');
+  if (saveInvoiceBtn) {
+    saveInvoiceBtn.addEventListener('click', () => {
+      setMode('invoice');
+      saveInvoiceRecord();
+      switchView('invoices');
+    });
+  }
+
+  const exportSaveTop = document.getElementById('btn-export-save-top');
+  if (exportSaveTop) {
+    exportSaveTop.addEventListener('click', () => {
+      exportAndSaveActiveDocument();
+    });
+  }
+
+  const exportSavePreview = document.getElementById('btn-export-save-preview');
+  if (exportSavePreview) {
+    exportSavePreview.addEventListener('click', () => {
+      exportAndSaveActiveDocument();
+    });
+  }
 
   document.querySelectorAll('[data-add-row]').forEach(btn => {
     btn.addEventListener('click', () => addRow(btn.dataset.addRow));
@@ -1955,8 +3519,26 @@ function savePDF(options) {
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 (function init() {
   bindStaticEvents();
+  bindBusinessEvents();
   improveFormAccessibility();
   installEditableGuards();
+
+  loadBusinessState();
+  letterheadService.ensureDefault({
+    companyName: document.getElementById('f-company')?.value || 'Arya Vysya Press',
+    tagline: document.getElementById('f-tagline')?.value || 'Quality Printers & Binders',
+    gstin: document.getElementById('f-gstin')?.value || '',
+    addr1: document.getElementById('f-addr1')?.value || '',
+    addr2: document.getElementById('f-addr2')?.value || '',
+    phone: document.getElementById('f-cell')?.value || '',
+    email: document.getElementById('f-email')?.value || ''
+  });
+  templateService.ensureSeedTemplates();
+  bizState = stateService.getState();
+  hydrateGoogleConfigToUi();
+  updateGoogleStatusUi({ message: 'Save your configuration and test connection.' });
+  renderBusinessViews();
+  switchView(activeView);
 
   // Snapshot initial defaults for reset operation.
   document.querySelectorAll('.form-panel input, .form-panel textarea, .form-panel select').forEach(el => {

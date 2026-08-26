@@ -1,0 +1,63 @@
+import { plusDays, toIsoDate } from '../modules/format.js';
+
+export class QuotationService {
+  constructor(getState, saveState, nextId, nowFn, computeTotals) {
+    this.getState = getState;
+    this.saveState = saveState;
+    this.nextId = nextId;
+    this.nowFn = nowFn;
+    this.computeTotals = computeTotals;
+  }
+
+  list() {
+    return this.getState().quotations || [];
+  }
+
+  createFromBuilder(input) {
+    const state = this.getState();
+    const totals = this.computeTotals(input.items || []);
+    const id = this.nextId('quotation');
+    const quotationDate = input.quotationDate || toIsoDate();
+
+    const quotation = {
+      id,
+      quotationNumber: id,
+      customerId: input.customerId,
+      customerName: input.customerName,
+      companyName: input.companyName,
+      quotationDate,
+      validUntil: input.validUntil || plusDays(quotationDate, 15),
+      letterheadId: input.letterheadId || 'LH-DEFAULT',
+      subtotal: totals.subtotal,
+      gst: totals.gst,
+      grandTotal: totals.total,
+      currency: input.currency || 'INR',
+      paymentTerms: input.paymentTerms || '30 Days',
+      notes: input.notes || '',
+      status: input.status || 'Issued',
+      sourceDocumentId: input.sourceDocumentId || '',
+      createdDate: this.nowFn(),
+      lastUpdated: this.nowFn(),
+      driveFileId: input.driveFileId || '',
+      driveFileUrl: input.driveFileUrl || '',
+      createdBy: input.createdBy || 'Local User',
+      convertedInvoiceId: '',
+      items: input.items || []
+    };
+
+    state.quotations.push(quotation);
+    this.saveState();
+    return quotation;
+  }
+
+  markConverted(quotationId, invoiceId) {
+    const state = this.getState();
+    const quote = (state.quotations || []).find(q => q.id === quotationId);
+    if (!quote) return null;
+    quote.status = 'Converted';
+    quote.convertedInvoiceId = invoiceId;
+    quote.lastUpdated = this.nowFn();
+    this.saveState();
+    return quote;
+  }
+}
