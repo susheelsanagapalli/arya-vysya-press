@@ -2823,6 +2823,7 @@ function renderQuotationsView() {
         <button class="btn btn-outline btn-sm" data-quotation-action="edit" data-quotation-id="${escapeHtml(item.id)}">Edit</button>
         <button class="btn btn-outline btn-sm" data-quotation-action="duplicate" data-quotation-id="${escapeHtml(item.id)}">Duplicate</button>
         <button class="btn btn-outline btn-sm" data-quotation-action="create-invoice" data-quotation-id="${escapeHtml(item.id)}">Create Invoice</button>
+        <button class="btn btn-outline btn-sm" data-quotation-action="view-drive" data-quotation-id="${escapeHtml(item.id)}">View Drive</button>
       </td>
     </tr>
   `).join('');
@@ -2858,6 +2859,7 @@ function renderInvoicesView() {
         <button class="btn btn-outline btn-sm" data-invoice-action="edit" data-invoice-id="${escapeHtml(item.id)}">Edit</button>
         <button class="btn btn-outline btn-sm" data-invoice-action="duplicate" data-invoice-id="${escapeHtml(item.id)}">Duplicate</button>
         <button class="btn btn-outline btn-sm" data-invoice-action="record-payment" data-invoice-id="${escapeHtml(item.id)}">Record Payment</button>
+        <button class="btn btn-outline btn-sm" data-invoice-action="view-drive" data-invoice-id="${escapeHtml(item.id)}">View Drive</button>
       </td>
     </tr>
   `).join('');
@@ -2975,6 +2977,42 @@ function renderBusinessViews() {
   renderLetterheadsView();
   renderTemplatesView();
   renderDocumentHistoryView();
+}
+
+function buildDriveUrlForDocument(record, documentType) {
+  if (record?.driveFileUrl) return record.driveFileUrl;
+  if (record?.driveFileId) return `https://drive.google.com/file/d/${encodeURIComponent(record.driveFileId)}/view`;
+
+  const cfg = googleIntegration.getConfig();
+  const docNumber = record?.invoiceNumber || record?.quotationNumber || record?.id || '';
+  if (cfg?.driveRootId) {
+    const searchHint = documentType === 'Invoice' ? 'Invoice' : 'Quotation';
+    return `https://drive.google.com/drive/search?q=${encodeURIComponent(`${searchHint} ${docNumber}`)}`;
+  }
+
+  if (cfg?.appsScriptUrl) {
+    const searchHint = documentType === 'Invoice' ? 'Invoice' : 'Quotation';
+    return `https://drive.google.com/drive/search?q=${encodeURIComponent(`${searchHint} ${docNumber}`)}`;
+  }
+
+  return '';
+}
+
+function openDriveForDocument(documentType, recordId) {
+  const collection = documentType === 'Invoice' ? (bizState.invoices || []) : (bizState.quotations || []);
+  const record = collection.find(item => item.id === recordId);
+  if (!record) {
+    showToast(`${documentType} not found.`, 'error');
+    return;
+  }
+
+  const url = buildDriveUrlForDocument(record, documentType);
+  if (!url) {
+    showToast('Google Drive is not configured. Add Drive settings first.', 'error');
+    return;
+  }
+
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 function normalizeDocumentHistoryEntry(entry) {
@@ -3827,6 +3865,10 @@ function bindBusinessEvents() {
         duplicateQuotationRecord(quotationId);
         return;
       }
+      if (btn.dataset.quotationAction === 'view-drive') {
+        openDriveForDocument('Quotation', quotationId);
+        return;
+      }
       if (btn.dataset.quotationAction === 'create-invoice') {
         loadQuotationIntoInvoiceBuilder(quotationId);
       }
@@ -3847,6 +3889,10 @@ function bindBusinessEvents() {
       }
       if (btn.dataset.invoiceAction === 'duplicate') {
         duplicateInvoiceRecord(invoiceId);
+        return;
+      }
+      if (btn.dataset.invoiceAction === 'view-drive') {
+        openDriveForDocument('Invoice', invoiceId);
         return;
       }
       if (btn.dataset.invoiceAction === 'record-payment') {
