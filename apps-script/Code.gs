@@ -40,6 +40,8 @@ const DRIVE_STRUCTURE = {
   Templates: []
 };
 
+const DRIVE_ROOT_PROPERTY_KEY = 'AVP_DRIVE_ROOT_FOLDER_ID';
+
 function doPost(e) {
   try {
     const req = JSON.parse((e && e.postData && e.postData.contents) || '{}');
@@ -353,17 +355,46 @@ function resolveSpreadsheet(spreadsheetId, title) {
 }
 
 function resolveRootFolder(folderId, folderName) {
+  const properties = PropertiesService.getScriptProperties();
+  const lock = LockService.getScriptLock();
+
   if (folderId) {
     try {
-      return DriveApp.getFolderById(folderId);
+      const folder = DriveApp.getFolderById(folderId);
+      properties.setProperty(DRIVE_ROOT_PROPERTY_KEY, folder.getId());
+      return folder;
     } catch (error) {
-      // Fall through.
+      // Fall through to the shared root lookup.
     }
   }
 
-  const iter = DriveApp.getFoldersByName(folderName);
-  if (iter.hasNext()) return iter.next();
-  return DriveApp.createFolder(folderName);
+  const storedFolderId = properties.getProperty(DRIVE_ROOT_PROPERTY_KEY);
+  if (storedFolderId) {
+    try {
+      return DriveApp.getFolderById(storedFolderId);
+    } catch (error) {
+      properties.deleteProperty(DRIVE_ROOT_PROPERTY_KEY);
+    }
+  }
+
+  lock.waitLock(30000);
+  try {
+    const latestFolderId = properties.getProperty(DRIVE_ROOT_PROPERTY_KEY);
+    if (latestFolderId) {
+      try {
+        return DriveApp.getFolderById(latestFolderId);
+      } catch (error) {
+        properties.deleteProperty(DRIVE_ROOT_PROPERTY_KEY);
+      }
+    }
+
+    const iter = DriveApp.getFoldersByName(folderName);
+    const folder = iter.hasNext() ? iter.next() : DriveApp.createFolder(folderName);
+    properties.setProperty(DRIVE_ROOT_PROPERTY_KEY, folder.getId());
+    return folder;
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function getOrCreateFolder(parent, name) {
