@@ -1572,6 +1572,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 <nav class="topnav" aria-label="Primary actions">
   <div class="topnav-brand">ARYA VYSYA PRESS &mdash; <span>Document Builder</span></div>
   <div class="topnav-actions">
+    <button class="btn btn-outline btn-sm" id="btn-open-drive-root">Open Drive Root</button>
     <button class="btn btn-gold btn-sm" id="btn-export-save-top">Export &amp; Save</button>
     <button class="btn btn-outline btn-sm" id="btn-save-quotation">Save Quotation</button>
     <button class="btn btn-outline btn-sm" id="btn-save-invoice">Save Invoice</button>
@@ -3018,6 +3019,18 @@ function openDriveForDocument(documentType, recordId) {
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
+function openDriveRootFolder() {
+  const cfg = googleIntegration.getConfig();
+  const driveRootUrl = cfg?.driveRootUrl || (cfg?.driveRootId ? `https://drive.google.com/drive/folders/${encodeURIComponent(cfg.driveRootId)}` : '');
+
+  if (!driveRootUrl) {
+    showToast('Drive root is not configured. Initialize Google Workspace first.', 'error');
+    return;
+  }
+
+  window.open(driveRootUrl, '_blank', 'noopener,noreferrer');
+}
+
 function normalizeDocumentHistoryEntry(entry) {
   return {
     id: String(entry?.id || `DOC-${Date.now()}`),
@@ -4364,6 +4377,11 @@ function bindStaticEvents() {
     exportSaveTop.addEventListener('click', () => {
       exportAndSaveActiveDocument();
     });
+  }
+
+  const openDriveRootBtn = document.getElementById('btn-open-drive-root');
+  if (openDriveRootBtn) {
+    openDriveRootBtn.addEventListener('click', openDriveRootFolder);
   }
 
   const exportSavePreview = document.getElementById('btn-export-save-preview');
