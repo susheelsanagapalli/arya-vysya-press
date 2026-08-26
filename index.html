@@ -1360,11 +1360,88 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
       <div class="view-head">
         <div>
           <div class="view-title">Letterheads</div>
-          <div class="view-sub">Multiple letterhead support starts in Google integration phase</div>
+          <div class="view-sub">Manage reusable letterhead profiles and set default branding</div>
         </div>
       </div>
-      <div class="register-card" style="padding:12px;">
-        <div class="muted-note">Current builder letterhead stays active. Next phase will store Letterhead ID, logo file ID, and revision metadata in the business register.</div>
+      <div class="register-card" style="padding:12px; margin-bottom:12px;">
+        <form id="letterhead-entry-form">
+          <div class="settings-grid">
+            <div class="field">
+              <label for="lh-name">Letterhead Name</label>
+              <input id="lh-name" type="text" placeholder="Main Corporate Letterhead" required>
+            </div>
+            <div class="field">
+              <label for="lh-company">Company Name</label>
+              <input id="lh-company" type="text" placeholder="Arya Vysya Press" required>
+            </div>
+            <div class="field">
+              <label for="lh-tagline">Tagline</label>
+              <input id="lh-tagline" type="text" placeholder="Quality Printers &amp; Binders">
+            </div>
+            <div class="field">
+              <label for="lh-gstin">GSTIN</label>
+              <input id="lh-gstin" type="text" placeholder="37XXXXXXXXXXXX">
+            </div>
+            <div class="field">
+              <label for="lh-addr1">Address Line 1</label>
+              <input id="lh-addr1" type="text" placeholder="Street and area">
+            </div>
+            <div class="field">
+              <label for="lh-addr2">Address Line 2</label>
+              <input id="lh-addr2" type="text" placeholder="City and pin code">
+            </div>
+            <div class="field">
+              <label for="lh-phone">Phone</label>
+              <input id="lh-phone" type="text" placeholder="+91 XXXXX XXXXX">
+            </div>
+            <div class="field">
+              <label for="lh-email">Email</label>
+              <input id="lh-email" type="email" placeholder="info@company.com">
+            </div>
+            <div class="field">
+              <label for="lh-website">Website</label>
+              <input id="lh-website" type="text" placeholder="www.example.com">
+            </div>
+            <div class="field">
+              <label for="lh-brand-style">Brand Styling</label>
+              <input id="lh-brand-style" type="text" placeholder="Gold and black, formal">
+            </div>
+            <div class="field">
+              <label for="lh-footer">Footer</label>
+              <textarea id="lh-footer" rows="2" placeholder="Footer line for documents"></textarea>
+            </div>
+            <div class="field">
+              <label for="lh-terms">Default Terms</label>
+              <textarea id="lh-terms" rows="2" placeholder="Payment and delivery terms"></textarea>
+            </div>
+          </div>
+          <div class="settings-actions">
+            <button class="btn btn-gold btn-sm" type="submit">Save Letterhead</button>
+            <button class="btn btn-outline btn-sm" type="button" id="btn-reset-letterhead-form">Reset</button>
+          </div>
+        </form>
+      </div>
+      <div class="register-card">
+        <div class="register-toolbar">
+          <input class="search-input" id="search-letterheads" placeholder="Search letterhead, company, GSTIN">
+        </div>
+        <div class="register-table-wrap">
+          <table class="register-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Letterhead</th>
+                <th>Company</th>
+                <th>GSTIN</th>
+                <th>Contact</th>
+                <th>Default</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="letterheads-tbody"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -1372,11 +1449,66 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
       <div class="view-head">
         <div>
           <div class="view-title">Templates</div>
-          <div class="view-sub">Template registry to be synchronized with Google Sheets</div>
+          <div class="view-sub">Create reusable line-item templates for quotations and invoices</div>
         </div>
       </div>
-      <div class="register-card" style="padding:12px;">
-        <div class="muted-note">Template manager foundation is prepared in this release. Next phase will support reusable line-item packs and default terms.</div>
+      <div class="register-card" style="padding:12px; margin-bottom:12px;">
+        <form id="template-entry-form">
+          <div class="settings-grid">
+            <div class="field">
+              <label for="tpl-name">Template Name</label>
+              <input id="tpl-name" type="text" placeholder="Standard Printing" required>
+            </div>
+            <div class="field">
+              <label for="tpl-gst">Default GST %</label>
+              <input id="tpl-gst" type="number" min="0" step="0.01" value="18">
+            </div>
+            <div class="field">
+              <label for="tpl-terms">Payment Terms</label>
+              <input id="tpl-terms" type="text" placeholder="30 Days">
+            </div>
+            <div class="field">
+              <label for="tpl-letterhead">Letterhead</label>
+              <select id="tpl-letterhead">
+                <option value="LH-DEFAULT">LH-DEFAULT</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="tpl-notes">Notes</label>
+              <textarea id="tpl-notes" rows="2" placeholder="Template notes"></textarea>
+            </div>
+            <div class="field">
+              <label for="tpl-items-json">Line Items JSON</label>
+              <textarea id="tpl-items-json" rows="6" placeholder='[{"desc":"Item","hsn":"4820","price":100,"qty":1,"gstPct":18}]'></textarea>
+              <div class="field-help">Use JSON array with keys: desc, hsn, price, qty, gstPct.</div>
+            </div>
+          </div>
+          <div class="settings-actions">
+            <button class="btn btn-gold btn-sm" type="submit">Save Template</button>
+            <button class="btn btn-outline btn-sm" type="button" id="btn-reset-template-form">Reset</button>
+          </div>
+        </form>
+      </div>
+      <div class="register-card">
+        <div class="register-toolbar">
+          <input class="search-input" id="search-templates" placeholder="Search template, terms, notes">
+        </div>
+        <div class="register-table-wrap">
+          <table class="register-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Template</th>
+                <th>GST %</th>
+                <th>Terms</th>
+                <th>Letterhead</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="templates-tbody"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -1975,6 +2107,9 @@ let activeView = 'dashboard';
 let currentInvoiceSource = null;
 let currentQuotationEditId = null;
 let currentInvoiceEditId = null;
+let currentLetterheadEditId = null;
+let currentTemplateEditId = null;
+let activeLetterheadId = 'LH-DEFAULT';
 
 const googleIntegration = new GoogleIntegrationService();
 const stateService = new BusinessStateService();
@@ -2175,6 +2310,7 @@ function saveQuotationRecord() {
     customerName: customer.customerName,
     companyName: customer.companyName,
     quotationDate: todayIsoDate(),
+    letterheadId: activeLetterheadId || 'LH-DEFAULT',
     gstEnabled,
     paymentTerms: document.getElementById('f-inv-terms')?.value || '30 Days',
     notes: document.getElementById('f-q-closing')?.value || '',
@@ -2233,6 +2369,7 @@ function saveInvoiceRecord() {
     gstEnabled,
     invoiceDate,
     dueDate,
+    letterheadId: activeLetterheadId || 'LH-DEFAULT',
     paymentTerms: document.getElementById('f-inv-terms')?.value || '30 Days',
     notes: document.getElementById('f-inv-ref')?.value || '',
     status: currentInvoiceEditId ? (bizState.invoices.find(item => item.id === currentInvoiceEditId)?.status || 'Issued') : 'Issued',
@@ -2835,6 +2972,8 @@ function renderBusinessViews() {
   renderQuotationsView();
   renderInvoicesView();
   renderPaymentsView();
+  renderLetterheadsView();
+  renderTemplatesView();
   renderDocumentHistoryView();
 }
 
@@ -2919,6 +3058,418 @@ function renderDocumentHistoryView() {
   `).join('');
 
   if (!rows.length) body.innerHTML = '<tr><td colspan="8">No documents found.</td></tr>';
+}
+
+function splitAddressLines(address) {
+  const clean = String(address || '').trim();
+  if (!clean) return { addr1: '', addr2: '' };
+  const parts = clean.split(',').map(part => part.trim()).filter(Boolean);
+  if (parts.length <= 1) return { addr1: clean, addr2: '' };
+  return {
+    addr1: parts[0],
+    addr2: parts.slice(1).join(', ')
+  };
+}
+
+function collectLetterheadFormValue() {
+  const addr1 = (document.getElementById('lh-addr1')?.value || '').trim();
+  const addr2 = (document.getElementById('lh-addr2')?.value || '').trim();
+  return {
+    letterheadName: (document.getElementById('lh-name')?.value || '').trim(),
+    companyName: (document.getElementById('lh-company')?.value || '').trim(),
+    tagline: (document.getElementById('lh-tagline')?.value || '').trim(),
+    gstin: (document.getElementById('lh-gstin')?.value || '').trim(),
+    address: [addr1, addr2].filter(Boolean).join(', '),
+    phone: (document.getElementById('lh-phone')?.value || '').trim(),
+    email: (document.getElementById('lh-email')?.value || '').trim(),
+    website: (document.getElementById('lh-website')?.value || '').trim(),
+    footer: (document.getElementById('lh-footer')?.value || '').trim(),
+    terms: (document.getElementById('lh-terms')?.value || '').trim(),
+    brandStyle: (document.getElementById('lh-brand-style')?.value || '').trim(),
+    status: 'Active'
+  };
+}
+
+function hydrateLetterheadForm(item) {
+  const address = splitAddressLines(item?.address || '');
+  const set = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.value = value || '';
+  };
+
+  set('lh-name', item?.letterheadName || '');
+  set('lh-company', item?.companyName || '');
+  set('lh-tagline', item?.tagline || '');
+  set('lh-gstin', item?.gstin || '');
+  set('lh-addr1', address.addr1 || '');
+  set('lh-addr2', address.addr2 || '');
+  set('lh-phone', item?.phone || '');
+  set('lh-email', item?.email || '');
+  set('lh-website', item?.website || '');
+  set('lh-footer', item?.footer || '');
+  set('lh-terms', item?.terms || '');
+  set('lh-brand-style', item?.brandStyle || '');
+}
+
+function resetLetterheadForm() {
+  currentLetterheadEditId = null;
+  hydrateLetterheadForm({
+    letterheadName: '',
+    companyName: '',
+    tagline: '',
+    gstin: '',
+    address: '',
+    phone: '',
+    email: '',
+    website: '',
+    footer: '',
+    terms: '',
+    brandStyle: ''
+  });
+}
+
+function applyLetterheadToBuilder(letterheadId) {
+  const item = letterheadService.getById(letterheadId);
+  if (!item) {
+    showToast('Letterhead not found.', 'error');
+    return;
+  }
+
+  const address = splitAddressLines(item.address || '');
+  activeLetterheadId = item.id;
+  setInputValue('f-company', item.companyName || '');
+  setInputValue('f-tagline', item.tagline || '');
+  setInputValue('f-gstin', item.gstin || '');
+  setInputValue('f-addr1', address.addr1 || '');
+  setInputValue('f-addr2', address.addr2 || '');
+  setInputValue('f-cell', item.phone || '');
+  setInputValue('f-email', item.email || '');
+  if (item.terms) setInputValue('f-inv-terms', item.terms);
+  showToast(`Applied letterhead ${item.letterheadName}.`, 'success');
+}
+
+function saveLetterheadEntry(event) {
+  if (event) event.preventDefault();
+  const payload = collectLetterheadFormValue();
+  if (!payload.letterheadName || !payload.companyName) {
+    showToast('Letterhead name and company name are required.', 'error');
+    return;
+  }
+
+  let item = null;
+  if (currentLetterheadEditId) {
+    item = letterheadService.update(currentLetterheadEditId, payload);
+  } else {
+    item = letterheadService.create(payload);
+  }
+
+  if (!item) {
+    showToast('Unable to save letterhead.', 'error');
+    return;
+  }
+
+  bizState = stateService.getState();
+  if (!activeLetterheadId || activeLetterheadId === 'LH-DEFAULT') activeLetterheadId = item.id;
+  resetLetterheadForm();
+  saveBusinessState();
+  renderBusinessViews();
+  showToast(`Letterhead ${item.letterheadName} saved.`, 'success');
+}
+
+function renderLetterheadsView() {
+  const body = document.getElementById('letterheads-tbody');
+  if (!body) return;
+  const q = (document.getElementById('search-letterheads')?.value || '').toLowerCase().trim();
+  const rows = (bizState.letterheads || []).filter(item => {
+    if (!q) return true;
+    return [item.id, item.letterheadName, item.companyName, item.gstin, item.phone, item.email, item.status]
+      .some(value => String(value || '').toLowerCase().includes(q));
+  });
+
+  body.innerHTML = rows.map(item => `
+    <tr>
+      <td>${escapeHtml(item.id || '--')}</td>
+      <td>${escapeHtml(item.letterheadName || '--')}</td>
+      <td>${escapeHtml(item.companyName || '--')}</td>
+      <td>${escapeHtml(item.gstin || '--')}</td>
+      <td>${escapeHtml(item.phone || item.email || '--')}</td>
+      <td>${item.isDefault ? 'Yes' : 'No'}</td>
+      <td>${buildStatusBadge(item.status || 'Active')}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" data-letterhead-action="edit" data-letterhead-id="${escapeHtml(item.id)}">Edit</button>
+        <button class="btn btn-outline btn-sm" data-letterhead-action="duplicate" data-letterhead-id="${escapeHtml(item.id)}">Duplicate</button>
+        <button class="btn btn-outline btn-sm" data-letterhead-action="default" data-letterhead-id="${escapeHtml(item.id)}">Set Default</button>
+        <button class="btn btn-outline btn-sm" data-letterhead-action="apply" data-letterhead-id="${escapeHtml(item.id)}">Apply</button>
+        <button class="btn btn-outline btn-sm" data-letterhead-action="archive" data-letterhead-id="${escapeHtml(item.id)}">${item.status === 'Archived' ? 'Activate' : 'Archive'}</button>
+      </td>
+    </tr>
+  `).join('');
+
+  if (!rows.length) body.innerHTML = '<tr><td colspan="8">No letterheads found.</td></tr>';
+
+  const selected = (bizState.letterheads || []).find(item => item.id === activeLetterheadId)
+    || (bizState.letterheads || []).find(item => item.isDefault)
+    || null;
+  if (selected) activeLetterheadId = selected.id;
+  populateTemplateLetterheadOptions(document.getElementById('tpl-letterhead')?.value || activeLetterheadId || 'LH-DEFAULT');
+}
+
+function loadLetterheadForEdit(letterheadId) {
+  const item = letterheadService.getById(letterheadId);
+  if (!item) {
+    showToast('Letterhead not found.', 'error');
+    return;
+  }
+
+  currentLetterheadEditId = item.id;
+  hydrateLetterheadForm(item);
+}
+
+function duplicateLetterheadEntry(letterheadId) {
+  const item = letterheadService.duplicate(letterheadId);
+  if (!item) {
+    showToast('Unable to duplicate letterhead.', 'error');
+    return;
+  }
+
+  bizState = stateService.getState();
+  renderBusinessViews();
+  showToast(`Letterhead ${item.letterheadName} duplicated.`, 'success');
+}
+
+function setDefaultLetterhead(letterheadId) {
+  const item = letterheadService.setDefault(letterheadId);
+  if (!item) {
+    showToast('Unable to set default letterhead.', 'error');
+    return;
+  }
+
+  bizState = stateService.getState();
+  activeLetterheadId = letterheadId;
+  renderBusinessViews();
+  showToast(`${item.letterheadName} set as default letterhead.`, 'success');
+}
+
+function toggleLetterheadArchive(letterheadId) {
+  const item = letterheadService.getById(letterheadId);
+  if (!item) {
+    showToast('Letterhead not found.', 'error');
+    return;
+  }
+
+  const archived = item.status !== 'Archived';
+  letterheadService.archive(letterheadId, archived);
+  bizState = stateService.getState();
+  renderBusinessViews();
+  showToast(archived ? 'Letterhead archived.' : 'Letterhead reactivated.', 'success');
+}
+
+function parseTemplateLineItems(rawValue, fallbackGstPct) {
+  const trimmed = String(rawValue || '').trim();
+  if (!trimmed) return [];
+
+  let parsed = [];
+  try {
+    parsed = JSON.parse(trimmed);
+  } catch (error) {
+    throw new Error('Template line items JSON is invalid.');
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new Error('Template line items must be a JSON array.');
+  }
+
+  return parsed.map((row, index) => ({
+    id: row.id || `TPL_ROW_${index + 1}`,
+    desc: String(row.desc || ''),
+    hsn: String(row.hsn || ''),
+    price: Number(row.price || 0),
+    qty: Number(row.qty || 0),
+    gstPct: Number(row.gstPct ?? fallbackGstPct ?? 0)
+  }));
+}
+
+function populateTemplateLetterheadOptions(selectedId) {
+  const select = document.getElementById('tpl-letterhead');
+  if (!select) return;
+
+  const options = (bizState.letterheads || []).map(item => {
+    const label = `${item.id} - ${item.letterheadName || item.companyName || 'Letterhead'}`;
+    return `<option value="${escapeHtml(item.id)}">${escapeHtml(label)}</option>`;
+  });
+
+  select.innerHTML = options.length ? options.join('') : '<option value="LH-DEFAULT">LH-DEFAULT</option>';
+  if (selectedId && (bizState.letterheads || []).some(item => item.id === selectedId)) {
+    select.value = selectedId;
+  }
+}
+
+function hydrateTemplateForm(item) {
+  const set = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.value = value || '';
+  };
+
+  set('tpl-name', item?.templateName || '');
+  set('tpl-gst', item?.gstPct ?? 18);
+  set('tpl-terms', item?.paymentTerms || '30 Days');
+  set('tpl-notes', item?.notes || '');
+  set('tpl-items-json', JSON.stringify(item?.lineItems || [], null, 2));
+  populateTemplateLetterheadOptions(item?.letterheadId || activeLetterheadId || 'LH-DEFAULT');
+}
+
+function resetTemplateForm() {
+  currentTemplateEditId = null;
+  hydrateTemplateForm({
+    templateName: '',
+    gstPct: 18,
+    paymentTerms: '30 Days',
+    notes: '',
+    letterheadId: activeLetterheadId || 'LH-DEFAULT',
+    lineItems: []
+  });
+}
+
+function saveTemplateEntry(event) {
+  if (event) event.preventDefault();
+
+  const templateName = (document.getElementById('tpl-name')?.value || '').trim();
+  if (!templateName) {
+    showToast('Template name is required.', 'error');
+    return;
+  }
+
+  const gstPct = Number(document.getElementById('tpl-gst')?.value || 0);
+  let lineItems = [];
+  try {
+    lineItems = parseTemplateLineItems(document.getElementById('tpl-items-json')?.value || '[]', gstPct);
+  } catch (error) {
+    showToast(error.message || 'Invalid template line items.', 'error');
+    return;
+  }
+
+  const payload = {
+    templateName,
+    gstPct,
+    paymentTerms: (document.getElementById('tpl-terms')?.value || '30 Days').trim(),
+    notes: (document.getElementById('tpl-notes')?.value || '').trim(),
+    letterheadId: (document.getElementById('tpl-letterhead')?.value || 'LH-DEFAULT').trim(),
+    lineItems,
+    status: 'Active'
+  };
+
+  let item = null;
+  if (currentTemplateEditId) item = templateService.update(currentTemplateEditId, payload);
+  else item = templateService.create(payload);
+
+  if (!item) {
+    showToast('Unable to save template.', 'error');
+    return;
+  }
+
+  bizState = stateService.getState();
+  resetTemplateForm();
+  saveBusinessState();
+  renderBusinessViews();
+  showToast(`Template ${item.templateName} saved.`, 'success');
+}
+
+function renderTemplatesView() {
+  const body = document.getElementById('templates-tbody');
+  if (!body) return;
+  const q = (document.getElementById('search-templates')?.value || '').toLowerCase().trim();
+  const rows = (bizState.templates || []).filter(item => {
+    if (!q) return true;
+    return [item.id, item.templateName, item.notes, item.paymentTerms, item.status]
+      .some(value => String(value || '').toLowerCase().includes(q));
+  });
+
+  body.innerHTML = rows.map(item => `
+    <tr>
+      <td>${escapeHtml(item.id || '--')}</td>
+      <td>${escapeHtml(item.templateName || '--')}</td>
+      <td>${escapeHtml(String(item.gstPct ?? '--'))}</td>
+      <td>${escapeHtml(item.paymentTerms || '--')}</td>
+      <td>${escapeHtml(item.letterheadId || '--')}</td>
+      <td>${buildStatusBadge(item.status || 'Active')}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" data-template-action="edit" data-template-id="${escapeHtml(item.id)}">Edit</button>
+        <button class="btn btn-outline btn-sm" data-template-action="duplicate" data-template-id="${escapeHtml(item.id)}">Duplicate</button>
+        <button class="btn btn-outline btn-sm" data-template-action="apply" data-template-id="${escapeHtml(item.id)}">Apply</button>
+        <button class="btn btn-outline btn-sm" data-template-action="archive" data-template-id="${escapeHtml(item.id)}">${item.status === 'Archived' ? 'Activate' : 'Archive'}</button>
+      </td>
+    </tr>
+  `).join('');
+
+  if (!rows.length) body.innerHTML = '<tr><td colspan="7">No templates found.</td></tr>';
+}
+
+function loadTemplateForEdit(templateId) {
+  const item = templateService.getById(templateId);
+  if (!item) {
+    showToast('Template not found.', 'error');
+    return;
+  }
+
+  currentTemplateEditId = item.id;
+  hydrateTemplateForm(item);
+}
+
+function duplicateTemplateEntry(templateId) {
+  const item = templateService.duplicate(templateId);
+  if (!item) {
+    showToast('Unable to duplicate template.', 'error');
+    return;
+  }
+
+  bizState = stateService.getState();
+  renderBusinessViews();
+  showToast(`Template ${item.templateName} duplicated.`, 'success');
+}
+
+function toggleTemplateArchive(templateId) {
+  const item = templateService.getById(templateId);
+  if (!item) {
+    showToast('Template not found.', 'error');
+    return;
+  }
+
+  const archived = item.status !== 'Archived';
+  templateService.archive(templateId, archived);
+  bizState = stateService.getState();
+  renderBusinessViews();
+  showToast(archived ? 'Template archived.' : 'Template reactivated.', 'success');
+}
+
+function applyTemplateToBuilder(templateId) {
+  const item = templateService.getById(templateId);
+  if (!item) {
+    showToast('Template not found.', 'error');
+    return;
+  }
+
+  const rows = (item.lineItems || []).map(line => normalizeRow({
+    desc: line.desc,
+    hsn: line.hsn,
+    price: Number(line.price || 0),
+    qty: Number(line.qty || 0),
+    gstPct: Number(line.gstPct ?? item.gstPct ?? 0)
+  }));
+
+  if (mode === 'quotation') {
+    qRows = rows;
+    renderRows('q');
+    if (item.notes) setInputValue('f-q-closing', item.notes);
+  } else {
+    iRows = rows;
+    renderRows('i');
+    if (item.notes) setInputValue('f-inv-ref', item.notes);
+  }
+
+  if (item.paymentTerms) setInputValue('f-inv-terms', item.paymentTerms);
+  if (item.letterheadId) applyLetterheadToBuilder(item.letterheadId);
+  switchView('builder');
+  showToast(`Template ${item.templateName} applied.`, 'success');
 }
 
 function addCustomerFromPrompt() {
@@ -3215,11 +3766,23 @@ function bindBusinessEvents() {
     syncRegisterBtn.addEventListener('click', handleGoogleSyncRegister);
   }
 
-  ['search-customers', 'search-quotations', 'search-invoices', 'search-payments'].forEach(id => {
+  ['search-customers', 'search-quotations', 'search-invoices', 'search-payments', 'search-letterheads', 'search-templates'].forEach(id => {
     const input = document.getElementById(id);
     if (!input) return;
     input.addEventListener('input', renderBusinessViews);
   });
+
+  const letterheadForm = document.getElementById('letterhead-entry-form');
+  if (letterheadForm) letterheadForm.addEventListener('submit', saveLetterheadEntry);
+
+  const resetLetterheadBtn = document.getElementById('btn-reset-letterhead-form');
+  if (resetLetterheadBtn) resetLetterheadBtn.addEventListener('click', resetLetterheadForm);
+
+  const templateForm = document.getElementById('template-entry-form');
+  if (templateForm) templateForm.addEventListener('submit', saveTemplateEntry);
+
+  const resetTemplateBtn = document.getElementById('btn-reset-template-form');
+  if (resetTemplateBtn) resetTemplateBtn.addEventListener('click', resetTemplateForm);
 
   const paymentInvoiceSelect = document.getElementById('p-invoice-id');
   if (paymentInvoiceSelect) {
@@ -3291,6 +3854,37 @@ function bindBusinessEvents() {
       }
     });
   });
+
+  const letterheadsBody = document.getElementById('letterheads-tbody');
+  if (letterheadsBody) {
+    letterheadsBody.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-letterhead-action]');
+      if (!btn) return;
+      const letterheadId = btn.dataset.letterheadId;
+      if (!letterheadId) return;
+
+      if (btn.dataset.letterheadAction === 'edit') loadLetterheadForEdit(letterheadId);
+      if (btn.dataset.letterheadAction === 'duplicate') duplicateLetterheadEntry(letterheadId);
+      if (btn.dataset.letterheadAction === 'default') setDefaultLetterhead(letterheadId);
+      if (btn.dataset.letterheadAction === 'apply') applyLetterheadToBuilder(letterheadId);
+      if (btn.dataset.letterheadAction === 'archive') toggleLetterheadArchive(letterheadId);
+    });
+  }
+
+  const templatesBody = document.getElementById('templates-tbody');
+  if (templatesBody) {
+    templatesBody.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-template-action]');
+      if (!btn) return;
+      const templateId = btn.dataset.templateId;
+      if (!templateId) return;
+
+      if (btn.dataset.templateAction === 'edit') loadTemplateForEdit(templateId);
+      if (btn.dataset.templateAction === 'duplicate') duplicateTemplateEntry(templateId);
+      if (btn.dataset.templateAction === 'apply') applyTemplateToBuilder(templateId);
+      if (btn.dataset.templateAction === 'archive') toggleTemplateArchive(templateId);
+    });
+  }
 
   document.addEventListener('click', e => {
     if (window.innerWidth > 992) return;
@@ -3588,6 +4182,8 @@ function resetToDefaults() {
   currentQuotationEditId = null;
   currentInvoiceEditId = null;
   currentInvoiceSource = null;
+  currentLetterheadEditId = null;
+  currentTemplateEditId = null;
 
   Object.keys(defaultFormValues).forEach(id => {
     const el = document.getElementById(id);
@@ -3622,6 +4218,8 @@ function resetToDefaults() {
   applyGstMode();
   setMode('quotation');
   resetPaymentEntryForm('');
+  resetLetterheadForm();
+  resetTemplateForm();
 
   try {
     localStorage.removeItem(APP_CONFIG.stateKey);
@@ -4226,11 +4824,16 @@ function savePDF(options) {
   });
   templateService.ensureSeedTemplates();
   bizState = stateService.getState();
+  activeLetterheadId = (bizState.letterheads || []).find(item => item.isDefault)?.id
+    || (bizState.letterheads || [])[0]?.id
+    || 'LH-DEFAULT';
   hydrateGoogleConfigToUi();
   updateGoogleStatusUi({ message: 'Save your configuration and test connection.' });
   renderBusinessViews();
   switchView(activeView);
   resetPaymentEntryForm('');
+  resetLetterheadForm();
+  resetTemplateForm();
 
   // Snapshot initial defaults for reset operation.
   document.querySelectorAll('.form-panel input, .form-panel textarea, .form-panel select').forEach(el => {

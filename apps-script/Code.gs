@@ -22,11 +22,11 @@ const SHEET_HEADERS = {
     'Source Quotation ID','Source Invoice ID','Created Date','Last Updated'
   ],
   Letterheads: [
-    'Letterhead ID','Letterhead Name','Company Name','Tagline','GSTIN','Address','Phone','Email','Website','Logo Drive File ID','Logo Drive URL',
-    'Created Date','Last Updated','Default'
+    'Letterhead ID','Letterhead Name','Company Name','Tagline','GSTIN','Address','Phone','Email','Website','Footer','Terms','Brand Style',
+    'Logo Drive File ID','Logo Drive URL','Created Date','Last Updated','Default','Status'
   ],
   Templates: [
-    'Template ID','Template Name','GST %','Payment Terms','Notes','Letterhead ID','Line Items JSON','Created Date','Last Updated'
+    'Template ID','Template Name','GST %','Payment Terms','Notes','Letterhead ID','Line Items JSON','Created Date','Last Updated','Status'
   ],
   Settings: ['Key','Value','Updated Date']
 };
@@ -300,11 +300,15 @@ function mapItemToRow(sheetName, item, headers) {
       'Phone': item.phone,
       'Email': item.email,
       'Website': item.website,
+      'Footer': item.footer,
+      'Terms': item.terms,
+      'Brand Style': item.brandStyle,
       'Logo Drive File ID': item.logoDriveFileId,
       'Logo Drive URL': item.logoDriveUrl,
       'Created Date': item.createdDate,
       'Last Updated': item.lastUpdated,
-      'Default': item.isDefault ? 'Yes' : 'No'
+      'Default': item.isDefault ? 'Yes' : 'No',
+      'Status': item.status || 'Active'
     },
     Templates: {
       'Template ID': item.id,
@@ -315,7 +319,8 @@ function mapItemToRow(sheetName, item, headers) {
       'Letterhead ID': item.letterheadId,
       'Line Items JSON': JSON.stringify(item.lineItems || []),
       'Created Date': item.createdDate,
-      'Last Updated': item.lastUpdated
+      'Last Updated': item.lastUpdated,
+      'Status': item.status || 'Active'
     }
   };
 
