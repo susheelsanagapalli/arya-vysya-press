@@ -94,13 +94,15 @@ function doPost(e) {
 
 function health(config) {
   const spreadsheet = resolveSpreadsheet(config.spreadsheetId);
+  const properties = PropertiesService.getScriptProperties();
+  const configuredRootId = config.driveRootId || properties.getProperty(DRIVE_ROOT_PROPERTY_KEY) || '';
   let driveRoot = null;
   let quotationsFolderUrl = '';
   let invoicesFolderUrl = '';
 
-  if (config.driveRootId) {
+  if (configuredRootId) {
     try {
-      driveRoot = DriveApp.getFolderById(config.driveRootId);
+      driveRoot = DriveApp.getFolderById(configuredRootId);
       const quotationsIter = driveRoot.getFoldersByName('Quotations');
       if (quotationsIter.hasNext()) quotationsFolderUrl = quotationsIter.next().getUrl();
       const invoicesIter = driveRoot.getFoldersByName('Invoices');
@@ -115,7 +117,7 @@ function health(config) {
     spreadsheetId: spreadsheet ? spreadsheet.getId() : '',
     spreadsheetName: spreadsheet ? spreadsheet.getName() : '',
     spreadsheetUrl: spreadsheet ? spreadsheet.getUrl() : '',
-    driveRootId: config.driveRootId || '',
+    driveRootId: driveRoot ? driveRoot.getId() : configuredRootId,
     driveRootUrl: driveRoot ? driveRoot.getUrl() : '',
     quotationsFolderUrl: quotationsFolderUrl,
     invoicesFolderUrl: invoicesFolderUrl

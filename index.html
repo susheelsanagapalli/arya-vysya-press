@@ -3019,9 +3019,33 @@ function openDriveForDocument(documentType, recordId) {
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-function openDriveRootFolder() {
+async function openDriveRootFolder() {
   const cfg = googleIntegration.getConfig();
-  const driveRootUrl = cfg?.driveRootUrl || (cfg?.driveRootId ? `https://drive.google.com/drive/folders/${encodeURIComponent(cfg.driveRootId)}` : '');
+  let driveRootId = cfg?.driveRootId || '';
+  let driveRootUrl = cfg?.driveRootUrl || (driveRootId ? `https://drive.google.com/drive/folders/${encodeURIComponent(driveRootId)}` : '');
+
+  // Recover root info from backend when this browser session has no local root config.
+  if (!driveRootUrl && googleIntegration.canCallApi()) {
+    try {
+      const health = await googleIntegration.testConnection();
+      const resolvedRootId = health?.data?.driveRootId || '';
+      const resolvedRootUrl = health?.data?.driveRootUrl || (resolvedRootId ? `https://drive.google.com/drive/folders/${encodeURIComponent(resolvedRootId)}` : '');
+
+      if (resolvedRootId || resolvedRootUrl) {
+        googleIntegration.setConfig({
+          driveRootId: resolvedRootId,
+          driveRootUrl: resolvedRootUrl,
+          quotationsFolderUrl: health?.data?.quotationsFolderUrl || cfg?.quotationsFolderUrl || '',
+          invoicesFolderUrl: health?.data?.invoicesFolderUrl || cfg?.invoicesFolderUrl || '',
+          spreadsheetUrl: health?.data?.spreadsheetUrl || cfg?.spreadsheetUrl || ''
+        });
+        driveRootId = resolvedRootId;
+        driveRootUrl = resolvedRootUrl;
+      }
+    } catch (error) {
+      // Keep local fallback behavior and surface configured error below.
+    }
+  }
 
   if (!driveRootUrl) {
     showToast('Drive root is not configured. Initialize Google Workspace first.', 'error');
@@ -4381,7 +4405,9 @@ function bindStaticEvents() {
 
   const openDriveRootBtn = document.getElementById('btn-open-drive-root');
   if (openDriveRootBtn) {
-    openDriveRootBtn.addEventListener('click', openDriveRootFolder);
+    openDriveRootBtn.addEventListener('click', () => {
+      openDriveRootFolder();
+    });
   }
 
   const exportSavePreview = document.getElementById('btn-export-save-preview');
