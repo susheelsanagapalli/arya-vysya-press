@@ -1441,7 +1441,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
     <button class="btn btn-outline btn-sm" id="btn-save-quotation">Save Quotation</button>
     <button class="btn btn-outline btn-sm" id="btn-save-invoice">Save Invoice</button>
     <button class="btn btn-outline btn-sm" id="btn-reset-top">Reset</button>
-    <button class="btn btn-gold btn-sm" data-export-btn="true" id="btn-export-top">Save PDF</button>
+    <button class="btn btn-gold btn-sm" data-export-btn="true" id="btn-export-top">Export &amp; Save</button>
   </div>
 </nav>
 
@@ -1630,7 +1630,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
     <div class="preview-controls">
       <span class="preview-label">Live document preview - click any text to edit inline</span>
       <button class="btn btn-outline btn-sm" id="btn-export-save-preview">Export &amp; Save</button>
-      <button class="btn btn-gold btn-sm" data-export-btn="true" id="btn-export-preview" aria-label="Export PDF from preview">PDF</button>
+      <button class="btn btn-gold btn-sm" data-export-btn="true" id="btn-export-preview" aria-label="Export and save from preview">Export &amp; Save</button>
     </div>
 
     <!-- â•â•â•â•â•â•â•â•â•â•â•â• DOCUMENT SHEET â•â•â•â•â•â•â•â•â•â•â•â• -->
@@ -2276,7 +2276,7 @@ function saveInvoiceRecord() {
   return invoice;
 }
 
-async function exportAndSaveActiveDocument() {
+async function exportAndSaveActiveDocument(exportSettings) {
   let savedRecord = null;
 
   if (mode === 'quotation') {
@@ -2285,7 +2285,7 @@ async function exportAndSaveActiveDocument() {
     savedRecord = saveInvoiceRecord();
   }
 
-  savePDF(getExportSettings());
+  savePDF(exportSettings || getExportSettings());
 
   if (!googleIntegration.canCallApi()) {
     showToast('Document saved locally. Configure Google settings to enable cloud sync.', 'success');
@@ -3758,7 +3758,7 @@ function confirmExport() {
   };
   saveExportSettings(settings);
   closeExportDialog();
-  savePDF(settings);
+  exportAndSaveActiveDocument(settings);
 }
 
 document.addEventListener('keydown', function(e) {
