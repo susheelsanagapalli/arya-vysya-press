@@ -276,6 +276,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 .q-to-label { font-weight: 700; min-width: 28px; }
 .q-to-val { border-bottom: 1px dashed #aaa; flex: 1; padding: 2px 4px; font-weight: 700; }
 .q-to-gst { font-size: 0.75rem; color: var(--ink); white-space: nowrap; }
+.gst-disabled .gst-only { display: none !important; }
 
 .q-subject {
   font-size: 0.82rem;
@@ -1216,7 +1217,9 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
                 <th>Customer</th>
                 <th>Amount</th>
                 <th>Mode</th>
-                <th>Reference</th>
+                <th>Credited To</th>
+                <th>Transferred To</th>
+                <th>Details</th>
               </tr>
             </thead>
             <tbody id="payments-tbody"></tbody>
@@ -1325,6 +1328,18 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 
   <!-- â•â• LEFT FORM PANEL â•â• -->
   <aside class="form-panel">
+
+    <div class="panel-section">
+      <div class="panel-title">Billing Settings</div>
+      <div class="field">
+        <label for="f-gst-enabled">Bill Type</label>
+        <select id="f-gst-enabled">
+          <option value="true" selected>GST Bill</option>
+          <option value="false">Non-GST Bill</option>
+        </select>
+        <div class="field-help">Use Non-GST Bill to generate bill without GST values and GSTIN lines.</div>
+      </div>
+    </div>
 
     <!-- LETTERHEAD EDIT -->
     <div class="panel-section">
@@ -1504,7 +1519,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
             <div class="lh-brand">
               <span class="cursive" id="d-company" contenteditable="true">Arya Vysya Press</span>
               <span class="tagline" id="d-tagline" contenteditable="true">Quality Printers &amp; Binders</span>
-              <span class="gstin"><strong>GSTIN : </strong><span id="d-gstin" contenteditable="true">37BCIPS4640H1ZB</span></span>
+              <span class="gstin gst-only" id="d-gstin-wrap"><strong>GSTIN : </strong><span id="d-gstin" contenteditable="true">37BCIPS4640H1ZB</span></span>
             </div>
           </div>
           <div class="lh-address">
@@ -1522,7 +1537,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
             <span class="q-to-label">To :</span>
             <span class="q-to-val">
               <span id="d-q-to" contenteditable="true">Pernod Ricard India, Vijayawada</span>
-              &nbsp;|&nbsp; <span class="q-to-gst"><strong>GST IN:</strong><span id="d-q-cgst" contenteditable="true">37AAACS4781P1ZO</span></span>
+              &nbsp;|&nbsp; <span class="q-to-gst gst-only" id="d-q-cgst-wrap"><strong>GST IN:</strong><span id="d-q-cgst" contenteditable="true">37AAACS4781P1ZO</span></span>
             </span>
           </div>
           <div class="q-subject">
@@ -1545,7 +1560,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
                   <th style="width:80px">UnitPrice</th>
                   <th style="width:48px">Qty</th>
                   <th style="width:72px">Sub Total</th>
-                  <th style="width:60px">Gst</th>
+                  <th style="width:60px" id="q-gst-head" class="gst-only">Gst</th>
                   <th style="width:72px">Total</th>
                   <th style="width:24px"></th>
                 </tr>
@@ -1559,7 +1574,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 
           <!-- Grand Total -->
           <div class="q-totals" style="margin-top:14px;">
-            <div class="q-grand">Grand Total (Including GST): <span id="q-grand-amt">Rs 0</span></div>
+            <div class="q-grand"><span id="q-grand-label">Grand Total (Including GST):</span> <span id="q-grand-amt">Rs 0</span></div>
             <div class="q-grand-words">Grand Total (Including Words): <span id="q-grand-words">Zero rupees only.</span></div>
           </div>
 
@@ -1578,7 +1593,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
         <!-- â•â•â• INVOICE CONTENT â•â•â• -->
         <div class="doc-content mode-section" id="d-invoice">
 
-          <div class="inv-title">TAX INVOICE</div>
+          <div class="inv-title" id="d-inv-title">TAX INVOICE</div>
 
           <!-- Parties grid -->
           <div class="inv-parties">
@@ -1588,13 +1603,13 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
                 <div class="inv-party-label">Consignee (Ship to)</div>
                 <div class="inv-party-name" id="d-inv-cname" contenteditable="true">Pernod Ricard India Private Limited</div>
                 <div id="d-inv-caddr" contenteditable="true" style="font-size:0.72rem;line-height:1.6;">(LESSEE) At B.V.S. Distilleries Pvt. Ltd., Godavarru Village, Kankipadu Mandal, Krishna District - 521151, State - Andhra Pradesh,</div>
-                <div style="font-size:0.73rem;">GSTIN-<strong><span id="d-inv-cgst" contenteditable="true">37AAACS4781P1ZO</span></strong></div>
+                <div class="gst-only" id="d-inv-cgst-wrap" style="font-size:0.73rem;">GSTIN-<strong><span id="d-inv-cgst" contenteditable="true">37AAACS4781P1ZO</span></strong></div>
               </div>
               <div class="inv-party">
                 <div class="inv-party-label">Buyer (Bill to)</div>
                 <div class="inv-party-name" id="d-inv-bname" contenteditable="true">Pernod Ricard India Private Limited</div>
                 <div id="d-inv-baddr" contenteditable="true" style="font-size:0.72rem;line-height:1.6;">(LESSEE) At B.V.S. Distilleries Pvt. Ltd., Godavarru Village, Kankipadu Mandal, Krishna District - 521151, State - Andhra Pradesh,</div>
-                <div style="font-size:0.73rem;">GSTIN-<strong><span id="d-inv-bgst" contenteditable="true">37AAACS4781P1ZO</span></strong></div>
+                <div class="gst-only" id="d-inv-bgst-wrap" style="font-size:0.73rem;">GSTIN-<strong><span id="d-inv-bgst" contenteditable="true">37AAACS4781P1ZO</span></strong></div>
               </div>
             </div>
             <!-- RIGHT: Invoice meta -->
@@ -1628,7 +1643,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
                   <th style="width:80px">Unit Price</th>
                   <th style="width:54px">Qty</th>
                   <th style="width:72px">Sub Total</th>
-                  <th style="width:60px">GST</th>
+                  <th style="width:60px" id="i-gst-head" class="gst-only">GST</th>
                   <th style="width:72px">Total</th>
                   <th style="width:24px"></th>
                 </tr>
@@ -1639,7 +1654,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
                   <td colspan="4" class="bold" style="border:1px solid #bbb;padding:7px 8px;">Total</td>
                   <td class="bold" style="border:1px solid #bbb;padding:7px 8px;"></td>
                   <td class="bold right" style="border:1px solid #bbb;padding:7px 8px;" id="i-subtotal-total"></td>
-                  <td class="bold right" style="border:1px solid #bbb;padding:7px 8px;" id="i-gst-total"></td>
+                  <td class="bold right gst-only" style="border:1px solid #bbb;padding:7px 8px;" id="i-gst-total"></td>
                   <td class="bold right" style="border:1px solid #bbb;padding:7px 8px;" id="i-grand-total"></td>
                   <td style="border:1px solid #bbb;"></td>
                 </tr>
@@ -1845,7 +1860,7 @@ const quotationService = new QuotationService(
   () => stateService.saveState(),
   kind => stateService.nextId(kind),
   () => businessNowIso(),
-  rows => computeTotals(rows)
+  (rows, gstEnabled) => computeTotals(rows, gstEnabled)
 );
 
 const invoiceService = new InvoiceService(
@@ -1853,7 +1868,7 @@ const invoiceService = new InvoiceService(
   () => stateService.saveState(),
   kind => stateService.nextId(kind),
   () => businessNowIso(),
-  rows => computeTotals(rows)
+  (rows, gstEnabled) => computeTotals(rows, gstEnabled)
 );
 
 const paymentService = new PaymentService(
@@ -1883,6 +1898,17 @@ function businessNowIso() {
 
 function todayIsoDate() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function isGstEnabled() {
+  return document.getElementById('f-gst-enabled')?.value !== 'false';
+}
+
+function applyGstMode() {
+  const gstEnabled = isGstEnabled();
+  document.body.classList.toggle('gst-disabled', !gstEnabled);
+  setText('q-grand-label', gstEnabled ? 'Grand Total (Including GST):' : 'Grand Total (Without GST):');
+  setText('d-inv-title', gstEnabled ? 'TAX INVOICE' : 'INVOICE');
 }
 
 function formatDateForTable(value) {
@@ -1938,11 +1964,12 @@ function nextBusinessId(kind) {
   return id;
 }
 
-function computeTotals(rows) {
+function computeTotals(rows, gstEnabled) {
+  const useGst = gstEnabled !== false;
   return (rows || []).reduce((acc, row) => {
     const price = Number(row.price || 0);
     const qty = Number(row.qty || 0);
-    const pct = Number(row.gstPct || 0);
+    const pct = useGst ? Number(row.gstPct || 0) : 0;
     const sub = price * qty;
     const gst = sub * (pct / 100);
     acc.subtotal += sub;
@@ -1979,6 +2006,7 @@ function setInputValue(inputId, value) {
   if (!el) return;
   el.value = value;
   el.dispatchEvent(new Event('input', { bubbles: true }));
+  el.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
 function ensureCustomerFromCurrentBuilder() {
@@ -2009,11 +2037,13 @@ function ensureCustomerFromCurrentBuilder() {
 
 function saveQuotationRecord() {
   const customer = ensureCustomerFromCurrentBuilder();
+  const gstEnabled = isGstEnabled();
   const quotation = quotationService.createFromBuilder({
     customerId: customer.id,
     customerName: customer.customerName,
     companyName: customer.companyName,
     quotationDate: todayIsoDate(),
+    gstEnabled,
     paymentTerms: document.getElementById('f-inv-terms')?.value || '30 Days',
     notes: document.getElementById('f-q-closing')?.value || '',
     status: 'Issued',
@@ -2030,6 +2060,7 @@ function saveQuotationRecord() {
 
 function saveInvoiceRecord() {
   const customer = ensureCustomerFromCurrentBuilder();
+  const gstEnabled = isGstEnabled();
   const invoiceDate = document.getElementById('f-inv-date')?.value || todayIsoDate();
   const dueDate = getDatePlusDays(invoiceDate, 30);
 
@@ -2047,6 +2078,7 @@ function saveInvoiceRecord() {
     customerId: customer.id,
     customerName: customer.customerName,
     companyName: customer.companyName,
+    gstEnabled,
     invoiceDate,
     dueDate,
     paymentTerms: document.getElementById('f-inv-terms')?.value || '30 Days',
@@ -2135,6 +2167,8 @@ function loadQuotationIntoInvoiceBuilder(quotationId, forceDuplicate) {
     qty: Number(item.qty || 0),
     gstPct: Number(item.gstPct || 18)
   }));
+  setInputValue('f-gst-enabled', quote.gstApplicable === false ? 'false' : 'true');
+  applyGstMode();
   renderRows('i');
 
   currentInvoiceSource = {
@@ -2175,10 +2209,13 @@ function recordPaymentAgainstInvoice(invoiceId) {
   const modeValue = String(modePrompt || 'Other').trim();
   const paymentMode = PAYMENT_MODES.includes(modeValue) ? modeValue : 'Other';
 
-  const paymentDate = prompt('Payment date (YYYY-MM-DD):', todayIsoDate()) || todayIsoDate();
-  const reference = prompt('Transaction reference:', '') || '';
-  const bankAccount = prompt('Bank / Account:', '') || '';
-  const notes = prompt('Notes:', '') || '';
+  const paymentDate = (prompt('Payment date (YYYY-MM-DD):', todayIsoDate()) || todayIsoDate()).trim();
+  const creditedTo = (prompt('Credited to (account received into):', '') || '').trim();
+  const transferredTo = (prompt('Transferred to (destination account):', '') || '').trim();
+  const reference = (prompt('Transaction reference / UTR:', '') || '').trim();
+  const bankAccount = (prompt('Bank / Account summary:', '') || '').trim();
+  const paymentDetails = (prompt('Transfer details:', '') || '').trim();
+  const notes = (prompt('Notes:', '') || '').trim();
 
   paymentService.record({
     invoiceId: invoice.id,
@@ -2189,8 +2226,11 @@ function recordPaymentAgainstInvoice(invoiceId) {
     paymentDate,
     amountReceived: amount,
     paymentMode,
+    creditedTo,
+    transferredTo,
     transactionReference: reference,
     bankAccount,
+    paymentDetails,
     notes,
     recordedBy: 'Local User'
   });
@@ -2306,7 +2346,7 @@ function renderPaymentsView() {
   const q = (document.getElementById('search-payments')?.value || '').toLowerCase().trim();
   const rows = bizState.payments.filter(item => {
     if (!q) return true;
-    return [item.id, item.invoiceNumber, item.customerName, item.transactionReference]
+    return [item.id, item.invoiceNumber, item.customerName, item.transactionReference, item.creditedTo, item.transferredTo, item.paymentDetails]
       .some(v => String(v || '').toLowerCase().includes(q));
   });
 
@@ -2318,11 +2358,13 @@ function renderPaymentsView() {
       <td>${escapeHtml(item.customerName || '--')}</td>
       <td class="right-text">${formatMoney(item.amountReceived || 0)}</td>
       <td>${escapeHtml(item.paymentMode || '--')}</td>
-      <td>${escapeHtml(item.transactionReference || '--')}</td>
+      <td>${escapeHtml(item.creditedTo || '--')}</td>
+      <td>${escapeHtml(item.transferredTo || '--')}</td>
+      <td>${escapeHtml(item.paymentDetails || item.transactionReference || '--')}</td>
     </tr>
   `).join('');
 
-  if (!rows.length) body.innerHTML = '<tr><td colspan="7">No payments found.</td></tr>';
+  if (!rows.length) body.innerHTML = '<tr><td colspan="9">No payments found.</td></tr>';
 }
 
 function renderDashboardView() {
@@ -2957,6 +2999,7 @@ function resetToDefaults() {
 
   renderRows('q');
   renderRows('i');
+  applyGstMode();
   setMode('quotation');
 
   try {
@@ -2972,6 +3015,18 @@ function resetToDefaults() {
 function bindStaticEvents() {
   bindFormSyncEvents();
   bindRowTableEvents();
+
+  const billType = document.getElementById('f-gst-enabled');
+  if (billType) {
+    const onBillTypeChanged = () => {
+      applyGstMode();
+      renderRows('q');
+      renderRows('i');
+      queuePersist();
+    };
+    billType.addEventListener('change', onBillTypeChanged);
+    billType.addEventListener('input', onBillTypeChanged);
+  }
 
   document.querySelectorAll('.tab[data-mode]').forEach(tab => {
     tab.addEventListener('click', () => setMode(tab.dataset.mode, tab));
@@ -3191,7 +3246,8 @@ function updateRowCalc(tbl, id) {
   const row = rows.find(r => r.id === id);
   if (!row) return;
   const sub = row.price * row.qty;
-  const gst = sub * (row.gstPct / 100);
+  const gstPct = isGstEnabled() ? Number(row.gstPct || 0) : 0;
+  const gst = sub * (gstPct / 100);
   const total = sub + gst;
   const prefix = tbl + '-row-';
   setText(prefix + id + '-sub', fmt(sub));
@@ -3208,7 +3264,8 @@ function renderRows(tbl) {
   tbody.innerHTML = '';
   rows.forEach((row, idx) => {
     const sub = row.price * row.qty;
-    const gst = sub * (row.gstPct / 100);
+    const gstPct = isGstEnabled() ? Number(row.gstPct || 0) : 0;
+    const gst = sub * (gstPct / 100);
     const total = sub + gst;
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -3218,7 +3275,7 @@ function renderRows(tbl) {
       <td data-label="${labels[3]}"><input type="number" value="${row.price || ''}" placeholder="0.00" step="0.01" style="width:70px;" data-row-id="${row.id}" data-field="price" aria-label="Unit price row ${idx + 1}"></td>
       <td data-label="${labels[4]}"><input type="number" value="${row.qty}" placeholder="1" step="0.01" style="width:42px;" data-row-id="${row.id}" data-field="qty" aria-label="Quantity row ${idx + 1}"></td>
       <td class="right" data-label="${labels[5]}" id="${tbl}-row-${row.id}-sub">${fmt(sub)}</td>
-      <td class="right" data-label="${labels[6]}" id="${tbl}-row-${row.id}-gst">${fmt(gst)}</td>
+      <td class="right gst-only" data-label="${labels[6]}" id="${tbl}-row-${row.id}-gst">${fmt(gst)}</td>
       <td class="right bold" data-label="${labels[7]}" id="${tbl}-row-${row.id}-total">${fmt(total)}</td>
       <td data-label="${labels[8]}"><button class="rm-btn" type="button" data-row-id="${row.id}" aria-label="Remove row ${idx + 1}">x</button></td>
     `;
@@ -3229,16 +3286,19 @@ function renderRows(tbl) {
 
 function updateTotals(tbl) {
   const rows = tbl === 'q' ? qRows : iRows;
+  const gstEnabled = isGstEnabled();
   let subTotal = 0, gstTotal = 0, grandTotal = 0;
   rows.forEach(row => {
     const sub = row.price * row.qty;
-    const gst = sub * (row.gstPct / 100);
+    const gstPct = gstEnabled ? Number(row.gstPct || 0) : 0;
+    const gst = sub * (gstPct / 100);
     subTotal += sub;
     gstTotal += gst;
     grandTotal += sub + gst;
   });
 
   if (tbl === 'q') {
+    setText('q-grand-label', gstEnabled ? 'Grand Total (Including GST):' : 'Grand Total (Without GST):');
     setText('q-grand-amt', 'Rs ' + fmtIN(grandTotal));
     setText('q-grand-words', toWords(Math.round(grandTotal)));
   } else {
@@ -3583,6 +3643,7 @@ function savePDF(options) {
 
   renderRows('q');
   renderRows('i');
+  applyGstMode();
 
   setMode(mode);
   queuePersist();

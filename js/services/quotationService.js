@@ -15,7 +15,8 @@ export class QuotationService {
 
   createFromBuilder(input) {
     const state = this.getState();
-    const totals = this.computeTotals(input.items || []);
+    const gstEnabled = input.gstEnabled !== false;
+    const totals = this.computeTotals(input.items || [], gstEnabled);
     const id = this.nextId('quotation');
     const quotationDate = input.quotationDate || toIsoDate();
 
@@ -31,6 +32,8 @@ export class QuotationService {
       subtotal: totals.subtotal,
       gst: totals.gst,
       grandTotal: totals.total,
+      gstApplicable: gstEnabled,
+      taxMode: gstEnabled ? 'GST' : 'NON_GST',
       currency: input.currency || 'INR',
       paymentTerms: input.paymentTerms || '30 Days',
       notes: input.notes || '',

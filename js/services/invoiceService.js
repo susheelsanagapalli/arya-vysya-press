@@ -36,7 +36,8 @@ export class InvoiceService {
 
   createFromBuilder(input) {
     const state = this.getState();
-    const totals = this.computeTotals(input.items || []);
+    const gstEnabled = input.gstEnabled !== false;
+    const totals = this.computeTotals(input.items || [], gstEnabled);
     const id = this.nextId('invoice');
     const invoiceDate = input.invoiceDate || toIsoDate();
 
@@ -54,6 +55,8 @@ export class InvoiceService {
       subtotal: totals.subtotal,
       gst: totals.gst,
       grandTotal: totals.total,
+      gstApplicable: gstEnabled,
+      taxMode: gstEnabled ? 'GST' : 'NON_GST',
       amountPaid: Number(input.amountPaid || 0),
       balanceDue: totals.total,
       paymentStatus: 'Unpaid',

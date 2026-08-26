@@ -6,16 +6,16 @@ const SHEET_HEADERS = {
   Quotations: [
     'Quotation ID','Quotation Number','Customer ID','Customer Name','Company Name','Quotation Date','Valid Until','Letterhead ID',
     'Subtotal','GST','Grand Total','Currency','Payment Terms','Notes','Status','Source Document ID','Created Date','Last Updated',
-    'Drive File ID','Drive File URL','Created By','Converted Invoice ID'
+    'Drive File ID','Drive File URL','Created By','Converted Invoice ID','Tax Mode'
   ],
   Invoices: [
     'Invoice ID','Invoice Number','Quotation ID','Quotation Number','Customer ID','Customer Name','Company Name','Invoice Date','Due Date',
     'Letterhead ID','Subtotal','GST','Grand Total','Amount Paid','Balance Due','Payment Status','Payment Terms','Notes','Status',
-    'Source Document ID','Created Date','Last Updated','Drive File ID','Drive File URL','Created By'
+    'Source Document ID','Created Date','Last Updated','Drive File ID','Drive File URL','Created By','Tax Mode'
   ],
   Payments: [
     'Payment ID','Invoice ID','Invoice Number','Quotation ID','Customer ID','Customer Name','Payment Date','Amount Received',
-    'Payment Mode','Transaction Reference','Bank / Account','Notes','Recorded By','Created Date'
+    'Payment Mode','Credited To','Transferred To','Transaction Reference','Bank / Account','Payment Details','Notes','Recorded By','Created Date'
   ],
   Letterheads: [
     'Letterhead ID','Letterhead Name','Company Name','Tagline','GSTIN','Address','Phone','Email','Website','Logo Drive File ID','Logo Drive URL',
@@ -217,7 +217,8 @@ function mapItemToRow(sheetName, item, headers) {
       'Drive File ID': item.driveFileId,
       'Drive File URL': item.driveFileUrl,
       'Created By': item.createdBy,
-      'Converted Invoice ID': item.convertedInvoiceId
+      'Converted Invoice ID': item.convertedInvoiceId,
+      'Tax Mode': item.taxMode || (item.gstApplicable === false ? 'NON_GST' : 'GST')
     },
     Invoices: {
       'Invoice ID': item.id,
@@ -244,7 +245,8 @@ function mapItemToRow(sheetName, item, headers) {
       'Last Updated': item.lastUpdated,
       'Drive File ID': item.driveFileId,
       'Drive File URL': item.driveFileUrl,
-      'Created By': item.createdBy
+      'Created By': item.createdBy,
+      'Tax Mode': item.taxMode || (item.gstApplicable === false ? 'NON_GST' : 'GST')
     },
     Payments: {
       'Payment ID': item.id,
@@ -256,8 +258,11 @@ function mapItemToRow(sheetName, item, headers) {
       'Payment Date': item.paymentDate,
       'Amount Received': item.amountReceived,
       'Payment Mode': item.paymentMode,
+      'Credited To': item.creditedTo,
+      'Transferred To': item.transferredTo,
       'Transaction Reference': item.transactionReference,
       'Bank / Account': item.bankAccount,
+      'Payment Details': item.paymentDetails,
       'Notes': item.notes,
       'Recorded By': item.recordedBy,
       'Created Date': item.createdDate

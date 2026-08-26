@@ -29,8 +29,11 @@ export class PaymentService {
       paymentDate: input.paymentDate || toIsoDate(),
       amountReceived: Number(input.amountReceived || 0),
       paymentMode: this.normalizeMode(input.paymentMode || 'Other'),
+      creditedTo: input.creditedTo || '',
+      transferredTo: input.transferredTo || '',
       transactionReference: input.transactionReference || '',
       bankAccount: input.bankAccount || '',
+      paymentDetails: input.paymentDetails || '',
       notes: input.notes || '',
       recordedBy: input.recordedBy || 'Local User',
       createdDate: this.nowFn()
