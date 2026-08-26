@@ -32,6 +32,10 @@ export class GoogleSheetsService {
     return this.postFn('upsertPayments', { payments });
   }
 
+  async upsertDocumentHistory(documentHistory) {
+    return this.postFn('upsertDocumentHistory', { documentHistory });
+  }
+
   async upsertLetterheads(letterheads) {
     return this.postFn('upsertLetterheads', { letterheads });
   }

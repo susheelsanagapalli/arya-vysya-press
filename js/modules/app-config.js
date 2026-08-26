@@ -17,6 +17,7 @@ export const REQUIRED_SHEETS = [
   'Quotations',
   'Invoices',
   'Payments',
+  'Document Register',
   'Letterheads',
   'Templates',
   'Settings'

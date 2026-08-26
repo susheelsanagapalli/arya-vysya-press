@@ -18,7 +18,7 @@ export function formatDateEnIn(value) {
 }
 
 export function normalizeAmount(value) {
-  const numeric = String(value || '').replace(/[^\\d.-]/g, '');
+  const numeric = String(value || '').replace(/[^\d.-]/g, '');
   return parseFloat(numeric) || 0;
 }
 

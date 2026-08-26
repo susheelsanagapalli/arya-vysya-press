@@ -24,6 +24,7 @@ This folder contains the backend contract used by the frontend app to work with 
 - `upsertQuotations`
 - `upsertInvoices`
 - `upsertPayments`
+- `upsertDocumentHistory`
 - `upsertLetterheads`
 - `upsertTemplates`
 

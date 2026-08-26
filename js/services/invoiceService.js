@@ -13,6 +13,10 @@ export class InvoiceService {
     return this.getState().invoices || [];
   }
 
+  getById(invoiceId) {
+    return (this.getState().invoices || []).find(invoice => invoice.id === invoiceId) || null;
+  }
+
   recalc(invoice, today) {
     if (!invoice || invoice.status === 'Cancelled') {
       invoice.paymentStatus = 'Cancelled';
@@ -76,5 +80,42 @@ export class InvoiceService {
     state.invoices.push(invoice);
     this.saveState();
     return invoice;
+  }
+
+  update(invoiceId, patch) {
+    const invoice = this.getById(invoiceId);
+    if (!invoice) return null;
+
+    Object.assign(invoice, {
+      ...patch,
+      lastUpdated: this.nowFn()
+    });
+
+    this.recalc(invoice, toIsoDate());
+    this.saveState();
+    return invoice;
+  }
+
+  duplicateFromExisting(invoiceId, patch = {}) {
+    const source = this.getById(invoiceId);
+    if (!source) return null;
+
+    return this.createFromBuilder({
+      quotationId: patch.quotationId || source.quotationId || '',
+      quotationNumber: patch.quotationNumber || source.quotationNumber || '',
+      customerId: patch.customerId || source.customerId,
+      customerName: patch.customerName || source.customerName,
+      companyName: patch.companyName || source.companyName,
+      gstEnabled: patch.gstEnabled !== undefined ? patch.gstEnabled : source.gstApplicable,
+      invoiceDate: patch.invoiceDate || toIsoDate(),
+      dueDate: patch.dueDate || plusDays(patch.invoiceDate || toIsoDate(), 30),
+      letterheadId: patch.letterheadId || source.letterheadId,
+      paymentTerms: patch.paymentTerms || source.paymentTerms,
+      notes: patch.notes || source.notes,
+      status: patch.status || 'Draft',
+      sourceDocumentId: source.id,
+      createdBy: patch.createdBy || source.createdBy,
+      items: (source.items || []).map(item => ({ ...item }))
+    });
   }
 }

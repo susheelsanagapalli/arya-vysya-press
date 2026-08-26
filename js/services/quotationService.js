@@ -13,6 +13,10 @@ export class QuotationService {
     return this.getState().quotations || [];
   }
 
+  getById(quotationId) {
+    return (this.getState().quotations || []).find(quotation => quotation.id === quotationId) || null;
+  }
+
   createFromBuilder(input) {
     const state = this.getState();
     const gstEnabled = input.gstEnabled !== false;
@@ -51,6 +55,41 @@ export class QuotationService {
     state.quotations.push(quotation);
     this.saveState();
     return quotation;
+  }
+
+  update(quotationId, patch) {
+    const quotation = this.getById(quotationId);
+    if (!quotation) return null;
+
+    Object.assign(quotation, {
+      ...patch,
+      lastUpdated: this.nowFn()
+    });
+
+    this.saveState();
+    return quotation;
+  }
+
+  duplicateFromExisting(quotationId, patch = {}) {
+    const source = this.getById(quotationId);
+    if (!source) return null;
+
+    return this.createFromBuilder({
+      customerId: source.customerId,
+      customerName: source.customerName,
+      companyName: source.companyName,
+      quotationDate: patch.quotationDate || toIsoDate(),
+      validUntil: patch.validUntil || plusDays(patch.quotationDate || toIsoDate(), 15),
+      letterheadId: patch.letterheadId || source.letterheadId,
+      gstEnabled: patch.gstEnabled !== undefined ? patch.gstEnabled : source.gstApplicable,
+      currency: patch.currency || source.currency,
+      paymentTerms: patch.paymentTerms || source.paymentTerms,
+      notes: patch.notes || source.notes,
+      status: patch.status || 'Draft',
+      sourceDocumentId: source.id,
+      createdBy: patch.createdBy || source.createdBy,
+      items: (source.items || []).map(item => ({ ...item }))
+    });
   }
 
   markConverted(quotationId, invoiceId) {

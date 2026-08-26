@@ -17,6 +17,10 @@ const SHEET_HEADERS = {
     'Payment ID','Invoice ID','Invoice Number','Quotation ID','Customer ID','Customer Name','Payment Date','Amount Received',
     'Payment Mode','Credited To','Transferred To','Transaction Reference','Bank / Account','Payment Details','Notes','Recorded By','Created Date'
   ],
+  'Document Register': [
+    'Document ID','Document Type','Document Number','Customer ID','Customer Name','Document Date','Amount','Status','Drive File ID','Drive URL',
+    'Source Quotation ID','Source Invoice ID','Created Date','Last Updated'
+  ],
   Letterheads: [
     'Letterhead ID','Letterhead Name','Company Name','Tagline','GSTIN','Address','Phone','Email','Website','Logo Drive File ID','Logo Drive URL',
     'Created Date','Last Updated','Default'
@@ -66,6 +70,9 @@ function doPost(e) {
         break;
       case 'upsertPayments':
         data = upsertRows('Payments', payload.payments || [], 'Payment ID', config);
+        break;
+      case 'upsertDocumentHistory':
+        data = upsertRows('Document Register', payload.documentHistory || [], 'Document ID', config);
         break;
       case 'upsertLetterheads':
         data = upsertRows('Letterheads', payload.letterheads || [], 'Letterhead ID', config);
@@ -266,6 +273,22 @@ function mapItemToRow(sheetName, item, headers) {
       'Notes': item.notes,
       'Recorded By': item.recordedBy,
       'Created Date': item.createdDate
+    },
+    'Document Register': {
+      'Document ID': item.id,
+      'Document Type': item.documentType,
+      'Document Number': item.documentNumber,
+      'Customer ID': item.customerId,
+      'Customer Name': item.customerName,
+      'Document Date': item.documentDate,
+      'Amount': item.amount,
+      'Status': item.status,
+      'Drive File ID': item.driveFileId,
+      'Drive URL': item.driveFileUrl,
+      'Source Quotation ID': item.sourceQuotationId,
+      'Source Invoice ID': item.sourceInvoiceId,
+      'Created Date': item.createdDate,
+      'Last Updated': item.lastUpdated
     },
     Letterheads: {
       'Letterhead ID': item.id,

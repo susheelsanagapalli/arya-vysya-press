@@ -1041,6 +1041,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
       <button class="mgmt-nav-btn" data-view-target="quotations">Quotations</button>
       <button class="mgmt-nav-btn" data-view-target="invoices">Invoices</button>
       <button class="mgmt-nav-btn" data-view-target="payments">Payments</button>
+      <button class="mgmt-nav-btn" data-view-target="documents">Document Register</button>
       <button class="mgmt-nav-btn" data-view-target="letterheads">Letterheads</button>
       <button class="mgmt-nav-btn" data-view-target="templates">Templates</button>
       <button class="mgmt-nav-btn" data-view-target="settings">Settings</button>
@@ -1100,6 +1101,26 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
           </table>
         </div>
       </div>
+
+      <div class="register-card">
+        <div class="register-toolbar">
+          <strong>Recent Activity</strong>
+        </div>
+        <div class="register-table-wrap">
+          <table class="register-table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Number</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="dashboard-recent-tbody"></tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
     <section class="mgmt-view" id="view-customers">
@@ -1125,6 +1146,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
                 <th>Email</th>
                 <th>GSTIN</th>
                 <th>Status</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody id="customers-tbody"></tbody>
@@ -1203,6 +1225,81 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
           <div class="view-sub">Payment recording and transaction trace</div>
         </div>
       </div>
+      <div class="register-card" style="padding:12px; margin-bottom:12px;">
+        <form id="payment-entry-form">
+          <div class="settings-grid">
+            <div class="field">
+              <label for="p-invoice-id">Invoice</label>
+              <select id="p-invoice-id" required>
+                <option value="">Select Invoice</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="p-customer-name">Customer</label>
+              <input id="p-customer-name" type="text" readonly placeholder="Auto from invoice">
+            </div>
+            <div class="field">
+              <label for="p-invoice-total">Invoice Amount</label>
+              <input id="p-invoice-total" type="text" readonly value="Rs 0.00">
+            </div>
+            <div class="field">
+              <label for="p-amount-paid">Already Paid</label>
+              <input id="p-amount-paid" type="text" readonly value="Rs 0.00">
+            </div>
+            <div class="field">
+              <label for="p-outstanding">Outstanding</label>
+              <input id="p-outstanding" type="text" readonly value="Rs 0.00">
+            </div>
+            <div class="field">
+              <label for="p-payment-date">Payment Date</label>
+              <input id="p-payment-date" type="date" required>
+            </div>
+            <div class="field">
+              <label for="p-amount-received">Amount Received</label>
+              <input id="p-amount-received" type="number" step="0.01" min="0" required placeholder="0.00">
+            </div>
+            <div class="field">
+              <label for="p-payment-mode">Payment Mode</label>
+              <select id="p-payment-mode" required>
+                <option value="Cash">Cash</option>
+                <option value="UPI" selected>UPI</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Cheque">Cheque</option>
+                <option value="Card">Card</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="p-reference">Reference / Transaction Number</label>
+              <input id="p-reference" type="text" placeholder="UTR / Ref Number">
+            </div>
+            <div class="field">
+              <label for="p-bank-account">Bank / Account</label>
+              <input id="p-bank-account" type="text" placeholder="Bank name and account summary">
+            </div>
+            <div class="field">
+              <label for="p-credited-to">Credited To</label>
+              <input id="p-credited-to" type="text" placeholder="Account received into">
+            </div>
+            <div class="field">
+              <label for="p-transferred-to">Transferred To</label>
+              <input id="p-transferred-to" type="text" placeholder="Destination account (optional)">
+            </div>
+            <div class="field">
+              <label for="p-payment-details">Payment Details</label>
+              <textarea id="p-payment-details" rows="2" placeholder="Gateway / branch / transfer details"></textarea>
+            </div>
+            <div class="field">
+              <label for="p-payment-notes">Notes</label>
+              <textarea id="p-payment-notes" rows="2" placeholder="Optional notes"></textarea>
+            </div>
+          </div>
+          <div class="settings-actions">
+            <button class="btn btn-gold btn-sm" type="submit">Record Payment</button>
+            <button class="btn btn-outline btn-sm" type="button" id="btn-reset-payment-form">Reset</button>
+          </div>
+        </form>
+      </div>
       <div class="register-card">
         <div class="register-toolbar">
           <input class="search-input" id="search-payments" placeholder="Search payment ID, invoice, customer, reference">
@@ -1223,6 +1320,37 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
               </tr>
             </thead>
             <tbody id="payments-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="mgmt-view" id="view-documents">
+      <div class="view-head">
+        <div>
+          <div class="view-title">Document Register</div>
+          <div class="view-sub">Unified history for quotations, invoices, and payments</div>
+        </div>
+      </div>
+      <div class="register-card">
+        <div class="register-toolbar">
+          <input class="search-input" id="search-documents" placeholder="Search document number, customer, type, status">
+        </div>
+        <div class="register-table-wrap">
+          <table class="register-table">
+            <thead>
+              <tr>
+                <th>Document ID</th>
+                <th>Type</th>
+                <th>Document No.</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Drive File</th>
+              </tr>
+            </thead>
+            <tbody id="documents-tbody"></tbody>
           </table>
         </div>
       </div>
@@ -1839,11 +1967,14 @@ let bizState = {
   customers: [],
   quotations: [],
   invoices: [],
-  payments: []
+  payments: [],
+  documentHistory: []
 };
 
 let activeView = 'dashboard';
 let currentInvoiceSource = null;
+let currentQuotationEditId = null;
+let currentInvoiceEditId = null;
 
 const googleIntegration = new GoogleIntegrationService();
 const stateService = new BusinessStateService();
@@ -1948,6 +2079,7 @@ function loadBusinessState() {
     quotations: Array.isArray(state.quotations) ? state.quotations : [],
     invoices: Array.isArray(state.invoices) ? state.invoices : [],
     payments: Array.isArray(state.payments) ? state.payments : [],
+    documentHistory: Array.isArray(state.documentHistory) ? state.documentHistory : [],
     letterheads: Array.isArray(state.letterheads) ? state.letterheads : [],
     templates: Array.isArray(state.templates) ? state.templates : []
   };
@@ -1993,12 +2125,12 @@ function normalizePaymentStatus(invoice) {
   return 'Unpaid';
 }
 
-function recalcInvoiceFinancials(invoice) {
+function recalcInvoiceFinancials(invoice, touchTimestamp) {
   const total = Number(invoice.grandTotal || 0);
   const paid = Number(invoice.amountPaid || 0);
   invoice.balanceDue = Math.max(0, total - paid);
   invoice.paymentStatus = normalizePaymentStatus(invoice);
-  invoice.lastUpdated = businessNowIso();
+  if (touchTimestamp) invoice.lastUpdated = businessNowIso();
 }
 
 function setInputValue(inputId, value) {
@@ -2038,7 +2170,7 @@ function ensureCustomerFromCurrentBuilder() {
 function saveQuotationRecord() {
   const customer = ensureCustomerFromCurrentBuilder();
   const gstEnabled = isGstEnabled();
-  const quotation = quotationService.createFromBuilder({
+  const quotationPayload = {
     customerId: customer.id,
     customerName: customer.customerName,
     companyName: customer.companyName,
@@ -2046,12 +2178,32 @@ function saveQuotationRecord() {
     gstEnabled,
     paymentTerms: document.getElementById('f-inv-terms')?.value || '30 Days',
     notes: document.getElementById('f-q-closing')?.value || '',
-    status: 'Issued',
+    status: currentQuotationEditId ? (bizState.quotations.find(item => item.id === currentQuotationEditId)?.status || 'Issued') : 'Issued',
     createdBy: 'Local User',
     items: qRows.map(normalizeRow)
-  });
+  };
+
+  let quotation = null;
+  if (currentQuotationEditId) {
+    const totals = computeTotals(quotationPayload.items, quotationPayload.gstEnabled);
+    quotation = quotationService.update(currentQuotationEditId, {
+      ...quotationPayload,
+      subtotal: totals.subtotal,
+      gst: totals.gst,
+      grandTotal: totals.total,
+      gstApplicable: quotationPayload.gstEnabled,
+      taxMode: quotationPayload.gstEnabled ? 'GST' : 'NON_GST',
+      validUntil: getDatePlusDays(quotationPayload.quotationDate, 15),
+      convertedInvoiceId: bizState.quotations.find(item => item.id === currentQuotationEditId)?.convertedInvoiceId || '',
+      items: quotationPayload.items
+    });
+  } else {
+    quotation = quotationService.createFromBuilder(quotationPayload);
+  }
 
   bizState = stateService.getState();
+  currentQuotationEditId = null;
+  upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Quotation', quotation));
   saveBusinessState();
   renderBusinessViews();
   showToast(`Quotation ${quotation.quotationNumber} saved.`, 'success');
@@ -2072,7 +2224,7 @@ function saveInvoiceRecord() {
     quotationNumber: ''
   };
 
-  const invoice = invoiceService.createFromBuilder({
+  const invoicePayload = {
     quotationId: source.quotationId,
     quotationNumber: source.quotationNumber,
     customerId: customer.id,
@@ -2083,11 +2235,29 @@ function saveInvoiceRecord() {
     dueDate,
     paymentTerms: document.getElementById('f-inv-terms')?.value || '30 Days',
     notes: document.getElementById('f-inv-ref')?.value || '',
-    status: 'Issued',
+    status: currentInvoiceEditId ? (bizState.invoices.find(item => item.id === currentInvoiceEditId)?.status || 'Issued') : 'Issued',
     sourceDocumentId: source.quotationId || '',
     createdBy: 'Local User',
     items: iRows.map(normalizeRow)
-  });
+  };
+
+  let invoice = null;
+  if (currentInvoiceEditId) {
+    const totals = computeTotals(invoicePayload.items, invoicePayload.gstEnabled);
+    invoice = invoiceService.update(currentInvoiceEditId, {
+      ...invoicePayload,
+      subtotal: totals.subtotal,
+      gst: totals.gst,
+      grandTotal: totals.total,
+      amountPaid: Number(bizState.invoices.find(item => item.id === currentInvoiceEditId)?.amountPaid || 0),
+      balanceDue: 0,
+      gstApplicable: invoicePayload.gstEnabled,
+      taxMode: invoicePayload.gstEnabled ? 'GST' : 'NON_GST',
+      items: invoicePayload.items
+    });
+  } else {
+    invoice = invoiceService.createFromBuilder(invoicePayload);
+  }
 
   bizState = stateService.getState();
 
@@ -2098,6 +2268,8 @@ function saveInvoiceRecord() {
   }
 
   currentInvoiceSource = null;
+  currentInvoiceEditId = null;
+  upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Invoice', invoice));
   saveBusinessState();
   renderBusinessViews();
   showToast(`Invoice ${invoice.invoiceNumber} saved.`, 'success');
@@ -2126,6 +2298,7 @@ async function exportAndSaveActiveDocument() {
       quotations: bizState.quotations,
       invoices: bizState.invoices,
       payments: bizState.payments,
+      documentHistory: bizState.documentHistory || [],
       letterheads: bizState.letterheads || [],
       templates: bizState.templates || []
     });
@@ -2151,13 +2324,18 @@ function loadQuotationIntoInvoiceBuilder(quotationId, forceDuplicate) {
     if (!allowAnother) return;
   }
 
-  setInputValue('f-inv-cname', quote.companyName || quote.customerName);
-  setInputValue('f-inv-bname', quote.companyName || quote.customerName);
-  setInputValue('f-inv-cgst', document.getElementById('f-q-cgst')?.value || '');
-  setInputValue('f-inv-bgst', document.getElementById('f-q-cgst')?.value || '');
+  const customer = bizState.customers.find(item => item.id === quote.customerId) || {};
+
+  setInputValue('f-inv-cname', customer.companyName || quote.companyName || quote.customerName);
+  setInputValue('f-inv-bname', customer.companyName || quote.companyName || quote.customerName);
+  setInputValue('f-inv-caddr', customer.shippingAddress || customer.billingAddress || document.getElementById('f-inv-caddr')?.value || '');
+  setInputValue('f-inv-baddr', customer.billingAddress || customer.shippingAddress || document.getElementById('f-inv-baddr')?.value || '');
+  setInputValue('f-inv-cgst', customer.gstin || '');
+  setInputValue('f-inv-bgst', customer.gstin || '');
   setInputValue('f-inv-date', todayIsoDate());
   setInputValue('f-inv-terms', quote.paymentTerms || '30 Days');
   setInputValue('f-inv-ref', `Source Quotation ${quote.quotationNumber}`);
+  setInputValue('f-inv-pos', customer.state || document.getElementById('f-inv-pos')?.value || '');
 
   iRows = (quote.items || []).map(item => ({
     id: nextRowId(),
@@ -2176,72 +2354,274 @@ function loadQuotationIntoInvoiceBuilder(quotationId, forceDuplicate) {
     quotationNumber: quote.quotationNumber,
     customerId: quote.customerId
   };
+  currentInvoiceEditId = null;
+  currentQuotationEditId = null;
 
   setMode('invoice');
   switchView('builder');
   showToast(`Invoice draft loaded from ${quote.quotationNumber}.`, 'success');
 }
 
-function recordPaymentAgainstInvoice(invoiceId) {
-  const invoice = bizState.invoices.find(inv => inv.id === invoiceId);
+function loadQuotationIntoQuotationBuilder(quotationId) {
+  const quote = bizState.quotations.find(q => q.id === quotationId);
+  if (!quote) {
+    showToast('Quotation not found.', 'error');
+    return;
+  }
+
+  setMode('quotation');
+  switchView('builder');
+  currentQuotationEditId = quote.id;
+  currentInvoiceEditId = null;
+  currentInvoiceSource = null;
+  setInputValue('f-q-to', quote.companyName || quote.customerName || '');
+  setInputValue('f-q-cgst', (bizState.customers.find(customer => customer.id === quote.customerId)?.gstin) || '');
+  setInputValue('f-q-subject', `Quotation ${quote.quotationNumber}`);
+  setInputValue('f-q-body', quote.notes || document.getElementById('d-q-body')?.textContent || '');
+  setInputValue('f-q-closing', quote.notes || document.getElementById('d-q-closing')?.textContent || '');
+
+  qRows = (quote.items || []).map(item => ({
+    id: nextRowId(),
+    desc: item.desc,
+    hsn: item.hsn,
+    price: Number(item.price || 0),
+    qty: Number(item.qty || 1),
+    gstPct: Number(item.gstPct || 18)
+  }));
+
+  setInputValue('f-gst-enabled', quote.gstApplicable === false ? 'false' : 'true');
+  applyGstMode();
+  renderRows('q');
+  showToast(`Quotation ${quote.quotationNumber} loaded for editing.`, 'success');
+}
+
+function loadInvoiceIntoBuilder(invoiceId) {
+  const invoice = bizState.invoices.find(item => item.id === invoiceId);
   if (!invoice) {
     showToast('Invoice not found.', 'error');
     return;
   }
 
-  const amountRaw = prompt(`Record payment for ${invoice.invoiceNumber}. Balance due: ${formatMoney(invoice.balanceDue)}\nEnter amount received:`);
-  if (amountRaw === null) return;
+  const customer = bizState.customers.find(item => item.id === invoice.customerId) || {};
+  setMode('invoice');
+  switchView('builder');
+  currentInvoiceEditId = invoice.id;
+  currentQuotationEditId = null;
+  currentInvoiceSource = {
+    quotationId: invoice.quotationId || '',
+    quotationNumber: invoice.quotationNumber || '',
+    customerId: invoice.customerId || ''
+  };
+  setInputValue('f-inv-no', invoice.invoiceNumber || '');
+  setInputValue('f-inv-date', invoice.invoiceDate || todayIsoDate());
+  setInputValue('f-inv-pos', document.getElementById('f-inv-pos')?.value || '');
+  setInputValue('f-inv-terms', invoice.paymentTerms || '30 Days');
+  setInputValue('f-inv-ref', invoice.notes || '');
+  setInputValue('f-inv-bon', invoice.quotationNumber || '');
+  setInputValue('f-inv-bod', invoice.invoiceDate || todayIsoDate());
+  setInputValue('f-inv-cname', customer.companyName || invoice.customerName || '');
+  setInputValue('f-inv-caddr', customer.billingAddress || '');
+  setInputValue('f-inv-cgst', customer.gstin || '');
+  setInputValue('f-inv-bname', customer.companyName || invoice.customerName || '');
+  setInputValue('f-inv-baddr', customer.billingAddress || '');
+  setInputValue('f-inv-bgst', customer.gstin || '');
 
-  const amount = parseCurrency(amountRaw);
-  if (amount <= 0) {
+  iRows = (invoice.items || []).map(item => ({
+    id: nextRowId(),
+    desc: item.desc,
+    hsn: item.hsn,
+    price: Number(item.price || 0),
+    qty: Number(item.qty || 1),
+    gstPct: Number(item.gstPct || 18)
+  }));
+
+  setInputValue('f-gst-enabled', invoice.gstApplicable === false ? 'false' : 'true');
+  applyGstMode();
+  renderRows('i');
+  currentInvoiceSource = {
+    quotationId: invoice.quotationId || '',
+    quotationNumber: invoice.quotationNumber || '',
+    customerId: invoice.customerId || ''
+  };
+  showToast(`Invoice ${invoice.invoiceNumber} loaded for editing.`, 'success');
+}
+
+function populatePaymentInvoiceOptions(preferredInvoiceId) {
+  const select = document.getElementById('p-invoice-id');
+  if (!select) return;
+
+  const currentValue = preferredInvoiceId || select.value;
+  const options = ['<option value="">Select Invoice</option>'];
+
+  bizState.invoices
+    .slice()
+    .sort((a, b) => new Date(b.invoiceDate || b.createdDate) - new Date(a.invoiceDate || a.createdDate))
+    .forEach(invoice => {
+      const label = `${invoice.invoiceNumber || invoice.id} | ${invoice.customerName || '--'} | Due ${formatMoney(invoice.balanceDue || 0)}`;
+      options.push(`<option value="${escapeHtml(invoice.id)}">${escapeHtml(label)}</option>`);
+    });
+
+  select.innerHTML = options.join('');
+  if (currentValue && bizState.invoices.some(invoice => invoice.id === currentValue)) {
+    select.value = currentValue;
+  }
+}
+
+function applyPaymentInvoiceSummary(invoiceId) {
+  const customerEl = document.getElementById('p-customer-name');
+  const invoiceTotalEl = document.getElementById('p-invoice-total');
+  const paidEl = document.getElementById('p-amount-paid');
+  const outstandingEl = document.getElementById('p-outstanding');
+  if (!customerEl || !invoiceTotalEl || !paidEl || !outstandingEl) return;
+
+  const invoice = bizState.invoices.find(item => item.id === invoiceId);
+  if (!invoice) {
+    customerEl.value = '';
+    invoiceTotalEl.value = formatMoney(0);
+    paidEl.value = formatMoney(0);
+    outstandingEl.value = formatMoney(0);
+    return;
+  }
+
+  recalcInvoiceFinancials(invoice);
+  customerEl.value = invoice.customerName || '--';
+  invoiceTotalEl.value = formatMoney(invoice.grandTotal || 0);
+  paidEl.value = formatMoney(invoice.amountPaid || 0);
+  outstandingEl.value = formatMoney(invoice.balanceDue || 0);
+}
+
+function resetPaymentEntryForm(preferredInvoiceId) {
+  const form = document.getElementById('payment-entry-form');
+  if (!form) return;
+
+  const paymentDate = document.getElementById('p-payment-date');
+  const amount = document.getElementById('p-amount-received');
+  const mode = document.getElementById('p-payment-mode');
+  const reference = document.getElementById('p-reference');
+  const bankAccount = document.getElementById('p-bank-account');
+  const creditedTo = document.getElementById('p-credited-to');
+  const transferredTo = document.getElementById('p-transferred-to');
+  const details = document.getElementById('p-payment-details');
+  const notes = document.getElementById('p-payment-notes');
+
+  if (paymentDate) paymentDate.value = todayIsoDate();
+  if (amount) amount.value = '';
+  if (mode) mode.value = 'UPI';
+  if (reference) reference.value = '';
+  if (bankAccount) bankAccount.value = '';
+  if (creditedTo) creditedTo.value = '';
+  if (transferredTo) transferredTo.value = '';
+  if (details) details.value = '';
+  if (notes) notes.value = '';
+
+  populatePaymentInvoiceOptions(preferredInvoiceId);
+  const invoiceSelect = document.getElementById('p-invoice-id');
+  const selectedId = preferredInvoiceId || invoiceSelect?.value || '';
+  if (invoiceSelect && selectedId) invoiceSelect.value = selectedId;
+  applyPaymentInvoiceSummary(selectedId || '');
+}
+
+function appendPaymentForInvoice(invoice, payload) {
+  const amount = Number(payload.amountReceived || 0);
+  const payment = paymentService.record({
+    invoiceId: invoice.id,
+    invoiceNumber: invoice.invoiceNumber,
+    quotationId: invoice.quotationId || '',
+    customerId: invoice.customerId,
+    customerName: invoice.customerName,
+    paymentDate: payload.paymentDate,
+    amountReceived: amount,
+    paymentMode: payload.paymentMode,
+    creditedTo: payload.creditedTo,
+    transferredTo: payload.transferredTo,
+    transactionReference: payload.transactionReference,
+    bankAccount: payload.bankAccount,
+    paymentDetails: payload.paymentDetails,
+    notes: payload.notes,
+    recordedBy: 'Local User'
+  });
+
+  bizState = stateService.getState();
+  const invoiceRecord = bizState.invoices.find(item => item.id === invoice.id);
+  if (invoiceRecord) {
+    invoiceRecord.amountPaid = Number(invoiceRecord.amountPaid || 0) + amount;
+    recalcInvoiceFinancials(invoiceRecord, true);
+    upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Invoice', invoiceRecord));
+  }
+
+  upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Payment', payment, {
+    documentNumber: payment.id,
+    status: 'Recorded',
+    sourceInvoiceId: payment.invoiceId || '',
+    sourceQuotationId: payment.quotationId || ''
+  }));
+}
+
+function submitStructuredPaymentForm(event) {
+  if (event) event.preventDefault();
+
+  const invoiceId = (document.getElementById('p-invoice-id')?.value || '').trim();
+  const paymentDate = (document.getElementById('p-payment-date')?.value || todayIsoDate()).trim();
+  const amount = Number(document.getElementById('p-amount-received')?.value || 0);
+  const paymentMode = (document.getElementById('p-payment-mode')?.value || 'Other').trim();
+
+  if (!invoiceId) {
+    showToast('Select an invoice before recording payment.', 'error');
+    return;
+  }
+
+  const invoice = bizState.invoices.find(item => item.id === invoiceId);
+  if (!invoice) {
+    showToast('Selected invoice was not found.', 'error');
+    return;
+  }
+
+  if (Number.isNaN(new Date(paymentDate).getTime())) {
+    showToast('Enter a valid payment date.', 'error');
+    return;
+  }
+
+  if (!(amount > 0)) {
     showToast('Payment amount must be greater than zero.', 'error');
     return;
   }
 
+  recalcInvoiceFinancials(invoice);
   const projected = Number(invoice.amountPaid || 0) + amount;
   if (projected > Number(invoice.grandTotal || 0)) {
     const allowOverpay = confirm('Payment exceeds invoice grand total. Continue with overpayment?');
     if (!allowOverpay) return;
   }
 
-  const modePrompt = prompt(`Payment mode (${PAYMENT_MODES.join(', ')}):`, 'UPI');
-  if (modePrompt === null) return;
-  const modeValue = String(modePrompt || 'Other').trim();
-  const paymentMode = PAYMENT_MODES.includes(modeValue) ? modeValue : 'Other';
-
-  const paymentDate = (prompt('Payment date (YYYY-MM-DD):', todayIsoDate()) || todayIsoDate()).trim();
-  const creditedTo = (prompt('Credited to (account received into):', '') || '').trim();
-  const transferredTo = (prompt('Transferred to (destination account):', '') || '').trim();
-  const reference = (prompt('Transaction reference / UTR:', '') || '').trim();
-  const bankAccount = (prompt('Bank / Account summary:', '') || '').trim();
-  const paymentDetails = (prompt('Transfer details:', '') || '').trim();
-  const notes = (prompt('Notes:', '') || '').trim();
-
-  paymentService.record({
-    invoiceId: invoice.id,
-    invoiceNumber: invoice.invoiceNumber,
-    quotationId: invoice.quotationId || '',
-    customerId: invoice.customerId,
-    customerName: invoice.customerName,
+  appendPaymentForInvoice(invoice, {
     paymentDate,
     amountReceived: amount,
     paymentMode,
-    creditedTo,
-    transferredTo,
-    transactionReference: reference,
-    bankAccount,
-    paymentDetails,
-    notes,
-    recordedBy: 'Local User'
+    creditedTo: (document.getElementById('p-credited-to')?.value || '').trim(),
+    transferredTo: (document.getElementById('p-transferred-to')?.value || '').trim(),
+    transactionReference: (document.getElementById('p-reference')?.value || '').trim(),
+    bankAccount: (document.getElementById('p-bank-account')?.value || '').trim(),
+    paymentDetails: (document.getElementById('p-payment-details')?.value || '').trim(),
+    notes: (document.getElementById('p-payment-notes')?.value || '').trim()
   });
-
-  bizState = stateService.getState();
-  invoice.amountPaid = Number(invoice.amountPaid || 0) + amount;
-  recalcInvoiceFinancials(invoice);
 
   saveBusinessState();
   renderBusinessViews();
-  showToast('Payment recorded successfully.', 'success');
+  resetPaymentEntryForm(invoice.id);
+  showToast(`Payment recorded for ${invoice.invoiceNumber}.`, 'success');
+}
+
+function recordPaymentAgainstInvoice(invoiceId) {
+  const invoice = bizState.invoices.find(item => item.id === invoiceId);
+  if (!invoice) {
+    showToast('Invoice not found.', 'error');
+    return;
+  }
+
+  switchView('payments');
+  resetPaymentEntryForm(invoice.id);
+  const amountField = document.getElementById('p-amount-received');
+  if (amountField) amountField.focus();
 }
 
 function switchView(viewKey) {
@@ -2274,10 +2654,14 @@ function renderCustomersView() {
       <td>${escapeHtml(c.email || '--')}</td>
       <td>${escapeHtml(c.gstin || '--')}</td>
       <td>${buildStatusBadge(c.status || 'Active')}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" data-customer-action="edit" data-customer-id="${escapeHtml(c.id)}">Edit</button>
+        <button class="btn btn-outline btn-sm" data-customer-action="archive" data-customer-id="${escapeHtml(c.id)}">Archive</button>
+      </td>
     </tr>
   `).join('');
 
-  if (!rows.length) body.innerHTML = '<tr><td colspan="7">No customers found.</td></tr>';
+  if (!rows.length) body.innerHTML = '<tr><td colspan="8">No customers found.</td></tr>';
 }
 
 function renderQuotationsView() {
@@ -2299,6 +2683,8 @@ function renderQuotationsView() {
       <td>${buildStatusBadge(item.status || 'Draft')}</td>
       <td>${escapeHtml(item.convertedInvoiceId || '--')}</td>
       <td>
+        <button class="btn btn-outline btn-sm" data-quotation-action="edit" data-quotation-id="${escapeHtml(item.id)}">Edit</button>
+        <button class="btn btn-outline btn-sm" data-quotation-action="duplicate" data-quotation-id="${escapeHtml(item.id)}">Duplicate</button>
         <button class="btn btn-outline btn-sm" data-quotation-action="create-invoice" data-quotation-id="${escapeHtml(item.id)}">Create Invoice</button>
       </td>
     </tr>
@@ -2332,6 +2718,8 @@ function renderInvoicesView() {
       <td>${buildStatusBadge(item.paymentStatus || 'Unpaid')}</td>
       <td>${escapeHtml(item.quotationNumber || '--')}</td>
       <td>
+        <button class="btn btn-outline btn-sm" data-invoice-action="edit" data-invoice-id="${escapeHtml(item.id)}">Edit</button>
+        <button class="btn btn-outline btn-sm" data-invoice-action="duplicate" data-invoice-id="${escapeHtml(item.id)}">Duplicate</button>
         <button class="btn btn-outline btn-sm" data-invoice-action="record-payment" data-invoice-id="${escapeHtml(item.id)}">Record Payment</button>
       </td>
     </tr>
@@ -2344,6 +2732,7 @@ function renderPaymentsView() {
   const body = document.getElementById('payments-tbody');
   if (!body) return;
   const q = (document.getElementById('search-payments')?.value || '').toLowerCase().trim();
+  const selectedInvoiceId = document.getElementById('p-invoice-id')?.value || '';
   const rows = bizState.payments.filter(item => {
     if (!q) return true;
     return [item.id, item.invoiceNumber, item.customerName, item.transactionReference, item.creditedTo, item.transferredTo, item.paymentDetails]
@@ -2365,6 +2754,9 @@ function renderPaymentsView() {
   `).join('');
 
   if (!rows.length) body.innerHTML = '<tr><td colspan="9">No payments found.</td></tr>';
+
+  populatePaymentInvoiceOptions(selectedInvoiceId);
+  applyPaymentInvoiceSummary(document.getElementById('p-invoice-id')?.value || '');
 }
 
 function renderDashboardView() {
@@ -2404,7 +2796,8 @@ function renderDashboardView() {
   setText('kpi-conversion', `${conversionRate}%`);
 
   const overdueBody = document.getElementById('dashboard-overdue-tbody');
-  if (!overdueBody) return;
+  const recentBody = document.getElementById('dashboard-recent-tbody');
+  if (!overdueBody || !recentBody) return;
 
   const overdueRows = bizState.invoices.filter(inv => inv.paymentStatus === 'Overdue');
   overdueBody.innerHTML = overdueRows.map(inv => `
@@ -2418,6 +2811,22 @@ function renderDashboardView() {
   `).join('');
 
   if (!overdueRows.length) overdueBody.innerHTML = '<tr><td colspan="5">No overdue invoices.</td></tr>';
+
+  const recentRows = [...bizState.documentHistory]
+    .sort((a, b) => new Date(b.lastUpdated || b.createdDate) - new Date(a.lastUpdated || a.createdDate))
+    .slice(0, 8);
+
+  recentBody.innerHTML = recentRows.map(item => `
+    <tr>
+      <td>${escapeHtml(item.documentType || '--')}</td>
+      <td>${escapeHtml(item.documentNumber || '--')}</td>
+      <td>${escapeHtml(item.customerName || '--')}</td>
+      <td>${formatDateForTable(item.documentDate)}</td>
+      <td>${buildStatusBadge(item.status || 'Draft')}</td>
+    </tr>
+  `).join('');
+
+  if (!recentRows.length) recentBody.innerHTML = '<tr><td colspan="5">No recent activity.</td></tr>';
 }
 
 function renderBusinessViews() {
@@ -2426,6 +2835,90 @@ function renderBusinessViews() {
   renderQuotationsView();
   renderInvoicesView();
   renderPaymentsView();
+  renderDocumentHistoryView();
+}
+
+function normalizeDocumentHistoryEntry(entry) {
+  return {
+    id: String(entry?.id || `DOC-${Date.now()}`),
+    documentType: String(entry?.documentType || 'Document'),
+    documentNumber: String(entry?.documentNumber || '--'),
+    customerId: String(entry?.customerId || ''),
+    customerName: String(entry?.customerName || '--'),
+    documentDate: String(entry?.documentDate || todayIsoDate()),
+    amount: Number(entry?.amount || 0),
+    status: String(entry?.status || 'Draft'),
+    driveFileId: String(entry?.driveFileId || ''),
+    driveFileUrl: String(entry?.driveFileUrl || ''),
+    sourceQuotationId: String(entry?.sourceQuotationId || ''),
+    sourceInvoiceId: String(entry?.sourceInvoiceId || ''),
+    createdDate: String(entry?.createdDate || businessNowIso()),
+    lastUpdated: String(entry?.lastUpdated || businessNowIso())
+  };
+}
+
+function upsertDocumentHistoryEntry(entry) {
+  const normalized = normalizeDocumentHistoryEntry(entry);
+  const existingIndex = bizState.documentHistory.findIndex(item => item.documentType === normalized.documentType && item.documentNumber === normalized.documentNumber);
+
+  if (existingIndex >= 0) {
+    bizState.documentHistory[existingIndex] = {
+      ...bizState.documentHistory[existingIndex],
+      ...normalized,
+      lastUpdated: businessNowIso()
+    };
+  } else {
+    bizState.documentHistory.unshift(normalized);
+  }
+
+  bizState.documentHistory = bizState.documentHistory.slice(0, 200);
+  saveBusinessState();
+}
+
+function buildDocumentHistoryEntryFromRecord(type, record, overrides = {}) {
+  return normalizeDocumentHistoryEntry({
+    id: overrides.id,
+    documentType: type,
+    documentNumber: record.quotationNumber || record.invoiceNumber || record.id,
+    customerId: record.customerId,
+    customerName: record.customerName,
+    documentDate: record.quotationDate || record.invoiceDate || record.paymentDate || todayIsoDate(),
+    amount: record.grandTotal ?? record.amountReceived ?? 0,
+    status: record.status || record.paymentStatus || 'Draft',
+    driveFileId: record.driveFileId || '',
+    driveFileUrl: record.driveFileUrl || '',
+    sourceQuotationId: record.quotationId || record.sourceDocumentId || '',
+    sourceInvoiceId: record.invoiceId || record.sourceDocumentId || '',
+    createdDate: record.createdDate || businessNowIso(),
+    lastUpdated: record.lastUpdated || businessNowIso(),
+    ...overrides
+  });
+}
+
+function renderDocumentHistoryView() {
+  const body = document.getElementById('documents-tbody');
+  if (!body) return;
+  const q = (document.getElementById('search-documents')?.value || '').toLowerCase().trim();
+  const rows = bizState.documentHistory.filter(item => {
+    if (!q) return true;
+    return [item.id, item.documentType, item.documentNumber, item.customerName, item.status]
+      .some(v => String(v || '').toLowerCase().includes(q));
+  });
+
+  body.innerHTML = rows.map(item => `
+    <tr>
+      <td>${escapeHtml(item.id)}</td>
+      <td>${escapeHtml(item.documentType || '--')}</td>
+      <td>${escapeHtml(item.documentNumber || '--')}</td>
+      <td>${escapeHtml(item.customerName || '--')}</td>
+      <td>${formatDateForTable(item.documentDate)}</td>
+      <td class="right-text">${formatMoney(item.amount || 0)}</td>
+      <td>${buildStatusBadge(item.status || 'Draft')}</td>
+      <td>${item.driveFileUrl ? `<a href="${escapeHtml(item.driveFileUrl)}" target="_blank" rel="noreferrer">Open</a>` : '--'}</td>
+    </tr>
+  `).join('');
+
+  if (!rows.length) body.innerHTML = '<tr><td colspan="8">No documents found.</td></tr>';
 }
 
 function addCustomerFromPrompt() {
@@ -2436,8 +2929,7 @@ function addCustomerFromPrompt() {
   const email = (prompt('Email:') || '').trim();
   const gstin = (prompt('GSTIN:') || '').trim();
 
-  const customer = {
-    id: nextBusinessId('customer'),
+  const customer = customerService.upsertFromBuilder({
     customerName,
     companyName,
     contactPerson: customerName,
@@ -2446,22 +2938,96 @@ function addCustomerFromPrompt() {
     billingAddress: '',
     shippingAddress: '',
     gstin,
-    pan: '',
-    state: '',
-    stateCode: '',
-    pincode: '',
-    customerType: 'Business',
-    notes: '',
-    driveFolderId: '',
-    createdDate: businessNowIso(),
-    lastUpdated: businessNowIso(),
     status: 'Active'
-  };
+  });
 
-  bizState.customers.push(customer);
   saveBusinessState();
   renderBusinessViews();
   showToast(`Customer ${customer.id} created.`, 'success');
+}
+
+function editCustomerFromPrompt(customerId) {
+  const customer = customerService.getById(customerId);
+  if (!customer) {
+    showToast('Customer not found.', 'error');
+    return;
+  }
+
+  const customerName = (prompt('Customer name:', customer.customerName || '') || '').trim();
+  if (!customerName) return;
+  const companyName = (prompt('Company name:', customer.companyName || customerName) || customer.companyName || customerName).trim();
+  const phone = (prompt('Phone:', customer.phone || '') || '').trim();
+  const email = (prompt('Email:', customer.email || '') || '').trim();
+  const gstin = (prompt('GSTIN:', customer.gstin || '') || '').trim();
+  const notes = (prompt('Notes:', customer.notes || '') || '').trim();
+
+  customerService.update(customerId, {
+    customerName,
+    companyName,
+    contactPerson: customer.contactPerson || customerName,
+    phone,
+    email,
+    gstin,
+    notes
+  });
+
+  bizState = stateService.getState();
+  saveBusinessState();
+  renderBusinessViews();
+  showToast(`Customer ${customerId} updated.`, 'success');
+}
+
+function toggleCustomerArchive(customerId) {
+  const customer = customerService.getById(customerId);
+  if (!customer) {
+    showToast('Customer not found.', 'error');
+    return;
+  }
+
+  const nextArchived = customer.status !== 'Archived';
+  customerService.archive(customerId, nextArchived);
+  bizState = stateService.getState();
+  saveBusinessState();
+  renderBusinessViews();
+  showToast(nextArchived ? `Customer ${customerId} archived.` : `Customer ${customerId} reactivated.`, 'success');
+}
+
+function duplicateQuotationRecord(quotationId) {
+  const duplicated = quotationService.duplicateFromExisting(quotationId, {
+    quotationDate: todayIsoDate(),
+    status: 'Draft',
+    createdBy: 'Local User'
+  });
+
+  if (!duplicated) {
+    showToast('Unable to duplicate quotation.', 'error');
+    return;
+  }
+
+  bizState = stateService.getState();
+  upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Quotation', duplicated));
+  saveBusinessState();
+  renderBusinessViews();
+  showToast(`Quotation ${duplicated.quotationNumber} created from existing.`, 'success');
+}
+
+function duplicateInvoiceRecord(invoiceId) {
+  const duplicated = invoiceService.duplicateFromExisting(invoiceId, {
+    invoiceDate: todayIsoDate(),
+    status: 'Draft',
+    createdBy: 'Local User'
+  });
+
+  if (!duplicated) {
+    showToast('Unable to duplicate invoice.', 'error');
+    return;
+  }
+
+  bizState = stateService.getState();
+  upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Invoice', duplicated));
+  saveBusinessState();
+  renderBusinessViews();
+  showToast(`Invoice ${duplicated.invoiceNumber} created from existing.`, 'success');
 }
 
 function hydrateGoogleConfigToUi() {
@@ -2563,6 +3129,7 @@ async function handleGoogleSyncRegister() {
       quotations: bizState.quotations,
       invoices: bizState.invoices,
       payments: bizState.payments,
+      documentHistory: bizState.documentHistory || [],
       letterheads: bizState.letterheads || [],
       templates: bizState.templates || []
     });
@@ -2603,12 +3170,17 @@ function bindBusinessEvents() {
   const toBuilderInvoice = document.getElementById('btn-new-invoice');
   if (toBuilderQuote) {
     toBuilderQuote.addEventListener('click', () => {
+      currentQuotationEditId = null;
+      currentInvoiceEditId = null;
+      currentInvoiceSource = null;
       switchView('builder');
       setMode('quotation');
     });
   }
   if (toBuilderInvoice) {
     toBuilderInvoice.addEventListener('click', () => {
+      currentQuotationEditId = null;
+      currentInvoiceEditId = null;
       currentInvoiceSource = null;
       switchView('builder');
       setMode('invoice');
@@ -2649,6 +3221,34 @@ function bindBusinessEvents() {
     input.addEventListener('input', renderBusinessViews);
   });
 
+  const paymentInvoiceSelect = document.getElementById('p-invoice-id');
+  if (paymentInvoiceSelect) {
+    paymentInvoiceSelect.addEventListener('change', () => {
+      applyPaymentInvoiceSummary(paymentInvoiceSelect.value);
+    });
+  }
+
+  const paymentForm = document.getElementById('payment-entry-form');
+  if (paymentForm) paymentForm.addEventListener('submit', submitStructuredPaymentForm);
+
+  const resetPaymentBtn = document.getElementById('btn-reset-payment-form');
+  if (resetPaymentBtn) resetPaymentBtn.addEventListener('click', () => resetPaymentEntryForm(''));
+
+  const documentSearch = document.getElementById('search-documents');
+  if (documentSearch) documentSearch.addEventListener('input', renderBusinessViews);
+
+  const customersBody = document.getElementById('customers-tbody');
+  if (customersBody) {
+    customersBody.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-customer-action]');
+      if (!btn) return;
+      const customerId = btn.dataset.customerId;
+      if (!customerId) return;
+      if (btn.dataset.customerAction === 'edit') editCustomerFromPrompt(customerId);
+      if (btn.dataset.customerAction === 'archive') toggleCustomerArchive(customerId);
+    });
+  }
+
   const quotationsBody = document.getElementById('quotations-tbody');
   if (quotationsBody) {
     quotationsBody.addEventListener('click', e => {
@@ -2656,6 +3256,14 @@ function bindBusinessEvents() {
       if (!btn) return;
       const quotationId = btn.dataset.quotationId;
       if (!quotationId) return;
+      if (btn.dataset.quotationAction === 'edit') {
+        loadQuotationIntoQuotationBuilder(quotationId);
+        return;
+      }
+      if (btn.dataset.quotationAction === 'duplicate') {
+        duplicateQuotationRecord(quotationId);
+        return;
+      }
       if (btn.dataset.quotationAction === 'create-invoice') {
         loadQuotationIntoInvoiceBuilder(quotationId);
       }
@@ -2670,6 +3278,14 @@ function bindBusinessEvents() {
       if (!btn) return;
       const invoiceId = btn.dataset.invoiceId;
       if (!invoiceId) return;
+      if (btn.dataset.invoiceAction === 'edit') {
+        loadInvoiceIntoBuilder(invoiceId);
+        return;
+      }
+      if (btn.dataset.invoiceAction === 'duplicate') {
+        duplicateInvoiceRecord(invoiceId);
+        return;
+      }
       if (btn.dataset.invoiceAction === 'record-payment') {
         recordPaymentAgainstInvoice(invoiceId);
       }
@@ -2968,6 +3584,10 @@ function resetToDefaults() {
 
   qRows = [];
   iRows = [];
+  bizState.documentHistory = [];
+  currentQuotationEditId = null;
+  currentInvoiceEditId = null;
+  currentInvoiceSource = null;
 
   Object.keys(defaultFormValues).forEach(id => {
     const el = document.getElementById(id);
@@ -3001,6 +3621,7 @@ function resetToDefaults() {
   renderRows('i');
   applyGstMode();
   setMode('quotation');
+  resetPaymentEntryForm('');
 
   try {
     localStorage.removeItem(APP_CONFIG.stateKey);
@@ -3609,6 +4230,7 @@ function savePDF(options) {
   updateGoogleStatusUi({ message: 'Save your configuration and test connection.' });
   renderBusinessViews();
   switchView(activeView);
+  resetPaymentEntryForm('');
 
   // Snapshot initial defaults for reset operation.
   document.querySelectorAll('.form-panel input, .form-panel textarea, .form-panel select').forEach(el => {

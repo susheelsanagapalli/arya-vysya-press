@@ -10,12 +10,18 @@ export class CustomerService {
     return this.getState().customers || [];
   }
 
+  getById(customerId) {
+    return (this.getState().customers || []).find(customer => customer.id === customerId) || null;
+  }
+
   upsertFromBuilder(input) {
     const state = this.getState();
     const now = this.nowFn();
 
     const existing = (state.customers || []).find(c => {
       if (input.gstin && c.gstin && c.gstin === input.gstin) return true;
+      if (input.phone && c.phone && c.phone === input.phone) return true;
+      if (input.email && c.email && c.email === input.email) return true;
       return c.customerName === input.customerName && c.companyName === input.companyName;
     });
 
@@ -50,5 +56,22 @@ export class CustomerService {
     state.customers.push(customer);
     this.saveState();
     return customer;
+  }
+
+  update(customerId, patch) {
+    const customer = this.getById(customerId);
+    if (!customer) return null;
+
+    Object.assign(customer, {
+      ...patch,
+      lastUpdated: this.nowFn()
+    });
+
+    this.saveState();
+    return customer;
+  }
+
+  archive(customerId, archived = true) {
+    return this.update(customerId, { status: archived ? 'Archived' : 'Active' });
   }
 }

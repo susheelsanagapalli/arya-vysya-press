@@ -8,6 +8,7 @@ Customer -> Quotation -> Invoice -> Payment
 The app keeps all original builder capabilities and adds:
 - Management shell with modules (Dashboard, Customers, Quotations, Invoices, Payments, Letterheads, Templates, Settings, Builder)
 - ID-based records (`CUS-`, `QUO-`, `INV-`, `PAY-`)
+- Unified document register for quotations, invoices, and payments
 - Quotation-to-invoice conversion with source linkage
 - Payment recording and auto status calculation
 - Register tables with search
@@ -26,6 +27,7 @@ The app keeps all original builder capabilities and adds:
 - `js/services/quotationService.js`: Quotation logic
 - `js/services/invoiceService.js`: Invoice logic and payment status recalculation
 - `js/services/paymentService.js`: Payment record logic
+- `js/services/googleIntegrationService.js`: Syncs document history as a Document Register sheet alongside the other registers
 - `js/services/letterheadService.js`: Letterhead defaults and management foundation
 - `js/services/templateService.js`: Template seed and management foundation
 - `js/services/googleSheetsService.js`: Sheets action client
@@ -111,6 +113,7 @@ Business Register spreadsheet:
 - Quotations
 - Invoices
 - Payments
+- Document Register
 - Letterheads
 - Templates
 - Settings

@@ -89,11 +89,12 @@ export class GoogleIntegrationService {
   }
 
   async syncBusinessRegister(payload) {
-    const [customers, quotations, invoices, payments, letterheads, templates] = await Promise.all([
+    const [customers, quotations, invoices, payments, documentHistory, letterheads, templates] = await Promise.all([
       this.sheets.upsertCustomers(payload.customers || []),
       this.sheets.upsertQuotations(payload.quotations || []),
       this.sheets.upsertInvoices(payload.invoices || []),
       this.sheets.upsertPayments(payload.payments || []),
+      this.sheets.upsertDocumentHistory(payload.documentHistory || []),
       this.sheets.upsertLetterheads(payload.letterheads || []),
       this.sheets.upsertTemplates(payload.templates || [])
     ]);
@@ -103,6 +104,7 @@ export class GoogleIntegrationService {
       quotations: quotations.data || {},
       invoices: invoices.data || {},
       payments: payments.data || {},
+      documentHistory: documentHistory.data || {},
       letterheads: letterheads.data || {},
       templates: templates.data || {}
     };

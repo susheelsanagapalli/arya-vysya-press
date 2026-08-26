@@ -12,6 +12,7 @@ const DEFAULT_STATE = {
   quotations: [],
   invoices: [],
   payments: [],
+  documentHistory: [],
   letterheads: [],
   templates: []
 };
