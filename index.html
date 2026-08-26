@@ -1558,6 +1558,9 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
         <div class="status-line"><strong>Connected Account:</strong> <span id="status-account">--</span></div>
         <div class="status-line"><strong>Business Register:</strong> <span id="status-sheet-name">--</span></div>
         <div class="status-line"><strong>Drive Root:</strong> <span id="status-drive-root">--</span></div>
+        <div class="status-line"><strong>Quotations Folder:</strong> <a id="status-quotation-folder" href="#" target="_blank" rel="noopener noreferrer">--</a></div>
+        <div class="status-line"><strong>Invoices Folder:</strong> <a id="status-invoice-folder" href="#" target="_blank" rel="noopener noreferrer">--</a></div>
+        <div class="status-line"><strong>Spreadsheet:</strong> <a id="status-spreadsheet-link" href="#" target="_blank" rel="noopener noreferrer">--</a></div>
         <div class="status-line" id="status-sync-message">Save your configuration and test connection.</div>
       </div>
     </section>
@@ -3650,6 +3653,9 @@ function updateGoogleStatusUi(payload) {
   const account = document.getElementById('status-account');
   const sheetName = document.getElementById('status-sheet-name');
   const driveRoot = document.getElementById('status-drive-root');
+  const quotationFolder = document.getElementById('status-quotation-folder');
+  const invoiceFolder = document.getElementById('status-invoice-folder');
+  const spreadsheetLink = document.getElementById('status-spreadsheet-link');
   const sync = document.getElementById('status-sync-message');
   const chip = document.getElementById('google-connection-chip');
 
@@ -3659,6 +3665,21 @@ function updateGoogleStatusUi(payload) {
   if (account) account.textContent = payload?.accountEmail || '--';
   if (sheetName) sheetName.textContent = payload?.spreadsheetName || '--';
   if (driveRoot) driveRoot.textContent = payload?.driveRoot || googleIntegration.getConfig().driveRootId || '--';
+  if (quotationFolder) {
+    const quotationsUrl = payload?.quotationsFolder || googleIntegration.getConfig().quotationsFolderUrl || '';
+    quotationFolder.textContent = quotationsUrl || '--';
+    quotationFolder.href = quotationsUrl || '#';
+  }
+  if (invoiceFolder) {
+    const invoicesUrl = payload?.invoicesFolder || googleIntegration.getConfig().invoicesFolderUrl || '';
+    invoiceFolder.textContent = invoicesUrl || '--';
+    invoiceFolder.href = invoicesUrl || '#';
+  }
+  if (spreadsheetLink) {
+    const sheetUrl = payload?.spreadsheetUrl || googleIntegration.getConfig().spreadsheetUrl || '';
+    spreadsheetLink.textContent = sheetUrl || '--';
+    spreadsheetLink.href = sheetUrl || '#';
+  }
   if (sync) sync.textContent = payload?.message || 'Configuration saved locally.';
   if (chip) chip.textContent = hasApi ? 'Google: Configured' : 'Google: Not Connected';
 }
@@ -3673,6 +3694,9 @@ async function handleGoogleTestConnection() {
       accountEmail: result?.data?.accountEmail || '--',
       spreadsheetName: result?.data?.spreadsheetName || '--',
       driveRoot: result?.data?.driveRootId || '--',
+      spreadsheetUrl: result?.data?.spreadsheetUrl || '',
+      quotationsFolder: result?.data?.quotationsFolderUrl || '',
+      invoicesFolder: result?.data?.invoicesFolderUrl || '',
       message: 'Google connection test successful.'
     });
     showToast('Google connection successful.', 'success');
@@ -3701,6 +3725,9 @@ async function handleGoogleInitializeWorkspace() {
       sheets: 'Connected',
       spreadsheetName: result?.register?.spreadsheetName || 'Arya Vysya Press - Business Register',
       driveRoot: result?.drive?.rootFolderId || cfg.driveRootId || '--',
+      spreadsheetUrl: result?.register?.spreadsheetUrl || '',
+      quotationsFolder: result?.drive?.quotationsFolderUrl || '',
+      invoicesFolder: result?.drive?.invoicesFolderUrl || '',
       message: 'Workspace initialized successfully.'
     });
     showToast('Google workspace initialized.', 'success');

@@ -75,11 +75,21 @@ export class GoogleIntegrationService {
     });
 
     if (register?.data?.spreadsheetId) {
-      this.setConfig({ spreadsheetId: register.data.spreadsheetId });
+      this.setConfig({
+        spreadsheetId: register.data.spreadsheetId,
+        spreadsheetUrl: register.data.spreadsheetUrl || ''
+      });
     }
 
     if (drive?.data?.rootFolderId) {
-      this.setConfig({ driveRootId: drive.data.rootFolderId });
+      this.setConfig({
+        driveRootId: drive.data.rootFolderId,
+        driveRootUrl: drive.data.rootFolderUrl || '',
+        quotationsFolderId: drive.data.quotationsFolderId || '',
+        quotationsFolderUrl: drive.data.quotationsFolderUrl || '',
+        invoicesFolderId: drive.data.invoicesFolderId || '',
+        invoicesFolderUrl: drive.data.invoicesFolderUrl || ''
+      });
     }
 
     return {

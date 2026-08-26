@@ -33,8 +33,8 @@ const SHEET_HEADERS = {
 
 const DRIVE_STRUCTURE = {
   Customers: [],
-  Quotations: ['2026'],
-  Invoices: ['2026'],
+  Quotations: [],
+  Invoices: [],
   Letterheads: [],
   Logos: [],
   Templates: []
@@ -94,11 +94,31 @@ function doPost(e) {
 
 function health(config) {
   const spreadsheet = resolveSpreadsheet(config.spreadsheetId);
+  let driveRoot = null;
+  let quotationsFolderUrl = '';
+  let invoicesFolderUrl = '';
+
+  if (config.driveRootId) {
+    try {
+      driveRoot = DriveApp.getFolderById(config.driveRootId);
+      const quotationsIter = driveRoot.getFoldersByName('Quotations');
+      if (quotationsIter.hasNext()) quotationsFolderUrl = quotationsIter.next().getUrl();
+      const invoicesIter = driveRoot.getFoldersByName('Invoices');
+      if (invoicesIter.hasNext()) invoicesFolderUrl = invoicesIter.next().getUrl();
+    } catch (error) {
+      driveRoot = null;
+    }
+  }
+
   return {
     accountEmail: Session.getActiveUser().getEmail() || '',
     spreadsheetId: spreadsheet ? spreadsheet.getId() : '',
     spreadsheetName: spreadsheet ? spreadsheet.getName() : '',
-    driveRootId: config.driveRootId || ''
+    spreadsheetUrl: spreadsheet ? spreadsheet.getUrl() : '',
+    driveRootId: config.driveRootId || '',
+    driveRootUrl: driveRoot ? driveRoot.getUrl() : '',
+    quotationsFolderUrl: quotationsFolderUrl,
+    invoicesFolderUrl: invoicesFolderUrl
   };
 }
 
@@ -114,16 +134,22 @@ function initializeBusinessRegister(payload, config) {
 
   return {
     spreadsheetId: spreadsheet.getId(),
-    spreadsheetName: spreadsheet.getName()
+    spreadsheetName: spreadsheet.getName(),
+    spreadsheetUrl: spreadsheet.getUrl()
   };
 }
 
 function initializeDriveStructure(payload, config) {
   const rootFolderName = payload.rootFolderName || 'Arya Vysya Press';
   const root = resolveRootFolder(config.driveRootId || payload.rootFolderId, rootFolderName);
+  const childFolders = {};
 
   Object.keys(DRIVE_STRUCTURE).forEach(folderName => {
     const child = getOrCreateFolder(root, folderName);
+    childFolders[folderName] = {
+      id: child.getId(),
+      url: child.getUrl()
+    };
     const nested = DRIVE_STRUCTURE[folderName] || [];
     let current = child;
     nested.forEach(sub => {
@@ -133,7 +159,12 @@ function initializeDriveStructure(payload, config) {
 
   return {
     rootFolderId: root.getId(),
-    rootFolderName: root.getName()
+    rootFolderName: root.getName(),
+    rootFolderUrl: root.getUrl(),
+    quotationsFolderId: childFolders.Quotations ? childFolders.Quotations.id : '',
+    quotationsFolderUrl: childFolders.Quotations ? childFolders.Quotations.url : '',
+    invoicesFolderId: childFolders.Invoices ? childFolders.Invoices.id : '',
+    invoicesFolderUrl: childFolders.Invoices ? childFolders.Invoices.url : ''
   };
 }
 

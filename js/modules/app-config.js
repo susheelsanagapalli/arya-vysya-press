@@ -8,7 +8,13 @@ export const DEFAULT_GOOGLE_CONFIG = {
   clientId: '908002559329-fqjvqhbn8ktc7s6sif7te1s98eabbrqg.apps.googleusercontent.com',
   appsScriptUrl: 'https://script.google.com/macros/s/AKfycby7S5PKZ14rlsPsKDESUX1WKfeTzxro6HBfSHiQlHL-TRY4lvDtqf2H6vrMBX8fcUUt/exec',
   spreadsheetId: '',
+  spreadsheetUrl: '',
   driveRootId: '',
+  driveRootUrl: '',
+  quotationsFolderId: '',
+  quotationsFolderUrl: '',
+  invoicesFolderId: '',
+  invoicesFolderUrl: '',
   autoCreateRoot: true
 };
 
