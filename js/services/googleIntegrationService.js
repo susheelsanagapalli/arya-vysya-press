@@ -137,10 +137,11 @@ export class GoogleIntegrationService {
     };
   }
 
-  // Two-way sync in one locked call: pushes the local collections (newer version wins on the
-  // server) and returns the full register, which the caller merges back into local state.
-  async syncBusinessRegister(collections) {
-    const response = await this.sheets.syncAll(collections || {});
+  // Two-way sync in one locked call: pushes the changed local records (newer version wins on the
+  // server) and returns the records changed on the server since `since` (its syncMark from the
+  // last sync; 0 = everything), which the caller merges back into local state.
+  async syncBusinessRegister(collections, since) {
+    const response = await this.sheets.syncAll({ ...(collections || {}), since: Number(since) || 0 });
     return response.data || {};
   }
 

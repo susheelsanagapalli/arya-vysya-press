@@ -26,15 +26,18 @@ To change the password, edit `AVP_API_KEY` in Script Properties. Every device th
 On a shared computer, untick **Remember on this device**, or use **Settings > Sign out & remove data from this device** when done.
 
 ## How sync works
-- On start, after every change, and when the app comes back into view, the app sends its records and receives the full register (`syncAll`). For each record, the most recently changed version wins.
+- On start, after every change, when the app comes back into view, and on **Sync now**, the app sends only the records changed on that device and receives only the rows other devices changed since its last sync (`syncAll`). For each record, the most recently changed version wins.
+- Every write gets the next number of a server-side change counter (Script Property `AVP_SYNC_MARK`), stored in each row's hidden **Synced At** column; a device asks for rows numbered above the one it last saw. A device's first sync, and **Settings > Sync Register**, exchange everything. Don't delete `AVP_SYNC_MARK`.
 - New quotation, invoice, payment and customer numbers are issued by the server (`allocateIds`), so two devices never create the same number. Creating these records needs a connection.
-- Each tab keeps readable columns plus a hidden **Record JSON** column holding the complete record (line items included). Don't edit the Record JSON column by hand.
+- Each tab keeps readable columns plus two hidden columns: **Synced At** and **Record JSON** (the complete record, line items included). Don't edit them by hand. Rows edited directly in the sheet reach devices only through **Sync Register**.
+- When a new version adds columns (e.g. **Manual No.** and **Credit** on Invoices), the script moves the existing data so every value stays under its heading.
 - Deleted records are kept with `deleted: true` and Status "Deleted" so the deletion reaches every device. Invoices are cancelled, never deleted.
 
 ## Firms and numbering
 - The **Firms** tab holds each business (name, GSTIN, address, bank details, contact, default texts; the logo is in its own column).
 - Quotation, invoice and payment numbers are issued per firm: `<CODE>-QUO-00001`, `<CODE>-INV-00001`, `<CODE>-PAY-00001`. Customers are shared (`CUS-00001`).
 - Records created before firms existed (unprefixed, e.g. `INV-00003`) belong to firm `AVP`, whose series continues that count (`AVP-INV-00004`).
+- An invoice can also have a **Manual No.** (typed by the user, unique within the firm). The auto number stays the invoice's ID and names its Drive PDF; the printed copy (Print button) shows the Manual No. The Invoices tab shows both.
 - Each firm's PDFs go to a top-level Drive folder named after the firm; `AVP` keeps the original `Arya Vysya Press` folder.
 
 ## PDFs in Google Drive

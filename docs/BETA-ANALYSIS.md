@@ -144,6 +144,14 @@ Remaining Batch 3 items: M4 (editing overwrites quotation fields), M10 (number a
 | One Save button (new) | **Done** (Batch 4): the builder has a single **Save Quotation** / **Save Invoice** button that saves the record and its PDF straight to Google Drive; Export & Save, the export dialog and printing were removed |
 | L7 | **Resolved** (Batch 4): the print copy that depended on web fonts is gone; the Drive PDF is drawn from the on-screen preview after its fonts load |
 | L14 | **Fixed** (Batch 4): unused "Desktop Only" markup removed |
+| Speed (new) | **Done** (Batch 5): only the visible screen is redrawn; payments are grouped by invoice once per change; searches redraw only their table; registers show the newest 100 rows with "Show more". With 500 records of each kind: search 444 ms -> ~70 ms, recording a payment 1.2 s -> ~0.1 s |
+| Incremental sync (new) | **Done** (Batch 5): devices send only changed records and receive only rows changed since their last sync (server change counter in a hidden Synced At column); "Sync now" button; Settings > Sync Register does a full exchange. An idle sync went from ~325 KB each way to under 1 KB |
+| Manual invoice number (new) | **Done** (Batch 5): optional Manual No. next to the auto number, unique per firm; Print appears only when it is filled in and prints a copy showing it; the Drive PDF keeps the auto number; registers, search and the sheet show both |
+| L10 | **Fixed** (Batch 5): due date follows the payment terms ("15 Days", "Net 45", "Immediate"); otherwise 30 days |
+| L11 | **Fixed** (Batch 5): dashboard "Pending Payments" (same as Outstanding) replaced by "Customer Credit" |
+| L12 | **Fixed** (Batch 5): when the sheet layout changes, existing data is moved to stay under its headings |
+| Duplicate invoice date (new) | **Fixed** (Batch 5): a duplicated invoice kept the original's date in its saved form, so editing the copy brought the old date back |
+| Tables too wide (new) | **Fixed** (Batch 5): headings and action buttons wrap so registers fit a 1366 px laptop screen |
 | Letterhead screen code | **Removed** (Batch 4): the unused letterhead screen and template "Letterhead" field; old letterhead data is kept only for the one-time firm AVP migration |
 | R1 | **Done** (Batch 3): new documents start blank with placeholders; "Pick customer" fills client details |
 | R2 | **Done** (Batch 3): Firms (profile, logo, bank, contact, default texts), "Working as" switcher, "Show" firm filter on registers/dashboard, per-firm number series, per-firm Drive folders, shared customers |

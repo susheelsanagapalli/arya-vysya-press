@@ -476,8 +476,10 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 /* Grey hints for empty fields, on screen only (the PDF copy has no IDs, so these never print). */
 #doc-sheet [data-placeholder]:empty::before { content: attr(data-placeholder); color: #b8b8b8; font-style: italic; font-weight: 400; }
 .q-meta { display: flex; justify-content: flex-end; gap: 18px; font-size: 0.76rem; margin-bottom: 8px; }
-.row-actions { white-space: nowrap; }
-.row-actions .btn { margin: 1px 0; }
+/* Tables fit the screen (no sideways scrolling): headings and action buttons wrap. */
+.register-table th { white-space: normal !important; vertical-align: bottom; }
+.register-table td.row-actions { white-space: normal; min-width: 210px; }
+.row-actions .btn { margin: 2px 0; white-space: nowrap; padding: 5px 8px; font-size: 0.7rem; }
 .btn-danger { color: var(--red); border-color: #e7b3b3; }
 .btn-danger:hover { background: #ffecec; border-color: var(--red); color: var(--red); }
 .row-cancelled td { color: #999; text-decoration: line-through; }
@@ -870,6 +872,8 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 .section-gap { margin-top: 12px; }
 .right-text { text-align: right; }
 .credit-amount { color: #1f6e39; font-weight: 600; white-space: nowrap; }
+.manual-no { font-size: 0.7rem; color: #8a6200; font-weight: 600; margin-top: 2px; white-space: nowrap; }
+.show-more-row td { text-align: center; color: #666; font-size: 0.75rem; }
 
 .builder-shell {
   background: #f4f4f4;
@@ -889,6 +893,29 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
   .preview-panel { padding: 0; }
   .doc-sheet { box-shadow: none; width: 100%; }
   [contenteditable]:hover, [contenteditable]:focus { background: transparent !important; box-shadow: none !important; }
+}
+
+/* Printed invoice copy (Print button): only #print-area is printed, at the PDF's A4 layout. */
+#print-area { display: none; }
+@media print {
+  @page { size: A4 portrait; margin: 0; }
+  body.printing-doc { background: #fff !important; margin: 0; }
+  body.printing-doc > *:not(#print-area) { display: none !important; }
+  body.printing-doc #print-area { display: block; }
+  body.printing-doc #print-area * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  #print-area .doc-sheet { width: 780px !important; max-width: 780px !important; min-width: 780px !important; min-height: 1100px; margin: 0 auto !important; box-shadow: none !important; }
+  #print-area .doc-sheet::before { width: 22px !important; }
+  #print-area .doc-inner { margin-left: 22px !important; }
+  #print-area .lh { padding: 18px 28px 12px 22px !important; }
+  #print-area .doc-content { display: block !important; padding: 14px 28px 28px 22px !important; }
+  #print-area .lh-top { flex-direction: row !important; align-items: flex-start !important; justify-content: space-between !important; gap: 0 !important; }
+  #print-area .lh-brand { text-align: right !important; }
+  #print-area .lh-brand .cursive { font-size: 2.4rem !important; }
+  #print-area .inv-parties { grid-template-columns: 1fr 1fr !important; column-gap: 12px !important; }
+  #print-area .inv-bank { grid-template-columns: 1fr 1fr !important; }
+  #print-area .inv-bank-left { border-right: 1px solid #bbb !important; border-bottom: none !important; }
+  #print-area .items-wrap { overflow-x: visible !important; }
+  #print-area .items-tbl { min-width: 0 !important; }
 }
 
 @media (max-width: 1200px) {
@@ -1051,6 +1078,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
           <select id="firm-filter" aria-label="Show records for"></select>
         </label>
         <span class="integration-chip" id="google-connection-chip">Google: Not Connected</span>
+        <button class="btn btn-outline btn-sm" id="btn-sync-now" title="Send this device's changes and get the latest from other devices">&#x21bb; Sync now</button>
         <button class="btn btn-outline btn-sm" id="btn-new-quotation">+ New Quotation</button>
         <button class="btn btn-gold btn-sm" id="btn-new-invoice">+ New Invoice</button>
       </div>
@@ -1070,7 +1098,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
         <div class="kpi-card"><div class="kpi-label">Invoices</div><div class="kpi-value" id="kpi-invoices">0</div></div>
         <div class="kpi-card"><div class="kpi-label">Outstanding</div><div class="kpi-value" id="kpi-outstanding">Rs 0.00</div></div>
         <div class="kpi-card"><div class="kpi-label">Paid This Month</div><div class="kpi-value" id="kpi-paid-this-month">Rs 0.00</div></div>
-        <div class="kpi-card"><div class="kpi-label">Pending Payments</div><div class="kpi-value" id="kpi-pending">Rs 0.00</div></div>
+        <div class="kpi-card" title="Money received beyond invoice totals (and paid on cancelled invoices), owed back or adjustable"><div class="kpi-label">Customer Credit</div><div class="kpi-value" id="kpi-credit">Rs 0.00</div></div>
         <div class="kpi-card"><div class="kpi-label">Overdue</div><div class="kpi-value" id="kpi-overdue">Rs 0.00</div></div>
         <div class="kpi-card"><div class="kpi-label">Quotation Conversion</div><div class="kpi-value" id="kpi-conversion">0%</div></div>
       </div>
@@ -1604,6 +1632,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
     <button class="btn btn-outline btn-sm" id="btn-open-drive-root">Open Drive Root</button>
     <button class="btn btn-outline btn-sm" id="btn-reset-top">Reset</button>
     <button class="btn btn-gold btn-sm" data-save-btn="quotation" id="btn-save-quotation" title="Save the quotation and its PDF to Google Drive">Save Quotation</button>
+    <button class="btn btn-outline btn-sm" id="btn-print-invoice" hidden title="Save the invoice, then print a copy showing the Manual No.">Print</button>
     <button class="btn btn-gold btn-sm" data-save-btn="invoice" id="btn-save-invoice" title="Save the invoice and its PDF to Google Drive">Save Invoice</button>
   </div>
 </nav>
@@ -1702,7 +1731,12 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
       <div class="field">
         <label>Invoice No</label>
         <input type="text" id="f-inv-no" readonly placeholder="Assigned when saved">
-        <div class="field-help">Numbered automatically in the firm's series (e.g. AVP-INV-00012).</div>
+        <div class="field-help">Numbered automatically in the firm's series (e.g. AVP-INV-00012). This number names the PDF in Google Drive.</div>
+      </div>
+      <div class="field">
+        <label for="f-inv-manual-no">Manual No. (optional)</label>
+        <input type="text" id="f-inv-manual-no" maxlength="40" autocomplete="off" placeholder="Only if you need your own number">
+        <div class="field-help">Kept alongside the auto number. When filled in, a Print button appears and the printed copy shows this number.</div>
       </div>
       <div class="field">
         <label>Invoice Date</label>
@@ -2319,11 +2353,30 @@ function active(list) {
   return (list || []).filter(item => item && !item.deleted);
 }
 
+// Payments grouped by invoice. Built once after each data change instead of scanning every
+// payment for every invoice on every screen update.
+let paymentsIndex = null;
+function invalidateDerived() {
+  paymentsIndex = null;
+}
+function paymentsOfInvoice(invoiceId) {
+  if (!paymentsIndex) {
+    paymentsIndex = new Map();
+    (bizState.payments || []).forEach(payment => {
+      if (!payment || !payment.invoiceId) return;
+      const list = paymentsIndex.get(payment.invoiceId);
+      if (list) list.push(payment);
+      else paymentsIndex.set(payment.invoiceId, [payment]);
+    });
+  }
+  return paymentsIndex.get(invoiceId) || [];
+}
+
 // Amount paid is always the sum of the invoice's payments, so editing or deleting a payment
 // can never leave the invoice out of step. Cancelled invoices owe nothing.
 function recalcInvoiceFinancials(invoice, touchTimestamp) {
   const total = Number(invoice.grandTotal || 0);
-  const linked = (bizState.payments || []).filter(payment => payment && payment.invoiceId === invoice.id);
+  const linked = paymentsOfInvoice(invoice.id);
   // Invoices with payment records (including deleted ones) are always derived from them.
   const paid = linked.length
     ? active(linked).reduce((sum, payment) => sum + Number(payment.amountReceived || 0), 0)
@@ -2412,7 +2465,7 @@ function documentFirmId(kind) {
 // The builder fields that belong to one document, saved with it so editing restores it exactly.
 const DOC_FORM_FIELDS = {
   quotation: ['f-q-to', 'f-q-cgst', 'f-q-subject', 'f-q-body', 'f-q-closing', 'f-q-cname', 'f-q-cphone', 'f-q-cmail', 'f-gst-enabled'],
-  invoice: ['f-inv-date', 'f-inv-pos', 'f-inv-terms', 'f-inv-ref', 'f-inv-bon', 'f-inv-bod', 'f-inv-cname', 'f-inv-caddr', 'f-inv-cgst', 'f-inv-bname', 'f-inv-baddr', 'f-inv-bgst', 'f-gst-enabled']
+  invoice: ['f-inv-date', 'f-inv-manual-no', 'f-inv-pos', 'f-inv-terms', 'f-inv-ref', 'f-inv-bon', 'f-inv-bod', 'f-inv-cname', 'f-inv-caddr', 'f-inv-cgst', 'f-inv-bname', 'f-inv-baddr', 'f-inv-bgst', 'f-gst-enabled']
 };
 
 function collectDocForm(kind) {
@@ -2489,6 +2542,11 @@ function saveQuotationRecordNow(firmId) {
 async function saveInvoiceRecord() {
   const firmId = documentFirmId('invoice');
   if (!firmId) return null;
+  const clash = manualNumberClash(manualInvoiceNoInput(), firmId, currentInvoiceEditId);
+  if (clash) {
+    showToast(`Manual No. ${manualInvoiceNoInput()} is already used by ${clash.invoiceNumber}. Enter a different number or leave it empty.`, 'error', 7000);
+    return null;
+  }
   const needsCustomer = !customerService.findMatch(collectCustomerInputFromBuilder());
   return withServerIds(
     { customer: needsCustomer ? 1 : 0, invoice: currentInvoiceEditId ? 0 : 1 },
@@ -2497,11 +2555,30 @@ async function saveInvoiceRecord() {
   );
 }
 
+// Another invoice of the same firm already using this Manual No. (or with it as its auto number).
+function manualNumberClash(manualNo, firmId, ownId) {
+  const wanted = String(manualNo || '').trim().toLowerCase();
+  if (!wanted) return null;
+  return active(bizState.invoices).find(invoice => invoice.id !== ownId
+    && recordFirmId(invoice) === firmId
+    && [invoice.manualInvoiceNumber, invoice.invoiceNumber].some(n => String(n || '').trim().toLowerCase() === wanted)) || null;
+}
+
+// L10: the due date follows the payment terms ("15 Days" -> +15, "Immediate" -> same day);
+// anything else keeps the usual 30 days.
+function dueDateFromTerms(invoiceDate, terms) {
+  const text = String(terms || '').toLowerCase();
+  const days = /(\d+)\s*days?/.exec(text) || /net\s*(\d+)/.exec(text);
+  if (days) return getDatePlusDays(invoiceDate, Number(days[1]));
+  if (/immediate|advance|on receipt|upon receipt|on delivery|cash/.test(text)) return invoiceDate;
+  return getDatePlusDays(invoiceDate, 30);
+}
+
 function saveInvoiceRecordNow(firmId) {
   const customer = ensureCustomerFromCurrentBuilder();
   const gstEnabled = isGstEnabled();
   const invoiceDate = document.getElementById('f-inv-date')?.value || todayIsoDate();
-  const dueDate = getDatePlusDays(invoiceDate, 30);
+  const dueDate = dueDateFromTerms(invoiceDate, document.getElementById('f-inv-terms')?.value);
 
   // Source quotation: from "Create Invoice" on a quotation, or kept from the invoice being re-saved.
   const existingInvoice = currentInvoiceEditId ? bizState.invoices.find(item => item.id === currentInvoiceEditId) : null;
@@ -2528,6 +2605,7 @@ function saveInvoiceRecordNow(firmId) {
     sourceDocumentId: source.quotationId || '',
     createdBy: 'Local User',
     firmId,
+    manualInvoiceNumber: manualInvoiceNoInput(),
     form: collectDocForm('invoice'),
     items: iRows.map(normalizeRow)
   };
@@ -2581,7 +2659,7 @@ function refreshBuilderRecordStatus() {
     ? ` &middot; <button type="button" data-view-file="${kind}">View file</button>`
     : (record && record.pdfPending ? ' &middot; PDF not in Google Drive yet' : '');
   el.innerHTML = id
-    ? `Editing <strong>${escapeHtml(id)}</strong> &middot; saving updates it${fileLink} &middot; <button type="button" data-start-new="${kind}">Start a new ${kind}</button>`
+    ? `Editing <strong>${escapeHtml(record ? (kind === 'invoice' ? invoiceLabel(record) : id) : id)}</strong> &middot; saving updates it${fileLink} &middot; <button type="button" data-start-new="${kind}">Start a new ${kind}</button>`
     : `New ${kind} &middot; gets its number when saved`;
 }
 
@@ -2770,7 +2848,7 @@ function populatePaymentInvoiceOptions(preferredInvoiceId) {
     .filter(invoice => invoice.status !== 'Cancelled' || invoice.id === currentValue)
     .sort((a, b) => new Date(b.invoiceDate || b.createdDate) - new Date(a.invoiceDate || a.createdDate))
     .forEach(invoice => {
-      const label = `${invoice.invoiceNumber || invoice.id} | ${invoice.customerName || '--'} | Due ${formatMoney(invoice.balanceDue || 0)}`;
+      const label = `${invoiceLabel(invoice)} | ${invoice.customerName || '--'} | Due ${formatMoney(invoice.balanceDue || 0)}`;
       options.push(`<option value="${escapeHtml(invoice.id)}">${escapeHtml(label)}</option>`);
     });
 
@@ -3034,6 +3112,35 @@ function switchView(viewKey) {
   document.querySelectorAll('.mgmt-nav-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.viewTarget === viewKey);
   });
+  renderView(viewKey); // draws the screen if its data changed while it was hidden
+}
+
+// Registers show the newest REGISTER_PAGE rows; "Show more" adds the next batch.
+const REGISTER_PAGE = 100;
+const registerLimits = {};
+function registerLimit(viewKey) {
+  return registerLimits[viewKey] || REGISTER_PAGE;
+}
+function resetRegisterLimit(viewKey) {
+  delete registerLimits[viewKey];
+}
+function showMoreRows(viewKey) {
+  registerLimits[viewKey] = registerLimit(viewKey) + REGISTER_PAGE;
+  staleViews.add(viewKey);
+  renderView(viewKey);
+}
+// Newest first: by the record's own date, then by when it was created.
+function newestFirst(dateField) {
+  return (a, b) => String(b[dateField] || '').localeCompare(String(a[dateField] || ''))
+    || String(b.createdDate || '').localeCompare(String(a.createdDate || ''))
+    || String(b.id || '').localeCompare(String(a.id || ''));
+}
+// Limits rows to the current page and returns the "Show more" row for the table, if needed.
+function pageRows(viewKey, rows, colspan) {
+  const limit = registerLimit(viewKey);
+  if (rows.length <= limit) return { shown: rows, more: '' };
+  const more = `<tr class="show-more-row"><td colspan="${colspan}">Showing ${limit} of ${rows.length} &middot; <button type="button" class="btn btn-outline btn-sm" data-show-more="${viewKey}">Show ${Math.min(REGISTER_PAGE, rows.length - limit)} more</button></td></tr>`;
+  return { shown: rows.slice(0, limit), more };
 }
 
 function matchesSearch(inputId, values) {
@@ -3053,6 +3160,19 @@ function fileActionButton(kind, item) {
 
 const QUOTATION_STATUSES = ['Draft', 'Issued', 'Sent', 'Accepted', 'Rejected'];
 
+// The user's own invoice number, shown under the auto number.
+function manualNoTag(invoice) {
+  return invoice && invoice.manualInvoiceNumber
+    ? `<div class="manual-no">Manual: ${escapeHtml(invoice.manualInvoiceNumber)}</div>`
+    : '';
+}
+
+// "AVP-INV-00005 (Manual 1234)" for labels and messages.
+function invoiceLabel(invoice) {
+  const number = invoice.invoiceNumber || invoice.id;
+  return invoice.manualInvoiceNumber ? `${number} (Manual ${invoice.manualInvoiceNumber})` : number;
+}
+
 // M13: an invoice's balance, or the customer's credit when more was paid than the total.
 function balanceCell(invoice) {
   const credit = Number(invoice.creditAmount || 0);
@@ -3060,23 +3180,28 @@ function balanceCell(invoice) {
   return formatMoney(invoice.balanceDue || 0);
 }
 
-// Total credit a customer holds across their invoices (all firms).
-function customerCredit(customerId) {
-  return active(bizState.invoices)
-    .filter(invoice => invoice.customerId === customerId)
-    .reduce((sum, invoice) => {
-      recalcInvoiceFinancials(invoice);
-      return sum + Number(invoice.creditAmount || 0);
-    }, 0);
+// Credit each customer holds across their invoices (all firms), in one pass.
+function creditsByCustomer() {
+  const credits = new Map();
+  active(bizState.invoices).forEach(invoice => {
+    recalcInvoiceFinancials(invoice);
+    const credit = Number(invoice.creditAmount || 0);
+    if (credit > 0) credits.set(invoice.customerId, (credits.get(invoice.customerId) || 0) + credit);
+  });
+  return credits;
 }
 
 function renderCustomersView() {
   const body = document.getElementById('customers-tbody');
   if (!body) return;
-  const rows = active(bizState.customers).filter(c => matchesSearch('search-customers', [c.id, c.customerName, c.companyName, c.phone, c.email, c.gstin]));
+  const rows = active(bizState.customers)
+    .filter(c => matchesSearch('search-customers', [c.id, c.customerName, c.companyName, c.phone, c.email, c.gstin]))
+    .sort(newestFirst('createdDate'));
+  const { shown, more } = pageRows('customers', rows, 9);
 
-  body.innerHTML = rows.map(c => {
-    const credit = customerCredit(c.id);
+  const credits = creditsByCustomer();
+  body.innerHTML = shown.map(c => {
+    const credit = credits.get(c.id) || 0;
     return `
     <tr>
       <td>${escapeHtml(c.id)}</td>
@@ -3093,7 +3218,7 @@ function renderCustomersView() {
         <button class="btn btn-outline btn-sm btn-danger" data-customer-action="delete" data-customer-id="${escapeHtml(c.id)}">Delete</button>
       </td>
     </tr>`;
-  }).join('');
+  }).join('') + more;
 
   if (!rows.length) body.innerHTML = '<tr><td colspan="9">No customers found.</td></tr>';
 }
@@ -3101,9 +3226,12 @@ function renderCustomersView() {
 function renderQuotationsView() {
   const body = document.getElementById('quotations-tbody');
   if (!body) return;
-  const rows = active(bizState.quotations).filter(item => matchesFirmFilter(item) && matchesSearch('search-quotations', [item.quotationNumber, item.customerName, item.companyName, item.status]));
+  const rows = active(bizState.quotations)
+    .filter(item => matchesFirmFilter(item) && matchesSearch('search-quotations', [item.quotationNumber, item.customerName, item.companyName, item.status]))
+    .sort(newestFirst('quotationDate'));
+  const { shown, more } = pageRows('quotations', rows, 7);
 
-  body.innerHTML = rows.map(item => {
+  body.innerHTML = shown.map(item => {
     const id = escapeHtml(item.id);
     const status = item.status || 'Draft';
     const statusCell = status === 'Converted'
@@ -3125,7 +3253,7 @@ function renderQuotationsView() {
         <button class="btn btn-outline btn-sm btn-danger" data-quotation-action="delete" data-quotation-id="${id}">Delete</button>
       </td>
     </tr>`;
-  }).join('');
+  }).join('') + more;
 
   if (!rows.length) body.innerHTML = '<tr><td colspan="7">No quotations found.</td></tr>';
 }
@@ -3135,14 +3263,17 @@ function renderInvoicesView() {
   if (!body) return;
 
   active(bizState.invoices).forEach(invoice => recalcInvoiceFinancials(invoice));
-  const rows = active(bizState.invoices).filter(item => matchesFirmFilter(item) && matchesSearch('search-invoices', [item.invoiceNumber, item.customerName, item.paymentStatus, item.quotationNumber]));
+  const rows = active(bizState.invoices)
+    .filter(item => matchesFirmFilter(item) && matchesSearch('search-invoices', [item.invoiceNumber, item.manualInvoiceNumber, item.customerName, item.paymentStatus, item.quotationNumber]))
+    .sort(newestFirst('invoiceDate'));
+  const { shown, more } = pageRows('invoices', rows, 10);
 
-  body.innerHTML = rows.map(item => {
+  body.innerHTML = shown.map(item => {
     const id = escapeHtml(item.id);
     const cancelled = item.status === 'Cancelled';
     return `
     <tr${cancelled ? ' class="row-cancelled"' : ''}>
-      <td>${escapeHtml(item.invoiceNumber || item.id)}${firmTag(item)}</td>
+      <td>${escapeHtml(item.invoiceNumber || item.id)}${firmTag(item)}${manualNoTag(item)}</td>
       <td>${formatDateForTable(item.invoiceDate)}</td>
       <td>${escapeHtml(item.customerName || '--')}</td>
       <td class="right-text">${formatMoney(item.grandTotal || 0)}</td>
@@ -3161,7 +3292,7 @@ function renderInvoicesView() {
           : `<button class="btn btn-outline btn-sm btn-danger" data-invoice-action="cancel" data-invoice-id="${id}">Cancel</button>`}
       </td>
     </tr>`;
-  }).join('');
+  }).join('') + more;
 
   if (!rows.length) body.innerHTML = '<tr><td colspan="10">No invoices found.</td></tr>';
 }
@@ -3170,9 +3301,12 @@ function renderPaymentsView() {
   const body = document.getElementById('payments-tbody');
   if (!body) return;
   const selectedInvoiceId = document.getElementById('p-invoice-id')?.value || '';
-  const rows = active(bizState.payments).filter(item => matchesFirmFilter(item) && matchesSearch('search-payments', [item.id, item.invoiceNumber, item.customerName, item.transactionReference, item.creditedTo, item.transferredTo, item.paymentDetails]));
+  const rows = active(bizState.payments)
+    .filter(item => matchesFirmFilter(item) && matchesSearch('search-payments', [item.id, item.invoiceNumber, item.customerName, item.transactionReference, item.creditedTo, item.transferredTo, item.paymentDetails]))
+    .sort(newestFirst('paymentDate'));
+  const { shown, more } = pageRows('payments', rows, 10);
 
-  body.innerHTML = rows.map(item => `
+  body.innerHTML = shown.map(item => `
     <tr>
       <td>${escapeHtml(item.id)}</td>
       <td>${formatDateForTable(item.paymentDate)}</td>
@@ -3188,7 +3322,7 @@ function renderPaymentsView() {
         <button class="btn btn-outline btn-sm btn-danger" data-payment-action="delete" data-payment-id="${escapeHtml(item.id)}">Delete</button>
       </td>
     </tr>
-  `).join('');
+  `).join('') + more;
 
   if (!rows.length) body.innerHTML = '<tr><td colspan="10">No payments found.</td></tr>';
 
@@ -3206,14 +3340,12 @@ function renderDashboardView() {
 
   const totals = invoices.reduce((acc, inv) => {
     recalcInvoiceFinancials(inv);
+    acc.credit += Number(inv.creditAmount || 0); // includes money paid on cancelled invoices
     if (inv.status === 'Cancelled') return acc;
     acc.outstanding += Number(inv.balanceDue || 0);
-    if (inv.paymentStatus === 'Unpaid' || inv.paymentStatus === 'Partially Paid' || inv.paymentStatus === 'Overdue') {
-      acc.pending += Number(inv.balanceDue || 0);
-    }
     if (inv.paymentStatus === 'Overdue') acc.overdue += Number(inv.balanceDue || 0);
     return acc;
-  }, { outstanding: 0, pending: 0, overdue: 0 });
+  }, { outstanding: 0, credit: 0, overdue: 0 });
 
   const now = new Date();
   const paidThisMonth = active(bizState.payments).filter(matchesFirmFilter).reduce((acc, pay) => {
@@ -3232,7 +3364,7 @@ function renderDashboardView() {
   setText('kpi-invoices', String(invoiceCount));
   setText('kpi-outstanding', formatMoney(totals.outstanding));
   setText('kpi-paid-this-month', formatMoney(paidThisMonth));
-  setText('kpi-pending', formatMoney(totals.pending));
+  setText('kpi-credit', formatMoney(totals.credit));
   setText('kpi-overdue', formatMoney(totals.overdue));
   setText('kpi-conversion', `${conversionRate}%`);
 
@@ -3243,7 +3375,7 @@ function renderDashboardView() {
   const overdueRows = liveInvoices.filter(inv => inv.paymentStatus === 'Overdue');
   overdueBody.innerHTML = overdueRows.map(inv => `
     <tr>
-      <td>${escapeHtml(inv.invoiceNumber || inv.id)}</td>
+      <td>${escapeHtml(inv.invoiceNumber || inv.id)}${manualNoTag(inv)}</td>
       <td>${escapeHtml(inv.customerName || '--')}</td>
       <td class="right-text">${formatMoney(inv.balanceDue || 0)}</td>
       <td>${formatDateForTable(inv.dueDate)}</td>
@@ -3287,16 +3419,42 @@ function documentFileLink(entry) {
     : '<span class="muted-text">Not in Drive</span>';
 }
 
+// Each screen is drawn only when it is visible. After a data change the visible screen is
+// redrawn straight away and the others are marked, then drawn when they are opened.
+const VIEW_RENDERERS = {
+  dashboard: () => renderDashboardView(),
+  customers: () => renderCustomersView(),
+  quotations: () => renderQuotationsView(),
+  invoices: () => renderInvoicesView(),
+  payments: () => renderPaymentsView(),
+  documents: () => renderDocumentHistoryView(),
+  firms: () => renderFirmsView(),
+  templates: () => renderTemplatesView()
+};
+const staleViews = new Set(Object.keys(VIEW_RENDERERS));
+
+function renderView(viewKey) {
+  if (!staleViews.has(viewKey) || !VIEW_RENDERERS[viewKey]) return;
+  staleViews.delete(viewKey);
+  VIEW_RENDERERS[viewKey]();
+}
+
 function renderBusinessViews() {
-  renderDashboardView();
-  renderCustomersView();
-  renderQuotationsView();
-  renderInvoicesView();
-  renderPaymentsView();
-  renderTemplatesView();
-  renderDocumentHistoryView();
-  renderFirmsView();
+  invalidateDerived();
+  Object.keys(VIEW_RENDERERS).forEach(key => staleViews.add(key));
+  renderView(activeView);
   renderFirmPickers();
+}
+
+// Search boxes redraw only their own screen, once typing pauses.
+let searchRenderTimer = null;
+function onRegisterSearch(viewKey) {
+  if (searchRenderTimer) clearTimeout(searchRenderTimer);
+  searchRenderTimer = setTimeout(() => {
+    staleViews.add(viewKey);
+    resetRegisterLimit(viewKey);
+    renderView(viewKey);
+  }, 150);
 }
 
 async function openDriveRootFolder() {
@@ -3850,6 +4008,12 @@ async function duplicateInvoiceRecord(invoiceId) {
     return;
   }
 
+  // The copy gets today's date and no Manual No. (numbers can't repeat); its saved form must agree,
+  // or editing the copy would bring back the original's values.
+  invoiceService.update(duplicated.id, {
+    manualInvoiceNumber: '',
+    form: duplicated.form ? { ...duplicated.form, 'f-inv-date': duplicated.invoiceDate, 'f-inv-manual-no': '' } : null
+  });
   bizState = stateService.getState();
   upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Invoice', duplicated));
   saveBusinessState();
@@ -4354,10 +4518,70 @@ function mergeRecordLists(localList, remoteList) {
   return [...byId.values(), ...withoutId];
 }
 
+// ── What has already been synced (per device) ──
+// For each record we keep a short fingerprint of the version last exchanged with the sheet, so a
+// sync sends only records that changed since, and `since` (the server's change number at the last
+// sync) so the sheet returns only rows other devices changed after that.
+const SYNC_META_KEY = 'avp_sync_state_v1';
+let syncMeta = null;
+
+function loadSyncMeta() {
+  const endpoint = googleIntegration.getConfig()?.appsScriptUrl || '';
+  if (syncMeta && syncMeta.endpoint === endpoint) return syncMeta;
+  try { syncMeta = JSON.parse(localStorage.getItem(SYNC_META_KEY) || 'null'); } catch (e) { syncMeta = null; }
+  let hasRecords = false;
+  try { hasRecords = !!localStorage.getItem(BIZ_CONFIG.stateKey); } catch (e) { /* ignore */ }
+  // Another backend, or this device's records were removed: start again with a full exchange.
+  if (!syncMeta || syncMeta.endpoint !== endpoint || !hasRecords || typeof syncMeta.hashes !== 'object') {
+    syncMeta = { endpoint, since: 0, hashes: {} };
+  }
+  return syncMeta;
+}
+
+function saveSyncMeta() {
+  try { localStorage.setItem(SYNC_META_KEY, JSON.stringify(syncMeta)); } catch (e) { /* next sync is just larger */ }
+}
+
+// FNV-1a: a short fingerprint of a record's JSON.
+function fingerprint(text) {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < text.length; i += 1) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(36) + text.length.toString(36);
+}
+
+// Records added or changed on this device since they were last exchanged with the sheet.
+// Returns the payload to send and the fingerprints to remember once the sync succeeds.
+function collectChangedRecords(meta, full) {
+  const state = stateService.getState();
+  const payload = {};
+  const sent = {};
+  let count = 0;
+  SYNC_COLLECTIONS.forEach(collection => {
+    const known = meta.hashes[collection] || {};
+    payload[collection] = [];
+    sent[collection] = {};
+    (state[collection] || []).forEach(record => {
+      if (!record || !record.id) return;
+      const hash = fingerprint(JSON.stringify(record));
+      if (!full && known[record.id] === hash) return;
+      payload[collection].push(record);
+      sent[collection][record.id] = hash;
+      count += 1;
+    });
+  });
+  return { payload, sent, count };
+}
+
 function applyRemoteRegister(remote) {
   const state = stateService.getState();
+  const received = SYNC_COLLECTIONS.reduce((n, collection) => n + ((remote && remote[collection]) || []).length, 0);
+  if (!received) return false; // nothing new from other devices: no saving, no redrawing
   SYNC_COLLECTIONS.forEach(collection => {
-    state[collection] = mergeRecordLists(state[collection], remote && remote[collection]);
+    const incoming = (remote && remote[collection]) || [];
+    if (incoming.length) state[collection] = mergeRecordLists(state[collection], incoming);
   });
   stateService.reconcileCounters();
   applyingRemoteState = true; // saving merged data must not trigger another sync
@@ -4371,8 +4595,10 @@ function applyRemoteRegister(remote) {
   // Firms may have arrived or changed on another device.
   const hadFirm = !!getActiveFirm();
   if (!hadFirm) initFirmSelection();
-  if (getActiveFirm()) applyFirmToBuilder(getActiveFirm(), { newDocument: !hadFirm && !(currentQuotationEditId || currentInvoiceEditId) });
+  const firmsChanged = !hadFirm || ((remote && remote.firms) || []).length > 0;
+  if (firmsChanged && getActiveFirm()) applyFirmToBuilder(getActiveFirm(), { newDocument: !hadFirm && !(currentQuotationEditId || currentInvoiceEditId) });
   renderBusinessViews();
+  return true;
 }
 
 function scheduleCloudSync(delayMs = SYNC_DEBOUNCE_MS) {
@@ -4381,9 +4607,10 @@ function scheduleCloudSync(delayMs = SYNC_DEBOUNCE_MS) {
   cloudSyncTimer = setTimeout(() => { syncNow(); }, delayMs);
 }
 
-// Pushes every local record to the sheet and merges the sheet's full register back.
+// Pushes the records changed on this device and merges back the rows other devices changed since
+// the last sync. { full: true } exchanges everything (Settings > Sync Register).
 // Resolves true on success. Concurrent calls share one request and queue a follow-up.
-function syncNow({ silent = true } = {}) {
+function syncNow({ silent = true, full = false } = {}) {
   if (!googleIntegration.canCallApi()) {
     refreshSyncChip();
     return Promise.resolve(false);
@@ -4398,15 +4625,44 @@ function syncNow({ silent = true } = {}) {
 
   cloudSyncInFlight = (async () => {
     try {
-      const state = stateService.getState();
-      const payload = {};
-      SYNC_COLLECTIONS.forEach(collection => { payload[collection] = state[collection] || []; });
-      const data = await googleIntegration.syncBusinessRegister(payload);
-      applyRemoteRegister(data.records || {});
+      const meta = loadSyncMeta();
+      const fullExchange = full || !meta.since;
+      const { payload, sent } = collectChangedRecords(meta, fullExchange);
+      const data = await googleIntegration.syncBusinessRegister(payload, fullExchange ? 0 : meta.since);
+
+      // Keep only rows that differ from what this device last exchanged.
+      const records = {};
+      const receivedHashes = {};
+      SYNC_COLLECTIONS.forEach(collection => {
+        const known = (!fullExchange && meta.hashes[collection]) || {};
+        receivedHashes[collection] = {};
+        records[collection] = ((data.records || {})[collection] || []).filter(record => {
+          if (!record || !record.id) return false;
+          const hash = fingerprint(JSON.stringify(record));
+          receivedHashes[collection][record.id] = hash;
+          return known[record.id] !== hash;
+        });
+      });
+      applyRemoteRegister(records);
+
+      // Remember what was exchanged. Received rows are fingerprinted as received, so a newer
+      // local edit of the same record still counts as changed and goes out next time.
+      if (fullExchange) meta.hashes = {};
+      SYNC_COLLECTIONS.forEach(collection => {
+        meta.hashes[collection] = Object.assign(meta.hashes[collection] || {}, sent[collection], receivedHashes[collection]);
+      });
+      // Servers older than this version return everything and no syncMark; then every sync
+      // stays a full exchange, exactly as before.
+      meta.since = typeof data.syncMark === 'number' ? data.syncMark : 0;
+      saveSyncMeta();
       lastCloudSyncAt = Date.now();
       lastCloudSyncError = '';
       refreshSyncChip();
-      if (!silent) showToast('Synced with Google Sheets.', 'success');
+      if (!silent) {
+        const sentCount = SYNC_COLLECTIONS.reduce((n, c) => n + payload[c].length, 0);
+        const gotCount = SYNC_COLLECTIONS.reduce((n, c) => n + records[c].length, 0);
+        showToast(`Synced with Google Sheets: ${sentCount} change(s) sent, ${gotCount} received.`, 'success');
+      }
       return true;
     } catch (error) {
       lastCloudSyncError = error.message || String(error);
@@ -4464,6 +4720,11 @@ function refreshSyncChip(phase) {
   if (chip) {
     chip.textContent = text;
     chip.title = title;
+  }
+  const syncBtn = document.getElementById('btn-sync-now');
+  if (syncBtn) {
+    syncBtn.disabled = phase === 'syncing';
+    syncBtn.innerHTML = phase === 'syncing' ? 'Syncing...' : '&#x21bb; Sync now';
   }
   if (message && phase !== 'syncing' && (lastCloudSyncError || lastCloudSyncAt)) {
     message.textContent = lastCloudSyncError ? `Last sync failed: ${lastCloudSyncError}` : `Last synced at ${text.replace('Google: Synced ', '')}.`;
@@ -4550,6 +4811,7 @@ function signOutDevice(removeData) {
     try {
       localStorage.removeItem(BIZ_CONFIG.stateKey);
       localStorage.removeItem(APP_CONFIG.stateKey);
+      localStorage.removeItem(SYNC_META_KEY);
     } catch (e) { /* ignore */ }
     location.reload();
     return;
@@ -4698,7 +4960,7 @@ async function handleGoogleSyncRegister() {
     return;
   }
   updateGoogleStatusUi({ message: 'Syncing with Google Sheets...' });
-  const ok = await syncNow({ silent: false });
+  const ok = await syncNow({ silent: false, full: true }); // full exchange, not just recent changes
   updateGoogleStatusUi(ok
     ? { drive: 'Connected', sheets: 'Connected', message: 'Sync completed. This device now has every record from Google Sheets.' }
     : { message: `Sync failed: ${lastCloudSyncError}` });
@@ -4778,10 +5040,14 @@ function bindBusinessEvents() {
     syncRegisterBtn.addEventListener('click', handleGoogleSyncRegister);
   }
 
-  ['search-customers', 'search-quotations', 'search-invoices', 'search-payments', 'search-templates'].forEach(id => {
-    const input = document.getElementById(id);
-    if (!input) return;
-    input.addEventListener('input', renderBusinessViews);
+  ['customers', 'quotations', 'invoices', 'payments', 'templates', 'documents'].forEach(viewKey => {
+    document.getElementById(`search-${viewKey}`)?.addEventListener('input', () => onRegisterSearch(viewKey));
+  });
+
+  // "Show more" rows in the registers.
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-show-more]');
+    if (btn) showMoreRows(btn.dataset.showMore);
   });
 
   const templateForm = document.getElementById('template-entry-form');
@@ -4803,8 +5069,6 @@ function bindBusinessEvents() {
   const resetPaymentBtn = document.getElementById('btn-reset-payment-form');
   if (resetPaymentBtn) resetPaymentBtn.addEventListener('click', () => resetPaymentEntryForm(''));
 
-  const documentSearch = document.getElementById('search-documents');
-  if (documentSearch) documentSearch.addEventListener('input', renderBusinessViews);
 
   const customersBody = document.getElementById('customers-tbody');
   if (customersBody) {
@@ -5203,6 +5467,7 @@ function setMode(m, tabEl) {
   const saveInvoiceBtn = document.getElementById('btn-save-invoice');
   if (saveQuotationBtn) saveQuotationBtn.hidden = m !== 'quotation';
   if (saveInvoiceBtn) saveInvoiceBtn.hidden = m === 'quotation';
+  updatePrintButton();
 
   queuePersist();
 }
@@ -5240,19 +5505,22 @@ function setSaveBusy(isBusy, message) {
     btn.textContent = isBusy ? 'Saving...' : btn.dataset.label;
     btn.setAttribute('aria-busy', isBusy ? 'true' : 'false');
   });
+  const printBtn = document.getElementById('btn-print-invoice');
+  if (printBtn) printBtn.disabled = isBusy;
   setExportSpinner(isBusy, message);
 }
 
-// The builder's one save action: saves the record, then its PDF to Google Drive (no printing).
+// The builder's one save action: saves the record, then its PDF to Google Drive.
+// With { print: true } (invoices with a Manual No. only) it then prints a copy showing that number.
 let saveInProgress = false;
-async function saveActiveDocument(kind) {
+async function saveActiveDocument(kind, { print = false } = {}) {
   if (saveInProgress) return;
   saveInProgress = true;
   setSaveBusy(true, `Saving the ${kind}...`);
   try {
     setMode(kind);
     const record = kind === 'quotation' ? await saveQuotationRecord() : await saveInvoiceRecord();
-    if (!record) return; // No number could be issued (offline); nothing was saved.
+    if (!record) return; // Not saved (no number could be issued, or the Manual No. is taken).
     const number = record.quotationNumber || record.invoiceNumber || record.id;
     if (googleIntegration.canCallApi()) {
       setExportSpinner(true, `Saving ${number} PDF to Google Drive...`);
@@ -5261,11 +5529,53 @@ async function saveActiveDocument(kind) {
       markPdfPending(kind, record, true);
       showToast(`${number} saved on this device. Sign in (click the Google chip at the top) to save its PDF to Google Drive.`, 'success', 7000);
     }
+    if (print && kind === 'invoice' && record.manualInvoiceNumber) {
+      setSaveBusy(false);
+      printInvoiceCopy(record.manualInvoiceNumber);
+    }
     switchView(kind === 'quotation' ? 'quotations' : 'invoices');
   } finally {
     saveInProgress = false;
     setSaveBusy(false);
   }
+}
+
+function manualInvoiceNoInput() {
+  return (document.getElementById('f-inv-manual-no')?.value || '').trim();
+}
+
+// Print is offered only for an invoice with a Manual No.
+function updatePrintButton() {
+  const btn = document.getElementById('btn-print-invoice');
+  if (btn) btn.hidden = mode !== 'invoice' || !manualInvoiceNoInput();
+}
+
+// Prints a clean copy of the open invoice with the Manual No. as its invoice number.
+// The copy is placed in a print-only area; the rest of the page is hidden while printing.
+function printInvoiceCopy(manualNo) {
+  const sheet = buildExportSheet({ invoiceNumber: manualNo });
+  if (!sheet) {
+    showToast('Unable to prepare the printed copy. Please try again.', 'error');
+    return;
+  }
+  document.getElementById('print-area')?.remove();
+  const area = document.createElement('div');
+  area.id = 'print-area';
+  area.appendChild(sheet);
+  document.body.appendChild(area);
+  document.body.classList.add('printing-doc');
+  let done = false;
+  const cleanup = () => {
+    if (done) return;
+    done = true;
+    window.removeEventListener('afterprint', cleanup);
+    document.body.classList.remove('printing-doc');
+    area.remove();
+  };
+  // The print area is invisible on screen, so if a browser never fires afterprint it does no harm
+  // (the next print replaces it).
+  window.addEventListener('afterprint', cleanup);
+  window.print();
 }
 
 function resetToDefaults() {
@@ -5351,6 +5661,8 @@ function bindStaticEvents() {
   document.querySelectorAll('[data-save-btn]').forEach(btn => {
     btn.addEventListener('click', () => saveActiveDocument(btn.dataset.saveBtn));
   });
+  document.getElementById('btn-print-invoice')?.addEventListener('click', () => saveActiveDocument('invoice', { print: true }));
+  document.getElementById('f-inv-manual-no')?.addEventListener('input', updatePrintButton);
 
   const openDriveRootBtn = document.getElementById('btn-open-drive-root');
   if (openDriveRootBtn) {
@@ -5620,7 +5932,8 @@ function toWords(n) {
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // A clean copy of the active document (letterhead + quotation or invoice) for the Drive PDF:
 // editing controls removed, table inputs turned into text, the remove-button column dropped.
-function buildExportSheet() {
+// options.invoiceNumber: number shown on the copy instead of the auto number (printed Manual No.).
+function buildExportSheet(options = {}) {
   const activeContent = document.querySelector('.doc-content.mode-section.visible');
   const letterhead = document.querySelector('#doc-sheet .lh');
   if (!activeContent || !letterhead) return null;
@@ -5653,6 +5966,10 @@ function buildExportSheet() {
   exportSheet.querySelectorAll('img').forEach(img => {
     if (!img.getAttribute('src') || img.style.display === 'none') img.remove();
   });
+  if (options.invoiceNumber) {
+    const number = exportSheet.querySelector('#d-inv-no');
+    if (number) number.textContent = options.invoiceNumber;
+  }
   // Cloned IDs would clash with the live document.
   exportSheet.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
   return exportSheet;
@@ -5813,7 +6130,10 @@ async function uploadPdfForRecord(kind, recordId) {
   resetTemplateForm();
 
   // Cloud sync: push after every local save; pull on start and whenever the app comes back into view.
-  stateService.onSave = () => scheduleCloudSync();
+  stateService.onSave = () => {
+    invalidateDerived();
+    scheduleCloudSync();
+  };
   document.addEventListener('visibilitychange', syncOnReturn);
   window.addEventListener('focus', syncOnReturn);
   // Firms: switcher, filter, Firms screen, builder shortcut, customer pickers.
@@ -5865,6 +6185,11 @@ async function uploadPdfForRecord(kind, recordId) {
   document.getElementById('btn-signin-skip')?.addEventListener('click', skipSignIn);
   document.getElementById('btn-signout')?.addEventListener('click', () => signOutDevice(false));
   document.getElementById('btn-signout-clear')?.addEventListener('click', () => signOutDevice(true));
+  document.getElementById('btn-sync-now')?.addEventListener('click', () => {
+    if (googleIntegration.canCallApi()) syncNow({ silent: false });
+    else if (googleIntegration.hasEndpoint()) openSignIn('Sign in to sync with your other devices.');
+    else showToast('Add the Apps Script URL in Settings first.', 'error');
+  });
   document.getElementById('google-connection-chip')?.addEventListener('click', () => {
     if (googleIntegration.canCallApi()) syncNow({ silent: false });
     else if (googleIntegration.hasEndpoint()) openSignIn();

@@ -52,6 +52,8 @@ export class InvoiceService {
     const invoice = {
       id,
       invoiceNumber: id,
+      // Optional number typed by the user; printed copies show it, the auto number stays the ID.
+      manualInvoiceNumber: input.manualInvoiceNumber || '',
       quotationId: input.quotationId || '',
       quotationNumber: input.quotationNumber || '',
       customerId: input.customerId,
@@ -122,7 +124,7 @@ export class InvoiceService {
       sourceDocumentId: source.id,
       createdBy: patch.createdBy || source.createdBy,
       firmId: patch.firmId || source.firmId || '',
-      form: source.form ? { ...source.form } : null,
+      form: source.form ? { ...source.form } : null, // the app clears the date / Manual No. in the copy
       items: (source.items || []).map(item => ({ ...item }))
     });
   }

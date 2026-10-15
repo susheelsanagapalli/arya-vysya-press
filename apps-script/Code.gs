@@ -4,7 +4,9 @@
 // Every request must carry the business password stored in Script Properties as AVP_API_KEY.
 
 // Column layout per tab: [header, record field, optional toCell(record), optional fromCell(value)].
-// The last column of every tab is 'Record JSON', which holds the full record so it round-trips exactly.
+// Every tab then ends with two hidden columns: 'Synced At' (the change number of the request that
+// last wrote the row, so devices fetch only rows changed since their last sync) and 'Record JSON',
+// which holds the full record so it round-trips exactly.
 const TAB_COLUMNS = {
   Customers: [
     ['Customer ID', 'id'], ['Customer Name', 'customerName'], ['Company Name', 'companyName'],
@@ -33,7 +35,8 @@ const TAB_COLUMNS = {
     ['Payment Terms', 'paymentTerms'], ['Notes', 'notes'], ['Status', 'status'],
     ['Source Document ID', 'sourceDocumentId'], ['Created Date', 'createdDate'], ['Last Updated', 'lastUpdated'],
     ['Drive File ID', 'driveFileId'], ['Drive File URL', 'driveFileUrl'], ['Created By', 'createdBy'],
-    ['Tax Mode', 'taxMode', r => r.taxMode || (r.gstApplicable === false ? 'NON_GST' : 'GST')]
+    ['Tax Mode', 'taxMode', r => r.taxMode || (r.gstApplicable === false ? 'NON_GST' : 'GST')],
+    ['Manual No.', 'manualInvoiceNumber'], ['Credit', 'creditAmount']
   ],
   Payments: [
     ['Payment ID', 'id'], ['Invoice ID', 'invoiceId'], ['Invoice Number', 'invoiceNumber'],
@@ -81,6 +84,7 @@ const TAB_COLUMNS = {
 };
 
 const RECORD_JSON_HEADER = 'Record JSON';
+const SYNCED_AT_HEADER = 'Synced At';
 
 // Large fields stored only in their own column, not inside Record JSON (cell limit 50,000 chars).
 const JSON_EXCLUDED_FIELDS = { Firms: ['logo'] };
@@ -158,12 +162,19 @@ function doPost(e) {
         data = initializeDriveStructure(payload, config);
         break;
       case 'pullAll':
-        data = pullAll();
+        data = pullChanges(0);
         break;
       case 'syncAll':
+        // payload: { <collection>: [changed records], since: <syncMark from the device's last sync> }.
+        // Every write gets the next number of a server-side change counter (not a clock time, so it
+        // can never go backwards). Returns the rows written by others after `since` (everything when
+        // since is 0), plus the new syncMark for the device to send next time.
         data = withLock(() => {
-          const result = upsertCollections(payload);
-          return { result: result, records: pullAll() };
+          const since = Number(payload.since) || 0;
+          const mark = nextSyncMark(payload);
+          const result = upsertCollections(payload, mark);
+          const records = pullChanges(since, result);
+          return { result: result, records: records, syncMark: currentSyncMark() };
         });
         break;
       case 'allocateIds':
@@ -305,25 +316,50 @@ function initializeDriveStructure(payload, config) {
   };
 }
 
-// Returns every record of every collection.
-function pullAll() {
+// The change counter stored in Script Properties. A request that writes rows takes the next value.
+const PROP_SYNC_MARK = 'AVP_SYNC_MARK';
+function currentSyncMark() {
+  return Number(PropertiesService.getScriptProperties().getProperty(PROP_SYNC_MARK) || 0);
+}
+function nextSyncMark(payload) {
+  const writes = Object.keys(COLLECTION_TABS).some(c => Array.isArray(payload[c]) && payload[c].length);
+  if (!writes) return currentSyncMark();
+  const mark = currentSyncMark() + 1;
+  PropertiesService.getScriptProperties().setProperty(PROP_SYNC_MARK, String(mark));
+  return mark;
+}
+
+// Records of every collection written after change number `since`; everything when since is 0.
+// upsertResult (optional) leaves out the rows this request just wrote (the device sent them) and
+// always includes the ones it refused because the sheet's copy is newer.
+function pullChanges(since, upsertResult) {
   const spreadsheet = getRegister(false);
-  const out = { serverTime: new Date().toISOString() };
+  const out = { serverTime: new Date().toISOString(), full: !since };
   Object.keys(COLLECTION_TABS).forEach(collection => {
-    out[collection] = spreadsheet ? readTabRecords(spreadsheet, COLLECTION_TABS[collection]) : [];
+    const own = (upsertResult && upsertResult[collection]) || {};
+    out[collection] = spreadsheet
+      ? readTabRecords(spreadsheet, COLLECTION_TABS[collection], since, toSet(own.ids), toSet(own.skippedIds))
+      : [];
   });
   return out;
 }
 
+function toSet(list) {
+  const set = {};
+  (list || []).forEach(id => { set[id] = true; });
+  return set;
+}
+
 // Upserts records by ID. The newer version wins (lastUpdated, else createdDate).
-function upsertCollections(payload) {
+// Only the rows that change are written, each stamped with syncedAt (the request's change number).
+function upsertCollections(payload, syncedAt) {
   const spreadsheet = getRegister(true);
   const result = {};
 
   Object.keys(COLLECTION_TABS).forEach(collection => {
     const items = Array.isArray(payload[collection]) ? payload[collection] : [];
     if (!items.length) {
-      result[collection] = { written: 0, skipped: 0 };
+      result[collection] = { written: 0, skipped: 0, ids: [], skippedIds: [] };
       return;
     }
     const tab = COLLECTION_TABS[collection];
@@ -337,30 +373,52 @@ function upsertCollections(payload) {
     const indexById = {};
     rows.forEach((row, i) => { if (row[0]) indexById[String(row[0])] = i; });
 
-    let written = 0;
-    let skipped = 0;
+    const changed = {};
+    const ids = [];
+    const skippedIds = [];
     items.forEach(item => {
       if (!item || !item.id) return;
       const id = String(item.id);
       const existingIdx = indexById[id];
       if (existingIdx !== undefined) {
         const existing = recordFromRow(tab, headers, rows[existingIdx], jsonIdx);
-        if (stampOf(existing) > stampOf(item)) { skipped += 1; return; }
-        rows[existingIdx] = rowFromRecord(tab, item);
+        if (stampOf(existing) > stampOf(item)) { skippedIds.push(id); return; }
+        rows[existingIdx] = rowFromRecord(tab, item, syncedAt);
+        changed[existingIdx] = true;
       } else {
         indexById[id] = rows.length;
-        rows.push(rowFromRecord(tab, item));
+        changed[rows.length] = true;
+        rows.push(rowFromRecord(tab, item, syncedAt));
       }
-      written += 1;
+      ids.push(id);
     });
 
-    if (rows.length) sheet.getRange(2, 1, rows.length, width).setValues(rows);
-    result[collection] = { written: written, skipped: skipped };
+    writeChangedRows(sheet, rows, Object.keys(changed).map(Number).sort((a, b) => a - b), width);
+    result[collection] = { written: ids.length, skipped: skippedIds.length, ids: ids, skippedIds: skippedIds };
   });
 
   // Keep the number counters ahead of any number that already exists in the sheet.
-  Object.keys(ID_PREFIXES).forEach(kind => bumpCounterToSheetMax(spreadsheet, kind));
+  Object.keys(ID_PREFIXES).forEach(kind => {
+    const collection = Object.keys(COLLECTION_TABS).filter(c => COLLECTION_TABS[c] === ID_TABS[kind])[0];
+    if (result[collection] && result[collection].written) bumpCounterToSheetMax(spreadsheet, kind);
+  });
   return result;
+}
+
+// Writes rows[i] for each changed index i (0-based data rows), in as few calls as possible:
+// runs of neighbouring rows go in one call; many scattered rows go as one block.
+function writeChangedRows(sheet, rows, indexes, width) {
+  if (!indexes.length) return;
+  const runs = [];
+  indexes.forEach(i => {
+    const last = runs[runs.length - 1];
+    if (last && i === last[1] + 1) last[1] = i;
+    else runs.push([i, i]);
+  });
+  const blocks = runs.length > 10 ? [[indexes[0], indexes[indexes.length - 1]]] : runs;
+  blocks.forEach(([first, end]) => {
+    sheet.getRange(first + 2, 1, end - first + 1, width).setValues(rows.slice(first, end + 1));
+  });
 }
 
 // kinds: { invoice: 1, customer: 1 }, firm: 'AVP' -> { invoice: ['AVP-INV-00012'], customer: ['CUS-00004'] }
@@ -492,32 +550,53 @@ function getRegister(createIfMissing) {
 }
 
 function tabHeaders(tab) {
-  return TAB_COLUMNS[tab].map(col => col[0]).concat([RECORD_JSON_HEADER]);
+  return TAB_COLUMNS[tab].map(col => col[0]).concat([SYNCED_AT_HEADER, RECORD_JSON_HEADER]);
 }
 
+// Checked once per request (each request is a fresh script run, so this starts empty).
+const CHECKED_TABS = {};
 function ensureTab(spreadsheet, tab) {
-  return ensureSheet(spreadsheet, tab, tabHeaders(tab));
+  if (!CHECKED_TABS[tab]) CHECKED_TABS[tab] = ensureSheet(spreadsheet, tab, tabHeaders(tab));
+  return CHECKED_TABS[tab];
 }
 
+// Makes sure the sheet has exactly these headings. When the layout changes (e.g. a column is
+// added), the existing data is moved so every value stays under its own heading (L12).
 function ensureSheet(spreadsheet, name, headers) {
   let sheet = spreadsheet.getSheetByName(name);
   if (!sheet) sheet = spreadsheet.insertSheet(name);
 
-  const current = sheet.getLastColumn() > 0
-    ? sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), headers.length)).getValues()[0]
-    : [];
-  const matches = headers.every((h, i) => current[i] === h);
-  if (!matches) {
-    // New columns are only ever appended, so existing data stays aligned.
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#f5f5f5');
-    sheet.setFrozenRows(1);
-    if (headers[headers.length - 1] === RECORD_JSON_HEADER) sheet.hideColumns(headers.length);
+  const lastCol = sheet.getLastColumn();
+  const current = lastCol > 0 ? sheet.getRange(1, 1, 1, lastCol).getValues()[0] : [];
+  const matches = headers.every((h, i) => current[i] === h)
+    && current.slice(headers.length).every(h => h === '');
+  if (matches) return sheet;
+
+  const lastRow = sheet.getLastRow();
+  const hadHeaders = current.some(h => h !== '');
+  if (hadHeaders && lastRow > 1) {
+    const oldIndex = {};
+    current.forEach((h, i) => { if (h !== '' && oldIndex[h] === undefined) oldIndex[h] = i; });
+    const data = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+    const moved = data.map(row => headers.map(h => (oldIndex[h] === undefined ? '' : row[oldIndex[h]])));
+    if (lastCol > headers.length) sheet.getRange(1, headers.length + 1, lastRow, lastCol - headers.length).clearContent();
+    sheet.getRange(2, 1, moved.length, headers.length).setValues(moved);
+  } else if (lastCol > headers.length) {
+    sheet.getRange(1, headers.length + 1, 1, lastCol - headers.length).clearContent();
+  }
+
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#f5f5f5');
+  sheet.setFrozenRows(1);
+  if (headers[headers.length - 1] === RECORD_JSON_HEADER) {
+    // Only the two technical columns at the end are hidden.
+    sheet.showColumns(1, Math.max(lastCol, headers.length));
+    sheet.hideColumns(headers.length - 1, 2);
   }
   return sheet;
 }
 
-function rowFromRecord(tab, record) {
+function rowFromRecord(tab, record, syncedAt) {
   const cells = TAB_COLUMNS[tab].map(col => {
     const value = col[2] ? col[2](record) : record[col[1]];
     return value === undefined || value === null ? '' : value;
@@ -525,6 +604,7 @@ function rowFromRecord(tab, record) {
   const excluded = JSON_EXCLUDED_FIELDS[tab] || [];
   const forJson = {};
   Object.keys(record).forEach(key => { if (excluded.indexOf(key) < 0) forJson[key] = record[key]; });
+  cells.push(syncedAt || 0);
   cells.push(JSON.stringify(forJson));
   return cells;
 }
@@ -554,14 +634,26 @@ function recordFromRow(tab, headers, row, jsonIdx) {
   return record;
 }
 
-function readTabRecords(spreadsheet, tab) {
+// Rows changed after `since` (all rows when since is 0), minus `skip`, plus `force` (ID sets).
+function readTabRecords(spreadsheet, tab, since, skip, force) {
   const sheet = spreadsheet.getSheetByName(tab);
   if (!sheet || sheet.getLastRow() < 2) return [];
   const headers = tabHeaders(tab);
   const width = headers.length;
   const jsonIdx = width - 1;
+  const syncedIdx = width - 2;
+  // An older layout is brought up to date first, so the columns read below are the right ones.
+  ensureTab(spreadsheet, tab);
   const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, width).getValues();
-  return rows.filter(row => row[0]).map(row => recordFromRow(tab, headers, row, jsonIdx));
+  return rows
+    .filter(row => {
+      if (!row[0]) return false;
+      const id = String(row[0]);
+      if (force && force[id]) return true;
+      if (skip && skip[id]) return false;
+      return !since || Number(row[syncedIdx]) > since;
+    })
+    .map(row => recordFromRow(tab, headers, row, jsonIdx));
 }
 
 function stampOf(record) {
