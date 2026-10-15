@@ -140,7 +140,11 @@ Remaining Batch 3 items: M4 (editing overwrites quotation fields), M10 (number a
 | Business-password sign-in (new) | **Done**: once per device, with "remember on this device" and sign-out options |
 | M6 | **Fixed**: Save uploads the PDF to Google Drive (exact copy of the preview), re-saving updates the same file, and View file opens it from every register |
 | Create / edit / delete (new) | **Done**: customer form (replaces pop-ups, fixes L2), delete for customers/quotations/payments/letterheads/templates, payment edit, quotation status, invoice Cancel / Undo Cancel; deletions sync to all devices |
-| M13 | **Partly fixed**: invoice paid amount is always derived from its payments (edits/deletes can't drift); overpayment is still not recorded as credit |
+| M13 | **Fixed** (Batch 4): paid amount is derived from the invoice's payments; money paid beyond the total (or anything paid on a cancelled invoice) is kept as the customer's credit, shown in the Invoices, Payments and Customers screens |
+| One Save button (new) | **Done** (Batch 4): the builder has a single **Save Quotation** / **Save Invoice** button that saves the record and its PDF straight to Google Drive; Export & Save, the export dialog and printing were removed |
+| L7 | **Resolved** (Batch 4): the print copy that depended on web fonts is gone; the Drive PDF is drawn from the on-screen preview after its fonts load |
+| L14 | **Fixed** (Batch 4): unused "Desktop Only" markup removed |
+| Letterhead screen code | **Removed** (Batch 4): the unused letterhead screen and template "Letterhead" field; old letterhead data is kept only for the one-time firm AVP migration |
 | R1 | **Done** (Batch 3): new documents start blank with placeholders; "Pick customer" fills client details |
 | R2 | **Done** (Batch 3): Firms (profile, logo, bank, contact, default texts), "Working as" switcher, "Show" firm filter on registers/dashboard, per-firm number series, per-firm Drive folders, shared customers |
 | R3 | **Done** (Batch 3): no firm or sample-client details in the code; the existing letterhead and records became firm AVP |

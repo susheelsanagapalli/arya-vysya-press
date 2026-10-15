@@ -28,7 +28,6 @@ The app keeps all original builder capabilities and adds:
 - `js/services/invoiceService.js`: Invoice logic and payment status recalculation
 - `js/services/paymentService.js`: Payment record logic
 - `js/services/googleIntegrationService.js`: Syncs document history as a Document Register sheet alongside the other registers
-- `js/services/letterheadService.js`: Letterhead defaults and management foundation
 - `js/services/templateService.js`: Template seed and management foundation
 - `js/services/googleSheetsService.js`: Sheets action client
 - `js/services/googleDriveService.js`: Drive action client
@@ -41,7 +40,7 @@ The app keeps all original builder capabilities and adds:
 
 ### Frontend
 - Single-page management app
-- Builder mode retains original quotation/invoice editor and PDF export
+- Builder mode retains the original quotation/invoice editor; one Save Quotation / Save Invoice button saves the record and its PDF to Google Drive (no print step)
 - Register views are driven by business state
 - Settings page controls Google integration configuration
 
@@ -247,5 +246,4 @@ Without these, local workflow works fully, but cloud sync cannot execute.
 ## 17. Recommended Next Enhancements
 - Replace prompt-based forms with modal forms for customer/payment creation
 - Add explicit revision management UI
-- Add retry-safe Export & Save with Drive file idempotency markers
 - Add sheet-to-app refresh/recalculate with manual merge controls

@@ -18,13 +18,17 @@ export class InvoiceService {
   }
 
   recalc(invoice, today) {
-    if (!invoice || invoice.status === 'Cancelled') {
-      invoice.paymentStatus = 'Cancelled';
-      return invoice;
-    }
+    if (!invoice) return invoice;
     const total = Number(invoice.grandTotal || 0);
     const paid = Number(invoice.amountPaid || 0);
+    if (invoice.status === 'Cancelled') {
+      invoice.paymentStatus = 'Cancelled';
+      invoice.creditAmount = Math.round(paid * 100) / 100; // anything paid is owed back as credit
+      return invoice;
+    }
     invoice.balanceDue = Math.max(0, total - paid);
+    // Money received beyond the total is kept as the customer's credit.
+    invoice.creditAmount = Math.round(Math.max(0, paid - total) * 100) / 100;
 
     if (paid >= total && total > 0) invoice.paymentStatus = 'Paid';
     else if (paid > 0 && paid < total) invoice.paymentStatus = 'Partially Paid';

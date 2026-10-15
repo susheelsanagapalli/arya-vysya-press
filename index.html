@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Document Manager</title>
-<meta name="description" content="Create quotations and tax invoices for your firms, with live preview, PDF export and Google Drive sync.">
+<meta name="description" content="Create quotations and tax invoices for your firms, with live preview, PDFs saved to Google Drive and cross-device sync.">
 <meta name="keywords" content="quotation generator, tax invoice builder, PDF export">
 <meta name="robots" content="index,follow">
 <meta property="og:title" content="Document Manager">
-<meta property="og:description" content="Build quotation and invoice documents with live editing and export settings.">
+<meta property="og:description" content="Build quotation and invoice documents with live editing; PDFs are saved to Google Drive.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#f5a800">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23f5a800'/%3E%3Ctext x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial,sans-serif' font-size='28' font-weight='700' fill='%231a1a1a'%3EAV%3C/text%3E%3C/svg%3E">
@@ -120,39 +120,6 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
   font-size: 0.66rem;
   color: #777;
   line-height: 1.4;
-}
-
-.mobile-blocker {
-  display: none;
-  min-height: 100vh;
-  padding: 32px 20px;
-  background: linear-gradient(180deg, #111 0%, #1f1f1f 100%);
-  color: #fff;
-  align-items: center;
-  justify-content: center;
-}
-.mobile-blocker-card {
-  width: 100%;
-  max-width: 420px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
-  padding: 24px 20px;
-  text-align: center;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
-}
-.mobile-blocker-title {
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 10px;
-}
-.mobile-blocker-text {
-  font-size: 0.92rem;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.88);
 }
 
 /* â•â• RIGHT â€” PREVIEW â•â• */
@@ -902,6 +869,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 
 .section-gap { margin-top: 12px; }
 .right-text { text-align: right; }
+.credit-amount { color: #1f6e39; font-weight: 600; white-space: nowrap; }
 
 .builder-shell {
   background: #f4f4f4;
@@ -1005,10 +973,6 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 
   .builder-shell .topnav {
     position: static;
-  }
-
-  .mobile-blocker {
-    display: none !important;
   }
 }
 
@@ -1175,6 +1139,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
                 <th>Phone</th>
                 <th>Email</th>
                 <th>GSTIN</th>
+                <th class="right-text">Credit</th>
                 <th>Status</th>
                 <th>Action</th>
               </tr>
@@ -1529,12 +1494,6 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
               <label for="tpl-terms">Payment Terms</label>
               <input id="tpl-terms" type="text" placeholder="30 Days">
             </div>
-            <div class="field firm-managed">
-              <label for="tpl-letterhead">Letterhead</label>
-              <select id="tpl-letterhead">
-                <option value="LH-DEFAULT">LH-DEFAULT</option>
-              </select>
-            </div>
             <div class="field">
               <label for="tpl-notes">Notes</label>
               <textarea id="tpl-notes" rows="2" placeholder="Template notes"></textarea>
@@ -1563,7 +1522,6 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
                 <th>Template</th>
                 <th>GST %</th>
                 <th>Terms</th>
-                <th>Letterhead</th>
                 <th>Status</th>
                 <th>Action</th>
               </tr>
@@ -1644,10 +1602,9 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
   <div class="topnav-brand"><span id="topnav-firm-name"></span><span>Document Builder</span></div>
   <div class="topnav-actions">
     <button class="btn btn-outline btn-sm" id="btn-open-drive-root">Open Drive Root</button>
-    <button class="btn btn-outline btn-sm" id="btn-save-quotation">Save Quotation</button>
-    <button class="btn btn-outline btn-sm" id="btn-save-invoice">Save Invoice</button>
     <button class="btn btn-outline btn-sm" id="btn-reset-top">Reset</button>
-    <button class="btn btn-gold btn-sm" data-export-btn="true" id="btn-export-top">Export &amp; Save</button>
+    <button class="btn btn-gold btn-sm" data-save-btn="quotation" id="btn-save-quotation" title="Save the quotation and its PDF to Google Drive">Save Quotation</button>
+    <button class="btn btn-gold btn-sm" data-save-btn="invoice" id="btn-save-invoice" title="Save the invoice and its PDF to Google Drive">Save Invoice</button>
   </div>
 </nav>
 
@@ -1812,7 +1769,6 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
     <div class="preview-controls">
       <span class="preview-label">Live document preview - click any text to edit inline</span>
       <span class="record-status" id="builder-record-status" aria-live="polite"></span>
-      <button class="btn btn-gold btn-sm" data-export-btn="true" id="btn-export-preview" aria-label="Export and save from preview">Export &amp; Save</button>
     </div>
 
     <!-- â•â•â•â•â•â•â•â•â•â•â•â• DOCUMENT SHEET â•â•â•â•â•â•â•â•â•â•â•â• -->
@@ -2020,48 +1976,6 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
   </main>
 </div>
 
-<div class="mobile-blocker">
-  <div class="mobile-blocker-card">
-    <div class="mobile-blocker-title">Desktop Only</div>
-    <div class="mobile-blocker-text">
-      This website is optimized for desktop use only. Please open it on a laptop or desktop browser for the correct layout and PDF export experience.
-    </div>
-  </div>
-</div>
-
-<div class="modal-backdrop" id="export-modal">
-  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="export-modal-title">
-    <div class="modal-title" id="export-modal-title">Export Settings</div>
-    <div class="modal-sub">Choose your PDF output options. These settings are remembered for your next export.</div>
-
-    <div class="field">
-      <label>Paper Size</label>
-      <select id="export-paper">
-        <option value="A4">A4</option>
-        <option value="Letter">Letter</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label>Orientation</label>
-      <select id="export-orientation">
-        <option value="portrait">Portrait</option>
-        <option value="landscape">Landscape</option>
-      </select>
-    </div>
-
-    <label class="modal-check" for="export-auto-print">
-      <input type="checkbox" id="export-auto-print" checked>
-      Open the print dialog straight away (untick to see a full-screen preview first)
-    </label>
-
-    <div class="modal-actions">
-      <button type="button" class="btn btn-outline" id="btn-export-cancel">Cancel</button>
-      <button type="button" class="btn btn-gold" id="btn-export-confirm">Export</button>
-    </div>
-  </div>
-</div>
-
 <div class="modal-backdrop" id="customer-modal">
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="customer-modal-title">
     <form id="customer-form">
@@ -2158,7 +2072,6 @@ import { CustomerService } from './js/services/customerService.js';
 import { QuotationService } from './js/services/quotationService.js';
 import { InvoiceService } from './js/services/invoiceService.js';
 import { PaymentService } from './js/services/paymentService.js';
-import { LetterheadService } from './js/services/letterheadService.js';
 import { TemplateService } from './js/services/templateService.js';
 import { SYNC_COLLECTIONS, LEGACY_FIRM_ID } from './js/modules/app-config.js';
 
@@ -2169,7 +2082,6 @@ let mode = 'quotation';
 let qRows = [];
 let iRows = [];
 const APP_CONFIG = {
-  exportPrefsKey: 'avp_export_settings_v1',
   stateKey: 'avp_document_state_v1',
   maxLogoFileMB: 5,
   saveDebounceMs: 300
@@ -2216,8 +2128,7 @@ const UX_CONFIG = {
   toastMs: {
     success: 2400,
     error: 4200
-  },
-  exportMinBusyMs: 550
+  }
 };
 
 const BIZ_CONFIG = {
@@ -2244,9 +2155,7 @@ let activeView = 'dashboard';
 let currentInvoiceSource = null;
 let currentQuotationEditId = null;
 let currentInvoiceEditId = null;
-let currentLetterheadEditId = null;
 let currentTemplateEditId = null;
-let activeLetterheadId = 'LH-DEFAULT';
 
 const googleIntegration = new GoogleIntegrationService();
 const stateService = new BusinessStateService();
@@ -2275,13 +2184,6 @@ const invoiceService = new InvoiceService(
 );
 
 const paymentService = new PaymentService(
-  () => stateService.getState(),
-  () => stateService.saveState(),
-  (kind, firm) => stateService.nextId(kind, firm),
-  () => businessNowIso()
-);
-
-const letterheadService = new LetterheadService(
   () => stateService.getState(),
   () => stateService.saveState(),
   (kind, firm) => stateService.nextId(kind, firm),
@@ -2427,7 +2329,11 @@ function recalcInvoiceFinancials(invoice, touchTimestamp) {
     ? active(linked).reduce((sum, payment) => sum + Number(payment.amountReceived || 0), 0)
     : Number(invoice.amountPaid || 0);
   invoice.amountPaid = Math.round(paid * 100) / 100;
-  invoice.balanceDue = invoice.status === 'Cancelled' ? 0 : Math.max(0, total - invoice.amountPaid);
+  const cancelled = invoice.status === 'Cancelled';
+  invoice.balanceDue = cancelled ? 0 : Math.max(0, total - invoice.amountPaid);
+  // M13: money received beyond the total (or anything paid on a cancelled invoice) is the
+  // customer's credit, instead of disappearing.
+  invoice.creditAmount = Math.round(Math.max(0, cancelled ? invoice.amountPaid : invoice.amountPaid - total) * 100) / 100;
   invoice.paymentStatus = normalizePaymentStatus(invoice);
   if (touchTimestamp) invoice.lastUpdated = businessNowIso();
 }
@@ -2539,7 +2445,6 @@ function saveQuotationRecordNow(firmId) {
     companyName: customer.companyName,
     // Re-saving keeps the original quotation date.
     quotationDate: existingQuotation?.quotationDate || todayIsoDate(),
-    letterheadId: activeLetterheadId || 'LH-DEFAULT',
     gstEnabled,
     paymentTerms: document.getElementById('f-inv-terms')?.value || '30 Days',
     notes: document.getElementById('f-q-closing')?.value || '',
@@ -2569,7 +2474,7 @@ function saveQuotationRecordNow(firmId) {
   }
 
   bizState = stateService.getState();
-  // Keep this quotation open: saving or exporting again updates it instead of creating a new one.
+  // Keep this quotation open: saving again updates it instead of creating a new one.
   currentQuotationEditId = quotation.id;
   updateQuotationMeta();
   upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Quotation', quotation));
@@ -2617,7 +2522,6 @@ function saveInvoiceRecordNow(firmId) {
     gstEnabled,
     invoiceDate,
     dueDate,
-    letterheadId: activeLetterheadId || 'LH-DEFAULT',
     paymentTerms: document.getElementById('f-inv-terms')?.value || '30 Days',
     notes: document.getElementById('f-inv-ref')?.value || '',
     status: currentInvoiceEditId ? (bizState.invoices.find(item => item.id === currentInvoiceEditId)?.status || 'Issued') : 'Issued',
@@ -2654,7 +2558,7 @@ function saveInvoiceRecordNow(firmId) {
     quotationService.markConverted(source.quotationId, invoice.id);
   }
 
-  // Keep this invoice open: saving or exporting again updates it instead of creating a new one.
+  // Keep this invoice open: saving again updates it instead of creating a new one.
   currentInvoiceSource = null;
   currentInvoiceEditId = invoice.id;
   upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Invoice', invoice));
@@ -2684,26 +2588,6 @@ function refreshBuilderRecordStatus() {
 function startNewDocument(kind) {
   startBlankDocument(kind);
   showToast(`New ${kind} started for ${getActiveFirm()?.name || 'your firm'}.`, 'success');
-}
-
-async function exportAndSaveActiveDocument(exportSettings) {
-  const savedRecord = mode === 'quotation' ? await saveQuotationRecord() : await saveInvoiceRecord();
-  if (!savedRecord) return; // No number could be issued (offline); nothing was saved or exported.
-
-  savePDF(exportSettings || getExportSettings());
-
-  const kind = mode === 'quotation' ? 'quotation' : 'invoice';
-  if (!googleIntegration.canCallApi()) {
-    markPdfPending(kind, savedRecord, true);
-    showToast('Document saved on this device. Sign in (click the Google chip at the top) to sync and save PDFs to Google Drive.', 'success');
-    return;
-  }
-
-  const idLabel = savedRecord.quotationNumber || savedRecord.invoiceNumber || savedRecord.id;
-  const uploaded = await uploadRecordPdf(kind, savedRecord.id, { silent: true });
-  const synced = await syncNow();
-  if (uploaded && synced) showToast(`${idLabel} saved to Google Drive and synced.`, 'success');
-  else if (!synced) showToast(`${idLabel} exported. Sync failed; it will retry automatically.`, 'error');
 }
 
 function rowsFromItems(items) {
@@ -2916,7 +2800,9 @@ function applyPaymentInvoiceSummary(invoiceId) {
   customerEl.value = invoice.customerName || '--';
   invoiceTotalEl.value = formatMoney(invoice.grandTotal || 0);
   paidEl.value = formatMoney(invoice.amountPaid || 0);
-  outstandingEl.value = formatMoney(invoice.balanceDue || 0);
+  outstandingEl.value = Number(invoice.creditAmount || 0) > 0
+    ? `Credit ${formatMoney(invoice.creditAmount)}`
+    : formatMoney(invoice.balanceDue || 0);
 }
 
 function resetPaymentEntryForm(preferredInvoiceId) {
@@ -3073,8 +2959,9 @@ async function submitStructuredPaymentForm(event) {
   recalcInvoiceFinancials(invoice);
   const editedPayment = editingPaymentId ? active(bizState.payments).find(item => item.id === editingPaymentId) : null;
   const projected = Number(invoice.amountPaid || 0) - Number(editedPayment && editedPayment.invoiceId === invoice.id ? editedPayment.amountReceived : 0) + amount;
-  if (projected > Number(invoice.grandTotal || 0)) {
-    const allowOverpay = confirm('Payment exceeds invoice grand total. Continue with overpayment?');
+  const extra = Math.round((projected - Number(invoice.grandTotal || 0)) * 100) / 100;
+  if (extra > 0) {
+    const allowOverpay = confirm(`This is ${formatMoney(extra)} more than ${invoice.invoiceNumber}'s total. The extra ${formatMoney(extra)} will be kept as credit for ${invoice.customerName || 'the customer'}. Continue?`);
     if (!allowOverpay) return;
   }
 
@@ -3166,12 +3053,31 @@ function fileActionButton(kind, item) {
 
 const QUOTATION_STATUSES = ['Draft', 'Issued', 'Sent', 'Accepted', 'Rejected'];
 
+// M13: an invoice's balance, or the customer's credit when more was paid than the total.
+function balanceCell(invoice) {
+  const credit = Number(invoice.creditAmount || 0);
+  if (credit > 0) return `<span class="credit-amount" title="Received more than the invoice total; kept as the customer's credit">Credit ${formatMoney(credit)}</span>`;
+  return formatMoney(invoice.balanceDue || 0);
+}
+
+// Total credit a customer holds across their invoices (all firms).
+function customerCredit(customerId) {
+  return active(bizState.invoices)
+    .filter(invoice => invoice.customerId === customerId)
+    .reduce((sum, invoice) => {
+      recalcInvoiceFinancials(invoice);
+      return sum + Number(invoice.creditAmount || 0);
+    }, 0);
+}
+
 function renderCustomersView() {
   const body = document.getElementById('customers-tbody');
   if (!body) return;
   const rows = active(bizState.customers).filter(c => matchesSearch('search-customers', [c.id, c.customerName, c.companyName, c.phone, c.email, c.gstin]));
 
-  body.innerHTML = rows.map(c => `
+  body.innerHTML = rows.map(c => {
+    const credit = customerCredit(c.id);
+    return `
     <tr>
       <td>${escapeHtml(c.id)}</td>
       <td>${escapeHtml(c.customerName || '--')}</td>
@@ -3179,16 +3085,17 @@ function renderCustomersView() {
       <td>${escapeHtml(c.phone || '--')}</td>
       <td>${escapeHtml(c.email || '--')}</td>
       <td>${escapeHtml(c.gstin || '--')}</td>
+      <td class="right-text">${credit > 0 ? `<span class="credit-amount">${formatMoney(credit)}</span>` : '--'}</td>
       <td>${buildStatusBadge(c.status || 'Active')}</td>
       <td class="row-actions">
         <button class="btn btn-outline btn-sm" data-customer-action="edit" data-customer-id="${escapeHtml(c.id)}">Edit</button>
         <button class="btn btn-outline btn-sm" data-customer-action="archive" data-customer-id="${escapeHtml(c.id)}">${c.status === 'Archived' ? 'Activate' : 'Archive'}</button>
         <button class="btn btn-outline btn-sm btn-danger" data-customer-action="delete" data-customer-id="${escapeHtml(c.id)}">Delete</button>
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 
-  if (!rows.length) body.innerHTML = '<tr><td colspan="8">No customers found.</td></tr>';
+  if (!rows.length) body.innerHTML = '<tr><td colspan="9">No customers found.</td></tr>';
 }
 
 function renderQuotationsView() {
@@ -3240,7 +3147,7 @@ function renderInvoicesView() {
       <td>${escapeHtml(item.customerName || '--')}</td>
       <td class="right-text">${formatMoney(item.grandTotal || 0)}</td>
       <td class="right-text">${formatMoney(item.amountPaid || 0)}</td>
-      <td class="right-text">${formatMoney(item.balanceDue || 0)}</td>
+      <td class="right-text">${balanceCell(item)}</td>
       <td>${formatDateForTable(item.dueDate)}</td>
       <td>${buildStatusBadge(item.paymentStatus || 'Unpaid')}</td>
       <td>${escapeHtml(item.quotationNumber || '--')}</td>
@@ -3535,202 +3442,6 @@ function splitAddressLines(address) {
   };
 }
 
-function collectLetterheadFormValue() {
-  const addr1 = (document.getElementById('lh-addr1')?.value || '').trim();
-  const addr2 = (document.getElementById('lh-addr2')?.value || '').trim();
-  return {
-    letterheadName: (document.getElementById('lh-name')?.value || '').trim(),
-    companyName: (document.getElementById('lh-company')?.value || '').trim(),
-    tagline: (document.getElementById('lh-tagline')?.value || '').trim(),
-    gstin: (document.getElementById('lh-gstin')?.value || '').trim(),
-    address: [addr1, addr2].filter(Boolean).join(', '),
-    addr1,
-    addr2,
-    phone: (document.getElementById('lh-phone')?.value || '').trim(),
-    email: (document.getElementById('lh-email')?.value || '').trim(),
-    website: (document.getElementById('lh-website')?.value || '').trim(),
-    footer: (document.getElementById('lh-footer')?.value || '').trim(),
-    terms: (document.getElementById('lh-terms')?.value || '').trim(),
-    brandStyle: (document.getElementById('lh-brand-style')?.value || '').trim(),
-    status: 'Active'
-  };
-}
-
-function hydrateLetterheadForm(item) {
-  const address = letterheadAddressLines(item);
-  const set = (id, value) => {
-    const el = document.getElementById(id);
-    if (el) el.value = value || '';
-  };
-
-  set('lh-name', item?.letterheadName || '');
-  set('lh-company', item?.companyName || '');
-  set('lh-tagline', item?.tagline || '');
-  set('lh-gstin', item?.gstin || '');
-  set('lh-addr1', address.addr1 || '');
-  set('lh-addr2', address.addr2 || '');
-  set('lh-phone', item?.phone || '');
-  set('lh-email', item?.email || '');
-  set('lh-website', item?.website || '');
-  set('lh-footer', item?.footer || '');
-  set('lh-terms', item?.terms || '');
-  set('lh-brand-style', item?.brandStyle || '');
-}
-
-function resetLetterheadForm() {
-  currentLetterheadEditId = null;
-  hydrateLetterheadForm({
-    letterheadName: '',
-    companyName: '',
-    tagline: '',
-    gstin: '',
-    address: '',
-    phone: '',
-    email: '',
-    website: '',
-    footer: '',
-    terms: '',
-    brandStyle: ''
-  });
-}
-
-function applyLetterheadToBuilder(letterheadId) {
-  const item = letterheadService.getById(letterheadId);
-  if (!item) {
-    showToast('Letterhead not found.', 'error');
-    return;
-  }
-
-  const address = letterheadAddressLines(item);
-  activeLetterheadId = item.id;
-  setInputValue('f-company', item.companyName || '');
-  setInputValue('f-tagline', item.tagline || '');
-  setInputValue('f-gstin', item.gstin || '');
-  setInputValue('f-addr1', address.addr1 || '');
-  setInputValue('f-addr2', address.addr2 || '');
-  setInputValue('f-cell', item.phone || '');
-  setInputValue('f-email', item.email || '');
-  if (item.terms) setInputValue('f-inv-terms', item.terms);
-  showToast(`Applied letterhead ${item.letterheadName}.`, 'success');
-}
-
-function saveLetterheadEntry(event) {
-  if (event) event.preventDefault();
-  const payload = collectLetterheadFormValue();
-  if (!payload.letterheadName || !payload.companyName) {
-    showToast('Letterhead name and company name are required.', 'error');
-    return;
-  }
-
-  let item = null;
-  if (currentLetterheadEditId) {
-    item = letterheadService.update(currentLetterheadEditId, payload);
-  } else {
-    item = letterheadService.create(payload);
-  }
-
-  if (!item) {
-    showToast('Unable to save letterhead.', 'error');
-    return;
-  }
-
-  bizState = stateService.getState();
-  if (!activeLetterheadId || activeLetterheadId === 'LH-DEFAULT') activeLetterheadId = item.id;
-  resetLetterheadForm();
-  saveBusinessState();
-  renderBusinessViews();
-  showToast(`Letterhead ${item.letterheadName} saved.`, 'success');
-}
-
-function renderLetterheadsView() {
-  const body = document.getElementById('letterheads-tbody');
-  if (!body) return;
-  const q = (document.getElementById('search-letterheads')?.value || '').toLowerCase().trim();
-  const rows = active(bizState.letterheads).filter(item => {
-    if (!q) return true;
-    return [item.id, item.letterheadName, item.companyName, item.gstin, item.phone, item.email, item.status]
-      .some(value => String(value || '').toLowerCase().includes(q));
-  });
-
-  body.innerHTML = rows.map(item => `
-    <tr>
-      <td>${escapeHtml(item.id || '--')}</td>
-      <td>${escapeHtml(item.letterheadName || '--')}</td>
-      <td>${escapeHtml(item.companyName || '--')}</td>
-      <td>${escapeHtml(item.gstin || '--')}</td>
-      <td>${escapeHtml(item.phone || item.email || '--')}</td>
-      <td>${item.isDefault ? 'Yes' : 'No'}</td>
-      <td>${buildStatusBadge(item.status || 'Active')}</td>
-      <td>
-        <button class="btn btn-outline btn-sm" data-letterhead-action="edit" data-letterhead-id="${escapeHtml(item.id)}">Edit</button>
-        <button class="btn btn-outline btn-sm" data-letterhead-action="duplicate" data-letterhead-id="${escapeHtml(item.id)}">Duplicate</button>
-        <button class="btn btn-outline btn-sm" data-letterhead-action="default" data-letterhead-id="${escapeHtml(item.id)}">Set Default</button>
-        <button class="btn btn-outline btn-sm" data-letterhead-action="apply" data-letterhead-id="${escapeHtml(item.id)}">Apply</button>
-        <button class="btn btn-outline btn-sm" data-letterhead-action="archive" data-letterhead-id="${escapeHtml(item.id)}">${item.status === 'Archived' ? 'Activate' : 'Archive'}</button>
-        <button class="btn btn-outline btn-sm btn-danger" data-letterhead-action="delete" data-letterhead-id="${escapeHtml(item.id)}">Delete</button>
-      </td>
-    </tr>
-  `).join('');
-
-  if (!rows.length) body.innerHTML = '<tr><td colspan="8">No letterheads found.</td></tr>';
-
-  const selected = active(bizState.letterheads).find(item => item.id === activeLetterheadId)
-    || (bizState.letterheads || []).find(item => item.isDefault)
-    || null;
-  if (selected) activeLetterheadId = selected.id;
-  populateTemplateLetterheadOptions(document.getElementById('tpl-letterhead')?.value || activeLetterheadId || 'LH-DEFAULT');
-}
-
-function loadLetterheadForEdit(letterheadId) {
-  const item = letterheadService.getById(letterheadId);
-  if (!item) {
-    showToast('Letterhead not found.', 'error');
-    return;
-  }
-
-  currentLetterheadEditId = item.id;
-  hydrateLetterheadForm(item);
-}
-
-function duplicateLetterheadEntry(letterheadId) {
-  const item = letterheadService.duplicate(letterheadId);
-  if (!item) {
-    showToast('Unable to duplicate letterhead.', 'error');
-    return;
-  }
-
-  bizState = stateService.getState();
-  renderBusinessViews();
-  showToast(`Letterhead ${item.letterheadName} duplicated.`, 'success');
-}
-
-function setDefaultLetterhead(letterheadId) {
-  const item = letterheadService.setDefault(letterheadId);
-  if (!item) {
-    showToast('Unable to set default letterhead.', 'error');
-    return;
-  }
-
-  bizState = stateService.getState();
-  activeLetterheadId = letterheadId;
-  renderBusinessViews();
-  showToast(`${item.letterheadName} set as default letterhead.`, 'success');
-}
-
-function toggleLetterheadArchive(letterheadId) {
-  const item = letterheadService.getById(letterheadId);
-  if (!item) {
-    showToast('Letterhead not found.', 'error');
-    return;
-  }
-
-  const archived = item.status !== 'Archived';
-  letterheadService.archive(letterheadId, archived);
-  bizState = stateService.getState();
-  renderBusinessViews();
-  showToast(archived ? 'Letterhead archived.' : 'Letterhead reactivated.', 'success');
-}
-
 function parseTemplateLineItems(rawValue, fallbackGstPct) {
   const trimmed = String(rawValue || '').trim();
   if (!trimmed) return [];
@@ -3756,21 +3467,6 @@ function parseTemplateLineItems(rawValue, fallbackGstPct) {
   }));
 }
 
-function populateTemplateLetterheadOptions(selectedId) {
-  const select = document.getElementById('tpl-letterhead');
-  if (!select) return;
-
-  const options = active(bizState.letterheads).map(item => {
-    const label = `${item.id} - ${item.letterheadName || item.companyName || 'Letterhead'}`;
-    return `<option value="${escapeHtml(item.id)}">${escapeHtml(label)}</option>`;
-  });
-
-  select.innerHTML = options.length ? options.join('') : '<option value="LH-DEFAULT">LH-DEFAULT</option>';
-  if (selectedId && (bizState.letterheads || []).some(item => item.id === selectedId)) {
-    select.value = selectedId;
-  }
-}
-
 function hydrateTemplateForm(item) {
   const set = (id, value) => {
     const el = document.getElementById(id);
@@ -3782,7 +3478,6 @@ function hydrateTemplateForm(item) {
   set('tpl-terms', item?.paymentTerms || '30 Days');
   set('tpl-notes', item?.notes || '');
   set('tpl-items-json', JSON.stringify(item?.lineItems || [], null, 2));
-  populateTemplateLetterheadOptions(item?.letterheadId || activeLetterheadId || 'LH-DEFAULT');
 }
 
 function resetTemplateForm() {
@@ -3792,7 +3487,6 @@ function resetTemplateForm() {
     gstPct: 18,
     paymentTerms: '30 Days',
     notes: '',
-    letterheadId: activeLetterheadId || 'LH-DEFAULT',
     lineItems: []
   });
 }
@@ -3820,7 +3514,6 @@ function saveTemplateEntry(event) {
     gstPct,
     paymentTerms: (document.getElementById('tpl-terms')?.value || '30 Days').trim(),
     notes: (document.getElementById('tpl-notes')?.value || '').trim(),
-    letterheadId: (document.getElementById('tpl-letterhead')?.value || 'LH-DEFAULT').trim(),
     lineItems,
     status: 'Active'
   };
@@ -3857,7 +3550,6 @@ function renderTemplatesView() {
       <td>${escapeHtml(item.templateName || '--')}</td>
       <td>${escapeHtml(String(item.gstPct ?? '--'))}</td>
       <td>${escapeHtml(item.paymentTerms || '--')}</td>
-      <td>${escapeHtml(item.letterheadId || '--')}</td>
       <td>${buildStatusBadge(item.status || 'Active')}</td>
       <td>
         <button class="btn btn-outline btn-sm" data-template-action="edit" data-template-id="${escapeHtml(item.id)}">Edit</button>
@@ -3869,7 +3561,7 @@ function renderTemplatesView() {
     </tr>
   `).join('');
 
-  if (!rows.length) body.innerHTML = '<tr><td colspan="7">No templates found.</td></tr>';
+  if (!rows.length) body.innerHTML = '<tr><td colspan="6">No templates found.</td></tr>';
 }
 
 function loadTemplateForEdit(templateId) {
@@ -4096,25 +3788,7 @@ function setInvoiceCancelled(invoiceId, cancel) {
   showToast(cancel ? `Invoice ${invoice.invoiceNumber} cancelled.` : `Invoice ${invoice.invoiceNumber} restored.`, 'success');
 }
 
-// ── Letterheads / templates: delete ──
-function deleteLetterhead(letterheadId) {
-  const letterhead = active(bizState.letterheads).find(item => item.id === letterheadId);
-  if (!letterhead) return;
-  if (letterhead.isDefault) {
-    showToast('This is the default letterhead. Set another letterhead as default before deleting it.', 'error', 6000);
-    return;
-  }
-  if (!confirm(`Delete letterhead "${letterhead.letterheadName}"?`)) return;
-  letterheadService.update(letterheadId, { deleted: true, status: 'Deleted', isDefault: false });
-  bizState = stateService.getState();
-  if (activeLetterheadId === letterheadId) {
-    activeLetterheadId = active(bizState.letterheads).find(item => item.isDefault)?.id || active(bizState.letterheads)[0]?.id || 'LH-DEFAULT';
-  }
-  saveBusinessState();
-  renderBusinessViews();
-  showToast(`Letterhead "${letterhead.letterheadName}" deleted.`, 'success');
-}
-
+// ── Templates: delete ──
 function deleteTemplate(templateId) {
   const template = active(bizState.templates).find(item => item.id === templateId);
   if (!template) return;
@@ -5104,17 +4778,11 @@ function bindBusinessEvents() {
     syncRegisterBtn.addEventListener('click', handleGoogleSyncRegister);
   }
 
-  ['search-customers', 'search-quotations', 'search-invoices', 'search-payments', 'search-letterheads', 'search-templates'].forEach(id => {
+  ['search-customers', 'search-quotations', 'search-invoices', 'search-payments', 'search-templates'].forEach(id => {
     const input = document.getElementById(id);
     if (!input) return;
     input.addEventListener('input', renderBusinessViews);
   });
-
-  const letterheadForm = document.getElementById('letterhead-entry-form');
-  if (letterheadForm) letterheadForm.addEventListener('submit', saveLetterheadEntry);
-
-  const resetLetterheadBtn = document.getElementById('btn-reset-letterhead-form');
-  if (resetLetterheadBtn) resetLetterheadBtn.addEventListener('click', resetLetterheadForm);
 
   const templateForm = document.getElementById('template-entry-form');
   if (templateForm) templateForm.addEventListener('submit', saveTemplateEntry);
@@ -5235,23 +4903,6 @@ function bindBusinessEvents() {
       }
     });
   });
-
-  const letterheadsBody = document.getElementById('letterheads-tbody');
-  if (letterheadsBody) {
-    letterheadsBody.addEventListener('click', e => {
-      const btn = e.target.closest('button[data-letterhead-action]');
-      if (!btn) return;
-      const letterheadId = btn.dataset.letterheadId;
-      if (!letterheadId) return;
-
-      if (btn.dataset.letterheadAction === 'edit') loadLetterheadForEdit(letterheadId);
-      if (btn.dataset.letterheadAction === 'duplicate') duplicateLetterheadEntry(letterheadId);
-      if (btn.dataset.letterheadAction === 'default') setDefaultLetterhead(letterheadId);
-      if (btn.dataset.letterheadAction === 'apply') applyLetterheadToBuilder(letterheadId);
-      if (btn.dataset.letterheadAction === 'archive') toggleLetterheadArchive(letterheadId);
-      if (btn.dataset.letterheadAction === 'delete') deleteLetterhead(letterheadId);
-    });
-  }
 
   const templatesBody = document.getElementById('templates-tbody');
   if (templatesBody) {
@@ -5507,9 +5158,7 @@ function improveFormAccessibility() {
     if (!label.getAttribute('for') && control.id) label.setAttribute('for', control.id);
   });
 
-  const topExport = document.getElementById('btn-export-top');
   const topReset = document.getElementById('btn-reset-top');
-  if (topExport) topExport.setAttribute('aria-label', 'Open export settings');
   if (topReset) topReset.setAttribute('aria-label', 'Reset all document values');
 }
 
@@ -5584,37 +5233,38 @@ function syncDate(fromId, toId) {
   queuePersist();
 }
 
-function setExportBusy(isBusy) {
-  document.querySelectorAll('[data-export-btn="true"]').forEach(btn => {
+function setSaveBusy(isBusy, message) {
+  document.querySelectorAll('[data-save-btn]').forEach(btn => {
     if (!btn.dataset.label) btn.dataset.label = btn.textContent;
     btn.disabled = isBusy;
-    btn.textContent = isBusy ? 'Preparing PDF...' : btn.dataset.label;
+    btn.textContent = isBusy ? 'Saving...' : btn.dataset.label;
     btn.setAttribute('aria-busy', isBusy ? 'true' : 'false');
   });
-
-  setExportSpinner(isBusy, isBusy ? 'Preparing your PDF document...' : 'Preparing your PDF document...');
+  setExportSpinner(isBusy, message);
 }
 
-function getExportSettings() {
-  const defaults = { paper: 'A4', orientation: 'portrait', autoPrint: true };
+// The builder's one save action: saves the record, then its PDF to Google Drive (no printing).
+let saveInProgress = false;
+async function saveActiveDocument(kind) {
+  if (saveInProgress) return;
+  saveInProgress = true;
+  setSaveBusy(true, `Saving the ${kind}...`);
   try {
-    const raw = localStorage.getItem(APP_CONFIG.exportPrefsKey);
-    if (!raw) return defaults;
-    const parsed = JSON.parse(raw);
-    const paper = parsed.paper === 'Letter' ? 'Letter' : 'A4';
-    const orientation = parsed.orientation === 'landscape' ? 'landscape' : 'portrait';
-    const autoPrint = parsed.autoPrint !== false;
-    return { paper, orientation, autoPrint };
-  } catch (e) {
-    return defaults;
-  }
-}
-
-function saveExportSettings(settings) {
-  try {
-    localStorage.setItem(APP_CONFIG.exportPrefsKey, JSON.stringify(settings));
-  } catch (e) {
-    // Ignore storage failures.
+    setMode(kind);
+    const record = kind === 'quotation' ? await saveQuotationRecord() : await saveInvoiceRecord();
+    if (!record) return; // No number could be issued (offline); nothing was saved.
+    const number = record.quotationNumber || record.invoiceNumber || record.id;
+    if (googleIntegration.canCallApi()) {
+      setExportSpinner(true, `Saving ${number} PDF to Google Drive...`);
+      await uploadRecordPdf(kind, record.id); // renders from the builder, so before leaving it
+    } else {
+      markPdfPending(kind, record, true);
+      showToast(`${number} saved on this device. Sign in (click the Google chip at the top) to save its PDF to Google Drive.`, 'success', 7000);
+    }
+    switchView(kind === 'quotation' ? 'quotations' : 'invoices');
+  } finally {
+    saveInProgress = false;
+    setSaveBusy(false);
   }
 }
 
@@ -5627,7 +5277,6 @@ function resetToDefaults() {
   currentQuotationEditId = null;
   currentInvoiceEditId = null;
   currentInvoiceSource = null;
-  currentLetterheadEditId = null;
   currentTemplateEditId = null;
 
   Object.keys(defaultFormValues).forEach(id => {
@@ -5653,7 +5302,6 @@ function resetToDefaults() {
   applyGstMode();
   setMode('quotation');
   resetPaymentEntryForm('');
-  resetLetterheadForm();
   resetTemplateForm();
 
   try {
@@ -5697,34 +5345,12 @@ function bindStaticEvents() {
     });
   });
 
-  document.querySelectorAll('[data-export-btn="true"]').forEach(btn => {
-    btn.addEventListener('click', openExportDialog);
-  });
-
   const resetTop = document.getElementById('btn-reset-top');
   if (resetTop) resetTop.addEventListener('click', resetToDefaults);
 
-  const saveQuotationBtn = document.getElementById('btn-save-quotation');
-  if (saveQuotationBtn) {
-    saveQuotationBtn.addEventListener('click', async () => {
-      setMode('quotation');
-      const quotation = await saveQuotationRecord();
-      if (!quotation) return;
-      await uploadRecordPdf('quotation', quotation.id); // renders from the builder, so before leaving it
-      switchView('quotations');
-    });
-  }
-
-  const saveInvoiceBtn = document.getElementById('btn-save-invoice');
-  if (saveInvoiceBtn) {
-    saveInvoiceBtn.addEventListener('click', async () => {
-      setMode('invoice');
-      const invoice = await saveInvoiceRecord();
-      if (!invoice) return;
-      await uploadRecordPdf('invoice', invoice.id); // renders from the builder, so before leaving it
-      switchView('invoices');
-    });
-  }
+  document.querySelectorAll('[data-save-btn]').forEach(btn => {
+    btn.addEventListener('click', () => saveActiveDocument(btn.dataset.saveBtn));
+  });
 
   const openDriveRootBtn = document.getElementById('btn-open-drive-root');
   if (openDriveRootBtn) {
@@ -5744,58 +5370,8 @@ function bindStaticEvents() {
   const clearLogoBtn = document.getElementById('btn-clear-logo');
   if (clearLogoBtn) clearLogoBtn.addEventListener('click', clearLogo);
 
-  const modal = document.getElementById('export-modal');
-  if (modal) {
-    modal.addEventListener('click', e => {
-      if (e.target === modal) closeExportDialog();
-    });
-  }
-
-  const cancel = document.getElementById('btn-export-cancel');
-  if (cancel) cancel.addEventListener('click', closeExportDialog);
-
-  const confirm = document.getElementById('btn-export-confirm');
-  if (confirm) confirm.addEventListener('click', confirmExport);
-
   window.addEventListener('beforeunload', persistAppState);
 }
-
-function openExportDialog() {
-  const modal = document.getElementById('export-modal');
-  if (!modal) return;
-  const settings = getExportSettings();
-  const paper = document.getElementById('export-paper');
-  const orientation = document.getElementById('export-orientation');
-  const autoPrint = document.getElementById('export-auto-print');
-  if (paper) paper.value = settings.paper;
-  if (orientation) orientation.value = settings.orientation;
-  if (autoPrint) autoPrint.checked = !!settings.autoPrint;
-  modal.classList.add('open');
-  document.body.style.overflow = 'hidden';
-  if (paper) paper.focus();
-}
-
-function closeExportDialog() {
-  const modal = document.getElementById('export-modal');
-  if (!modal) return;
-  modal.classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-function confirmExport() {
-  const settings = {
-    paper: document.getElementById('export-paper')?.value === 'Letter' ? 'Letter' : 'A4',
-    orientation: document.getElementById('export-orientation')?.value === 'landscape' ? 'landscape' : 'portrait',
-    autoPrint: !!document.getElementById('export-auto-print')?.checked
-  };
-  saveExportSettings(settings);
-  closeExportDialog();
-  exportAndSaveActiveDocument(settings);
-}
-
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeExportDialog();
-});
 
 function uploadLogo(fileInput) {
   const file = fileInput && fileInput.files ? fileInput.files[0] : null;
@@ -6042,7 +5618,7 @@ function toWords(n) {
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // PDF SAVE â€” exports ONLY the active tab section
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// A clean copy of the active document (letterhead + quotation or invoice) for printing and PDFs:
+// A clean copy of the active document (letterhead + quotation or invoice) for the Drive PDF:
 // editing controls removed, table inputs turned into text, the remove-button column dropped.
 function buildExportSheet() {
   const activeContent = document.querySelector('.doc-content.mode-section.visible');
@@ -6217,246 +5793,6 @@ async function uploadPdfForRecord(kind, recordId) {
   await uploadRecordPdf(kind, recordId);
 }
 
-function savePDF(options) {
-  const exportStartedAt = Date.now();
-  const finishExportBusy = () => {
-    const elapsed = Date.now() - exportStartedAt;
-    const delay = Math.max(0, UX_CONFIG.exportMinBusyMs - elapsed);
-    setTimeout(() => setExportBusy(false), delay);
-  };
-
-  setExportBusy(true);
-  const settings = options || getExportSettings();
-
-  try {
-    const activeContent = document.querySelector('.doc-content.mode-section.visible');
-    const sourceSheet = document.getElementById('doc-sheet');
-    const letterhead = sourceSheet ? sourceSheet.querySelector('.lh') : null;
-    if (!activeContent || !sourceSheet || !letterhead) {
-      showToast('Unable to prepare PDF. Please refresh and try again.', 'error');
-      finishExportBusy();
-      return;
-    }
-
-    const isQuote = activeContent.id === 'd-quotation';
-    const docLabel = isQuote ? 'Quotation' : 'Invoice';
-    const pageSpec = `${settings.paper} ${settings.orientation}`;
-    const exportTitle = `${document.getElementById('f-company')?.value || 'Document'} - ${docLabel}`;
-
-    const exportSheet = buildExportSheet();
-
-    // Non-GST mode hides GST columns/GSTINs via a class on <body>; the export document needs it too.
-    const bodyClass = document.body.classList.contains('gst-disabled') ? ' class="gst-disabled"' : '';
-
-    const styleTags = Array.from(document.querySelectorAll('style')).map(tag => tag.outerHTML).join('\n');
-    const stylesheetLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map(link => link.outerHTML).join('\n');
-
-    const html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>${escapeHtml(exportTitle)}</title>
-  ${stylesheetLinks}
-  ${styleTags}
-  <style>
-    body {
-      margin: 0;
-      background: #f0f0f0;
-      font-family: 'Inter', sans-serif;
-      color: #1a1a1a;
-    }
-    * {
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-      color-adjust: exact !important;
-    }
-    .export-wrap {
-      padding: 24px;
-      display: flex;
-      justify-content: center;
-    }
-    .export-wrap .doc-sheet {
-      width: 780px;
-      max-width: 100%;
-      margin: 0 auto;
-    }
-    .export-wrap .doc-sheet::before { width: 22px !important; }
-    .export-wrap .doc-inner { margin-left: 22px !important; }
-    .export-wrap .lh { padding: 18px 28px 12px 22px !important; }
-    .export-wrap .doc-content { padding: 14px 28px 28px 22px !important; }
-    .export-wrap .lh-top {
-      flex-direction: row !important;
-      align-items: flex-start !important;
-      justify-content: space-between !important;
-      gap: 0 !important;
-    }
-    .export-wrap .lh-brand { text-align: right !important; }
-    .export-wrap .lh-brand .cursive { font-size: 2.4rem !important; }
-    .export-wrap .inv-parties {
-      grid-template-columns: 1fr 1fr !important;
-      column-gap: 12px !important;
-    }
-    .export-wrap .inv-bank { grid-template-columns: 1fr 1fr !important; }
-    .export-wrap .inv-bank-left {
-      border-right: 1px solid #bbb !important;
-      border-bottom: none !important;
-    }
-    .export-wrap .items-wrap { overflow-x: visible !important; }
-    .export-wrap .items-tbl { min-width: 0 !important; }
-    @media print {
-      .no-print { display: none !important; }
-      body { margin: 0; background: white; }
-      .export-wrap {
-        display: block;
-        padding: 0;
-      }
-      .doc-sheet {
-        width: 780px !important;
-        max-width: 780px !important;
-        min-width: 780px !important;
-        box-shadow: none;
-        margin: 0 auto !important;
-      }
-    }
-    @page {
-      size: ${pageSpec};
-      margin: 0;
-    }
-
-    .no-print {
-      background: #1a1a1a;
-      color: white;
-      padding: 11px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-family: 'Inter', sans-serif;
-      font-size: 0.85rem;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    .no-print .no-print-actions { display: flex; gap: 8px; }
-    .no-print #close-btn { background: transparent; color: white; border: 1px solid #777; }
-    .no-print button {
-      background: #F5A800;
-      border: none;
-      color: #1a1a1a;
-      font-family: 'Inter', sans-serif;
-      font-weight: 700;
-      font-size: 0.82rem;
-      padding: 8px 20px;
-      border-radius: 3px;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body${bodyClass}>
-  <div class="no-print">
-    <span>${escapeHtml(exportTitle)} | Review once and click Save as PDF</span>
-    <span class="no-print-actions">
-      <button id="print-btn" type="button">Save as PDF (Ctrl+P)</button>
-      <button id="close-btn" type="button">Close</button>
-    </span>
-  </div>
-
-  <div class="export-wrap">
-    ${exportSheet.outerHTML}
-  </div>
-
-  <script>
-    // Printing is started by the parent page only (auto-print), so this document never prints by itself.
-    const printButton = document.getElementById('print-btn');
-    if (printButton) {
-      printButton.addEventListener('click', function() {
-        window.print();
-      });
-    }
-    const closeButton = document.getElementById('close-btn');
-    if (closeButton) {
-      closeButton.addEventListener('click', function() {
-        if (window.frameElement) window.frameElement.remove();
-      });
-    }
-  <\/script>
-</body>
-</html>`;
-
-    const existingFrame = document.getElementById('pdf-print-frame');
-    if (existingFrame) existingFrame.remove();
-
-    const frame = document.createElement('iframe');
-    frame.id = 'pdf-print-frame';
-    frame.style.position = 'fixed';
-    frame.style.border = '0';
-    if (settings.autoPrint) {
-      // Hidden frame; the print dialog is opened from frame.onload below.
-      frame.style.right = '0';
-      frame.style.bottom = '0';
-      frame.style.width = '0';
-      frame.style.height = '0';
-      frame.setAttribute('aria-hidden', 'true');
-    } else {
-      // No auto-print: show the export as a full-screen preview with its own Save as PDF / Close buttons.
-      frame.style.inset = '0';
-      frame.style.width = '100%';
-      frame.style.height = '100%';
-      frame.style.zIndex = '1300';
-      frame.style.background = '#f0f0f0';
-      frame.title = `${docLabel} preview`;
-    }
-    document.body.appendChild(frame);
-
-    const cleanupFrame = () => {
-      setTimeout(() => {
-        const currentFrame = document.getElementById('pdf-print-frame');
-        if (currentFrame) currentFrame.remove();
-      }, 1000);
-    };
-
-    frame.onload = function() {
-      setExportSpinner(true, 'Opening print preview...');
-      finishExportBusy();
-      const printWindow = frame.contentWindow;
-
-      if (!printWindow) {
-        showToast('Export failed. Please try again.', 'error');
-        cleanupFrame();
-        return;
-      }
-
-      if (!settings.autoPrint) {
-        setExportSpinner(false);
-        showToast('Preview opened. Click "Save as PDF" to save, or Close to return.', 'success');
-        return;
-      }
-
-      showToast('PDF export is ready. Use the print dialog to save.', 'success');
-
-      printWindow.onafterprint = cleanupFrame;
-      setTimeout(() => {
-        printWindow.focus();
-        printWindow.print();
-      }, 500);
-    };
-
-    const frameDoc = frame.contentWindow ? frame.contentWindow.document : frame.contentDocument;
-    if (!frameDoc) {
-      showToast('Export failed. Please try again.', 'error');
-      finishExportBusy();
-      cleanupFrame();
-      return;
-    }
-
-    frameDoc.open();
-    frameDoc.write(html);
-    frameDoc.close();
-  } catch (err) {
-    showToast('Export failed. Please try again.', 'error');
-    finishExportBusy();
-  }
-}
-
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // INIT â€” seed sample rows
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -6469,15 +5805,11 @@ function savePDF(options) {
   loadBusinessState();
   templateService.ensureSeedTemplates();
   bizState = stateService.getState();
-  activeLetterheadId = (bizState.letterheads || []).find(item => item.isDefault)?.id
-    || (bizState.letterheads || [])[0]?.id
-    || 'LH-DEFAULT';
   hydrateGoogleConfigToUi();
   updateGoogleStatusUi({ message: 'Save your configuration and test connection.' });
   renderBusinessViews();
   switchView(activeView);
   resetPaymentEntryForm('');
-  resetLetterheadForm();
   resetTemplateForm();
 
   // Cloud sync: push after every local save; pull on start and whenever the app comes back into view.
