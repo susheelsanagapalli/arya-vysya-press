@@ -21,7 +21,7 @@ export class QuotationService {
     const state = this.getState();
     const gstEnabled = input.gstEnabled !== false;
     const totals = this.computeTotals(input.items || [], gstEnabled);
-    const id = this.nextId('quotation');
+    const id = this.nextId('quotation', input.firmId);
     const quotationDate = input.quotationDate || toIsoDate();
 
     const quotation = {
@@ -33,6 +33,8 @@ export class QuotationService {
       quotationDate,
       validUntil: input.validUntil || plusDays(quotationDate, 15),
       letterheadId: input.letterheadId || 'LH-DEFAULT',
+      firmId: input.firmId || '',
+      form: input.form || null,
       subtotal: totals.subtotal,
       gst: totals.gst,
       grandTotal: totals.total,
@@ -88,6 +90,8 @@ export class QuotationService {
       status: patch.status || 'Draft',
       sourceDocumentId: source.id,
       createdBy: patch.createdBy || source.createdBy,
+      firmId: patch.firmId || source.firmId || '',
+      form: source.form ? { ...source.form } : null,
       items: (source.items || []).map(item => ({ ...item }))
     });
   }

@@ -3,12 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Arya Vysya Press - Document Builder</title>
-<meta name="description" content="Create and export professional quotations and tax invoices for Arya Vysya Press with live preview and PDF-ready layout.">
-<meta name="keywords" content="quotation generator, tax invoice builder, PDF export, Arya Vysya Press">
-<meta name="author" content="Arya Vysya Press">
+<title>Document Manager</title>
+<meta name="description" content="Create quotations and tax invoices for your firms, with live preview, PDF export and Google Drive sync.">
+<meta name="keywords" content="quotation generator, tax invoice builder, PDF export">
 <meta name="robots" content="index,follow">
-<meta property="og:title" content="Arya Vysya Press - Document Builder">
+<meta property="og:title" content="Document Manager">
 <meta property="og:description" content="Build quotation and invoice documents with live editing and export settings.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#f5a800">
@@ -501,6 +500,15 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 }
 .modal-check input { width: auto; }
 .signin-error { color: var(--red); min-height: 1em; margin-top: 8px; }
+.firm-managed { display: none !important; }
+.firm-picker { display: inline-flex; align-items: center; gap: 6px; font-size: 0.7rem; color: var(--muted); font-weight: 600; }
+.firm-picker select { padding: 5px 8px; font-size: 0.75rem; border: 1px solid #ddd; border-radius: 3px; font-family: 'Inter', sans-serif; max-width: 220px; }
+.firm-tag { display: inline-block; margin-left: 4px; padding: 0 5px; font-size: 0.62rem; font-weight: 700; color: var(--gold-dark); border: 1px solid var(--gold); border-radius: 8px; vertical-align: middle; }
+.firm-summary { font-size: 0.78rem; line-height: 1.5; }
+.firm-logo-preview img { max-height: 60px; max-width: 200px; margin-top: 6px; border: 1px solid #eee; padding: 4px; background: #fff; }
+/* Grey hints for empty fields, on screen only (the PDF copy has no IDs, so these never print). */
+#doc-sheet [data-placeholder]:empty::before { content: attr(data-placeholder); color: #b8b8b8; font-style: italic; font-weight: 400; }
+.q-meta { display: flex; justify-content: flex-end; gap: 18px; font-size: 0.76rem; margin-bottom: 8px; }
 .row-actions { white-space: nowrap; }
 .row-actions .btn { margin: 1px 0; }
 .btn-danger { color: var(--red); border-color: #e7b3b3; }
@@ -1045,7 +1053,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 <div class="mgmt-shell" id="mgmt-shell">
   <aside class="mgmt-sidebar" aria-label="Main navigation">
     <div class="mgmt-brand">
-      <div class="mgmt-brand-title">ARYA VYSYA PRESS</div>
+      <div class="mgmt-brand-title" id="brand-firm-name">DOCUMENT MANAGER</div>
       <div class="mgmt-brand-sub">Document Management</div>
     </div>
     <div class="mgmt-nav" role="tablist" aria-label="Application sections">
@@ -1055,7 +1063,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
       <button class="mgmt-nav-btn" data-view-target="invoices">Invoices</button>
       <button class="mgmt-nav-btn" data-view-target="payments">Payments</button>
       <button class="mgmt-nav-btn" data-view-target="documents">Document Register</button>
-      <button class="mgmt-nav-btn" data-view-target="letterheads">Letterheads</button>
+      <button class="mgmt-nav-btn" data-view-target="firms">Firms</button>
       <button class="mgmt-nav-btn" data-view-target="templates">Templates</button>
       <button class="mgmt-nav-btn" data-view-target="settings">Settings</button>
       <button class="mgmt-nav-btn" data-view-target="builder">Builder</button>
@@ -1066,10 +1074,18 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
     <header class="mgmt-header">
       <div>
         <button class="btn btn-outline btn-sm mgmt-menu-btn" id="btn-mgmt-menu" aria-label="Open navigation menu">Menu</button>
-        <div class="mgmt-header-title">Arya Vysya Press</div>
+        <div class="mgmt-header-title" id="header-firm-name">Document Manager</div>
         <div class="mgmt-header-sub">Customer -> Quotation -> Invoice -> Payment</div>
       </div>
       <div class="mgmt-actions">
+        <label class="firm-picker" for="active-firm" title="The firm new quotations, invoices and payments are created for">
+          <span>Working as</span>
+          <select id="active-firm" aria-label="Working as firm"></select>
+        </label>
+        <label class="firm-picker" for="firm-filter" title="Which firm's records the registers and dashboard show">
+          <span>Show</span>
+          <select id="firm-filter" aria-label="Show records for"></select>
+        </label>
         <span class="integration-chip" id="google-connection-chip">Google: Not Connected</span>
         <button class="btn btn-outline btn-sm" id="btn-new-quotation">+ New Quotation</button>
         <button class="btn btn-gold btn-sm" id="btn-new-invoice">+ New Invoice</button>
@@ -1371,90 +1387,121 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
       </div>
     </section>
 
-    <section class="mgmt-view" id="view-letterheads">
+    <section class="mgmt-view" id="view-firms">
       <div class="view-head">
         <div>
-          <div class="view-title">Letterheads</div>
-          <div class="view-sub">Manage reusable letterhead profiles and set default branding</div>
+          <div class="view-title">Firms</div>
+          <div class="view-sub">Your businesses: letterhead, GSTIN, bank details and numbering. Choose the firm you are working as at the top.</div>
         </div>
       </div>
       <div class="register-card" style="padding:12px; margin-bottom:12px;">
-        <form id="letterhead-entry-form">
+        <form id="firm-entry-form">
+          <div class="panel-title" id="firm-form-title">New firm</div>
           <div class="settings-grid">
             <div class="field">
-              <label for="lh-name">Letterhead Name</label>
-              <input id="lh-name" type="text" placeholder="Main Corporate Letterhead" required>
+              <label for="firm-code">Firm code</label>
+              <input id="firm-code" type="text" maxlength="5" required placeholder="e.g. AVP" style="text-transform:uppercase;">
+              <div class="field-help">2&ndash;5 letters or digits. Used in numbers like <code>AVP-INV-00001</code>. Can't be changed later.</div>
             </div>
             <div class="field">
-              <label for="lh-company">Company Name</label>
-              <input id="lh-company" type="text" placeholder="Arya Vysya Press" required>
+              <label for="firm-name">Firm name</label>
+              <input id="firm-name" type="text" required placeholder="Business name as printed">
             </div>
             <div class="field">
-              <label for="lh-tagline">Tagline</label>
-              <input id="lh-tagline" type="text" placeholder="Quality Printers &amp; Binders">
+              <label for="firm-tagline">Tagline</label>
+              <input id="firm-tagline" type="text" placeholder="e.g. Quality Printers &amp; Binders">
             </div>
             <div class="field">
-              <label for="lh-gstin">GSTIN</label>
-              <input id="lh-gstin" type="text" placeholder="37XXXXXXXXXXXX">
+              <label for="firm-gstin">GSTIN</label>
+              <input id="firm-gstin" type="text" maxlength="15" placeholder="15-character GSTIN" style="text-transform:uppercase;">
             </div>
             <div class="field">
-              <label for="lh-addr1">Address Line 1</label>
-              <input id="lh-addr1" type="text" placeholder="Street and area">
+              <label for="firm-addr1">Address line 1</label>
+              <input id="firm-addr1" type="text" placeholder="Door no, street, area">
             </div>
             <div class="field">
-              <label for="lh-addr2">Address Line 2</label>
-              <input id="lh-addr2" type="text" placeholder="City and pin code">
+              <label for="firm-addr2">Address line 2</label>
+              <input id="firm-addr2" type="text" placeholder="City - PIN">
             </div>
             <div class="field">
-              <label for="lh-phone">Phone</label>
-              <input id="lh-phone" type="text" placeholder="+91 XXXXX XXXXX">
+              <label for="firm-phone">Phone</label>
+              <input id="firm-phone" type="tel" placeholder="Phone number">
             </div>
             <div class="field">
-              <label for="lh-email">Email</label>
-              <input id="lh-email" type="email" placeholder="info@company.com">
+              <label for="firm-email">Email</label>
+              <input id="firm-email" type="email" placeholder="Email address">
             </div>
             <div class="field">
-              <label for="lh-website">Website</label>
-              <input id="lh-website" type="text" placeholder="www.example.com">
+              <label for="firm-bank-aname">Bank account name</label>
+              <input id="firm-bank-aname" type="text" placeholder="Account holder name">
             </div>
             <div class="field">
-              <label for="lh-brand-style">Brand Styling</label>
-              <input id="lh-brand-style" type="text" placeholder="Gold and black, formal">
+              <label for="firm-bank-bname">Bank name &amp; branch</label>
+              <input id="firm-bank-bname" type="text" placeholder="Bank, branch, city">
             </div>
             <div class="field">
-              <label for="lh-footer">Footer</label>
-              <textarea id="lh-footer" rows="2" placeholder="Footer line for documents"></textarea>
+              <label for="firm-bank-ano">Account number</label>
+              <input id="firm-bank-ano" type="text" inputmode="numeric" placeholder="Account number">
             </div>
             <div class="field">
-              <label for="lh-terms">Default Terms</label>
-              <textarea id="lh-terms" rows="2" placeholder="Payment and delivery terms"></textarea>
+              <label for="firm-bank-ifsc">IFSC</label>
+              <input id="firm-bank-ifsc" type="text" maxlength="11" placeholder="IFSC code" style="text-transform:uppercase;">
+            </div>
+            <div class="field">
+              <label for="firm-contact-name">Contact person (on quotations)</label>
+              <input id="firm-contact-name" type="text" placeholder="Name">
+            </div>
+            <div class="field">
+              <label for="firm-contact-phone">Contact phone</label>
+              <input id="firm-contact-phone" type="tel" placeholder="Phone">
+            </div>
+            <div class="field">
+              <label for="firm-contact-email">Contact email</label>
+              <input id="firm-contact-email" type="email" placeholder="Email">
+            </div>
+            <div class="field">
+              <label for="firm-terms">Default payment terms</label>
+              <input id="firm-terms" type="text" placeholder="e.g. 30 Days">
+            </div>
+            <div class="field">
+              <label for="firm-intro">Quotation opening text</label>
+              <textarea id="firm-intro" rows="2" placeholder="e.g. Thank you for your enquiry. Please find our quotation below."></textarea>
+            </div>
+            <div class="field">
+              <label for="firm-closing">Quotation closing text</label>
+              <textarea id="firm-closing" rows="2" placeholder="e.g. We look forward to your order."></textarea>
+            </div>
+            <div class="field">
+              <label for="firm-logo">Logo</label>
+              <input id="firm-logo" type="file" accept="image/*">
+              <div class="firm-logo-preview" id="firm-logo-preview" hidden><img id="firm-logo-img" alt="Firm logo"></div>
+              <button type="button" class="btn btn-outline btn-sm" id="btn-firm-logo-remove" hidden>Remove logo</button>
+              <div class="field-help">Shrunk automatically so it syncs to every device.</div>
+            </div>
+            <div class="field">
+              <label class="modal-check" for="firm-default"><input type="checkbox" id="firm-default"> Default firm on every device</label>
             </div>
           </div>
           <div class="settings-actions">
-            <button class="btn btn-gold btn-sm" type="submit">Save Letterhead</button>
-            <button class="btn btn-outline btn-sm" type="button" id="btn-reset-letterhead-form">Reset</button>
+            <button class="btn btn-gold btn-sm" type="submit" id="btn-firm-save">Save firm</button>
+            <button class="btn btn-outline btn-sm" type="button" id="btn-firm-reset">New firm / clear form</button>
           </div>
         </form>
       </div>
       <div class="register-card">
-        <div class="register-toolbar">
-          <input class="search-input" id="search-letterheads" placeholder="Search letterhead, company, GSTIN">
-        </div>
         <div class="register-table-wrap">
           <table class="register-table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Letterhead</th>
-                <th>Company</th>
+                <th>Code</th>
+                <th>Firm</th>
                 <th>GSTIN</th>
-                <th>Contact</th>
+                <th>Phone</th>
                 <th>Default</th>
-                <th>Status</th>
                 <th>Action</th>
               </tr>
             </thead>
-            <tbody id="letterheads-tbody"></tbody>
+            <tbody id="firms-tbody"></tbody>
           </table>
         </div>
       </div>
@@ -1482,7 +1529,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
               <label for="tpl-terms">Payment Terms</label>
               <input id="tpl-terms" type="text" placeholder="30 Days">
             </div>
-            <div class="field">
+            <div class="field firm-managed">
               <label for="tpl-letterhead">Letterhead</label>
               <select id="tpl-letterhead">
                 <option value="LH-DEFAULT">LH-DEFAULT</option>
@@ -1594,7 +1641,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 
 <!-- â•â• TOP NAV â•â• -->
 <nav class="topnav" aria-label="Primary actions">
-  <div class="topnav-brand">ARYA VYSYA PRESS &mdash; <span>Document Builder</span></div>
+  <div class="topnav-brand"><span id="topnav-firm-name"></span><span>Document Builder</span></div>
   <div class="topnav-actions">
     <button class="btn btn-outline btn-sm" id="btn-open-drive-root">Open Drive Root</button>
     <button class="btn btn-outline btn-sm" id="btn-save-quotation">Save Quotation</button>
@@ -1628,42 +1675,22 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
       </div>
     </div>
 
-    <!-- LETTERHEAD EDIT -->
+    <!-- FIRM (letterhead, GSTIN, bank and contact come from the firm profile) -->
     <div class="panel-section">
-      <div class="panel-title">Letterhead Settings</div>
-      <div class="field">
-        <label>Company Name (cursive)</label>
-        <input type="text" id="f-company" value="Arya Vysya Press">
-      </div>
-      <div class="field" style="margin-top:6px;">
-        <label>Tagline</label>
-        <input type="text" id="f-tagline" value="Quality Printers &amp; Binders">
-      </div>
-      <div class="field">
-        <label>GSTIN</label>
-        <input type="text" id="f-gstin" value="37BCIPS4640H1ZB">
-      </div>
-      <div class="field">
-        <label>Address Line 1</label>
-        <input type="text" id="f-addr1" value="# 26-4-10, Krishnamurthy Road, Near Gymkhana Club">
-      </div>
-      <div class="field">
-        <label>Address Line 2 (City)</label>
-        <input type="text" id="f-addr2" value="VIJAYAWADA - 520 003.">
-      </div>
-      <div class="field">
-        <label>Cell</label>
-        <input type="text" id="f-cell" value="9515858993">
-      </div>
-      <div class="field">
-        <label>Email</label>
-        <input type="text" id="f-email" value="aryavysya1942@gmail.com">
-      </div>
-      <div class="field">
-        <label>Logo Upload</label>
-        <input type="file" id="f-logo" accept="image/*">
-        <div class="field-help">Accepted: JPG, JPEG, PNG, WEBP, SVG, GIF, BMP and other browser-supported image files. Large images are shrunk automatically.</div>
-        <button type="button" class="btn btn-outline btn-sm" style="margin-top:6px;" id="btn-clear-logo">Remove Logo</button>
+      <div class="panel-title">Firm</div>
+      <div class="firm-summary" id="builder-firm-summary">No firm selected.</div>
+      <button type="button" class="btn btn-outline btn-sm" id="btn-builder-edit-firm" style="margin-top:6px;">Edit firm details</button>
+      <!-- Filled from the active firm; kept as fields so the preview and saved state work as before. -->
+      <div class="firm-managed" aria-hidden="true">
+        <input type="text" id="f-company" tabindex="-1">
+        <input type="text" id="f-tagline" tabindex="-1">
+        <input type="text" id="f-gstin" tabindex="-1">
+        <input type="text" id="f-addr1" tabindex="-1">
+        <input type="text" id="f-addr2" tabindex="-1">
+        <input type="text" id="f-cell" tabindex="-1">
+        <input type="text" id="f-email" tabindex="-1">
+        <input type="file" id="f-logo" accept="image/*" tabindex="-1">
+        <button type="button" id="btn-clear-logo" tabindex="-1"></button>
       </div>
     </div>
 
@@ -1671,36 +1698,40 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
     <div class="panel-section mode-section visible" id="fp-quotation">
       <div class="panel-title">Quotation Details</div>
       <div class="field">
+        <label for="f-q-customer">Pick customer</label>
+        <select id="f-q-customer" data-customer-picker="quotation"><option value="">Select a saved customer...</option></select>
+      </div>
+      <div class="field">
         <label>To (Client Name + Location)</label>
-        <input type="text" id="f-q-to" value="Pernod Ricard India, Vijayawada">
+        <input type="text" id="f-q-to" placeholder="Customer name, city">
       </div>
       <div class="field">
         <label>Client GST IN</label>
-        <input type="text" id="f-q-cgst" value="37AAACS4781P1ZO">
+        <input type="text" id="f-q-cgst" placeholder="Customer GSTIN">
       </div>
       <div class="field">
         <label>Subject</label>
-        <input type="text" id="f-q-subject" value="Final Quotation for FSSAI Manufacturing Poster requirements">
+        <input type="text" id="f-q-subject" placeholder="e.g. Quotation for printing of posters">
       </div>
       <div class="field">
         <label>Opening Body Text</label>
-        <textarea id="f-q-body">Thank you for your enquiry. We are pleased to submit the final curated quotation, shared after successful completion of the delivery, as per the agreed scope and requirements.</textarea>
+        <textarea id="f-q-body" placeholder="Opening paragraph (defaults from the firm)"></textarea>
       </div>
       <div class="field">
         <label>Closing Paragraph</label>
-        <textarea id="f-q-closing">Kindly proceed with initiating the Purchase Order (PO) process based on the attached quotation and arrange to raise the PO accordingly.</textarea>
+        <textarea id="f-q-closing" placeholder="Closing paragraph (defaults from the firm)"></textarea>
       </div>
       <div class="field">
         <label>Contact Person</label>
-        <input type="text" id="f-q-cname" value="Sai Susheel Gupta Sanagapalli">
+        <input type="text" id="f-q-cname" placeholder="Contact person (from the firm)">
       </div>
       <div class="field">
         <label>Contact Number</label>
-        <input type="text" id="f-q-cphone" value="+91 9515858993">
+        <input type="text" id="f-q-cphone" placeholder="Contact number">
       </div>
       <div class="field">
         <label>Contact Mail</label>
-        <input type="text" id="f-q-cmail" value="srujansgifting@gmail.com">
+        <input type="text" id="f-q-cmail" placeholder="Contact email">
       </div>
     </div>
 
@@ -1708,78 +1739,70 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
     <div class="panel-section mode-section" id="fp-invoice">
       <div class="panel-title">Invoice Details</div>
       <div class="field">
+        <label for="f-inv-customer">Pick customer</label>
+        <select id="f-inv-customer" data-customer-picker="invoice"><option value="">Select a saved customer...</option></select>
+      </div>
+      <div class="field">
         <label>Invoice No</label>
-        <input type="text" id="f-inv-no" value="8">
+        <input type="text" id="f-inv-no" readonly placeholder="Assigned when saved">
+        <div class="field-help">Numbered automatically in the firm's series (e.g. AVP-INV-00012).</div>
       </div>
       <div class="field">
         <label>Invoice Date</label>
-        <input type="date" id="f-inv-date" value="2026-04-21">
+        <input type="date" id="f-inv-date">
       </div>
       <div class="field">
         <label>Place of Supply</label>
-        <input type="text" id="f-inv-pos" value="Andhra Pradesh">
+        <input type="text" id="f-inv-pos" placeholder="State">
       </div>
       <div class="field">
         <label>Terms of Payment</label>
-        <input type="text" id="f-inv-terms" value="30 Days">
+        <input type="text" id="f-inv-terms" placeholder="e.g. 30 Days">
       </div>
       <div class="field">
         <label>Reference No &amp; Date</label>
-        <input type="text" id="f-inv-ref" value="101BVS/H1/2513651/2026 | 10/04/2026">
+        <input type="text" id="f-inv-ref" placeholder="Reference number | date">
       </div>
       <div class="field">
         <label>Buyer's Order No</label>
-        <input type="text" id="f-inv-bon" value="101BVS/H1/2513651/2026">
+        <input type="text" id="f-inv-bon" placeholder="Purchase order number">
       </div>
       <div class="field">
         <label>Buyer's Order Date</label>
-        <input type="date" id="f-inv-bod" value="2026-04-10">
+        <input type="date" id="f-inv-bod">
       </div>
       <div class="field">
         <label>Consignee Name</label>
-        <input type="text" id="f-inv-cname" value="Pernod Ricard India Private Limited">
+        <input type="text" id="f-inv-cname" placeholder="Ship-to name">
       </div>
       <div class="field">
         <label>Consignee Address</label>
-        <textarea id="f-inv-caddr">(LESSEE) At B.V.S. Distilleries Pvt. Ltd., Godavarru Village, Kankipadu Mandal, Krishna District - 521151, State - Andhra Pradesh</textarea>
+        <textarea id="f-inv-caddr" placeholder="Ship-to address"></textarea>
       </div>
       <div class="field">
         <label>Consignee GSTIN</label>
-        <input type="text" id="f-inv-cgst" value="37AAACS4781P1ZO">
+        <input type="text" id="f-inv-cgst" placeholder="Ship-to GSTIN">
       </div>
       <div class="field">
         <label>Buyer Name</label>
-        <input type="text" id="f-inv-bname" value="Pernod Ricard India Private Limited">
+        <input type="text" id="f-inv-bname" placeholder="Bill-to name">
       </div>
       <div class="field">
         <label>Buyer Address</label>
-        <textarea id="f-inv-baddr">(LESSEE) At B.V.S. Distilleries Pvt. Ltd., Godavarru Village, Kankipadu Mandal, Krishna District - 521151, State - Andhra Pradesh</textarea>
+        <textarea id="f-inv-baddr" placeholder="Bill-to address"></textarea>
       </div>
       <div class="field">
         <label>Buyer GSTIN</label>
-        <input type="text" id="f-inv-bgst" value="37AAACS4781P1ZO">
+        <input type="text" id="f-inv-bgst" placeholder="Bill-to GSTIN">
       </div>
     </div>
 
-    <!-- BANK DETAILS -->
-    <div class="panel-section mode-section" id="fp-bank">
-      <div class="panel-title">Bank Details</div>
-      <div class="field">
-        <label>Account Name</label>
-        <input type="text" id="f-bank-aname" value="ARYA VYSYA PRESS">
-      </div>
-      <div class="field">
-        <label>Bank Name &amp; Branch</label>
-        <input type="text" id="f-bank-bname" value="ICICI BANK, KRISHNA NAGAR BRANCH, VIJAYAWADA">
-      </div>
-      <div class="field">
-        <label>Account No</label>
-        <input type="text" id="f-bank-ano" value="438005000506">
-      </div>
-      <div class="field">
-        <label>IFSC</label>
-        <input type="text" id="f-bank-ifsc" value="ICIC0004380">
-      </div>
+    <!-- BANK DETAILS (from the firm profile) -->
+    <div class="panel-section mode-section firm-managed" id="fp-bank" aria-hidden="true">
+      <input type="text" id="f-bank-aname" tabindex="-1">
+      <input type="text" id="f-bank-bname" tabindex="-1">
+      <input type="text" id="f-bank-ano" tabindex="-1">
+      <input type="text" id="f-bank-ifsc" tabindex="-1">
     </div>
 
   </aside>
@@ -1801,17 +1824,17 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
           <div class="lh-top">
             <div class="lh-logo">
               <img id="d-logo-img" alt="Company Logo" style="display:none;">
-              <div class="lh-logo-placeholder"><span>ARYA<br>VYSYA<br>PRESS</span></div>
+              <div class="lh-logo-placeholder"><span id="d-logo-text"></span></div>
             </div>
             <div class="lh-brand">
-              <span class="cursive" id="d-company" contenteditable="true">Arya Vysya Press</span>
-              <span class="tagline" id="d-tagline" contenteditable="true">Quality Printers &amp; Binders</span>
-              <span class="gstin gst-only" id="d-gstin-wrap"><strong>GSTIN : </strong><span id="d-gstin" contenteditable="true">37BCIPS4640H1ZB</span></span>
+              <span class="cursive" id="d-company" data-placeholder="Firm name"></span>
+              <span class="tagline" id="d-tagline"></span>
+              <span class="gstin gst-only" id="d-gstin-wrap"><strong>GSTIN : </strong><span id="d-gstin"></span></span>
             </div>
           </div>
           <div class="lh-address">
-            <strong><span id="d-addr1" contenteditable="true"># 26-4-10, Krishnamurthy Road, Near Gymkhana Club</span>, <span id="d-addr2" contenteditable="true">VIJAYAWADA - 520 003.</span></strong><br>
-            CELL: <span id="d-cell" contenteditable="true">9515858993</span>, EMAIL: <span id="d-email" contenteditable="true">aryavysya1942@gmail.com</span>
+            <strong><span id="d-addr1" data-placeholder="Firm address"></span><span id="d-addr-sep"></span><span id="d-addr2"></span></strong><br>
+            CELL: <span id="d-cell"></span>, EMAIL: <span id="d-email"></span>
           </div>
           <hr class="lh-divider">
         </div>
@@ -1819,22 +1842,25 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
         <!-- â•â•â• QUOTATION CONTENT â•â•â• -->
         <div class="doc-content mode-section visible" id="d-quotation">
 
+          <!-- Quotation number and date (M10) -->
+          <div class="q-meta"><span>Quotation No: <strong id="d-q-no" data-placeholder="Assigned on save"></strong></span><span>Date: <strong id="d-q-date"></strong></span></div>
+
           <!-- To / Subject -->
           <div class="q-to">
             <span class="q-to-label">To :</span>
             <span class="q-to-val">
-              <span id="d-q-to" contenteditable="true">Pernod Ricard India, Vijayawada</span>
-              &nbsp;|&nbsp; <span class="q-to-gst gst-only" id="d-q-cgst-wrap"><strong>GST IN:</strong><span id="d-q-cgst" contenteditable="true">37AAACS4781P1ZO</span></span>
+              <span id="d-q-to" contenteditable="true" data-placeholder="Customer name"></span>
+              &nbsp;|&nbsp; <span class="q-to-gst gst-only" id="d-q-cgst-wrap"><strong>GST IN:</strong><span id="d-q-cgst" contenteditable="true" data-placeholder="Customer GSTIN"></span></span>
             </span>
           </div>
           <div class="q-subject">
             <span class="q-subject-label">Subject:</span>
-            <span class="q-subject-val" id="d-q-subject" contenteditable="true">Final Quotation for FSSAI Manufacturing Poster requirements</span>
+            <span class="q-subject-val" id="d-q-subject" contenteditable="true" data-placeholder="Subject"></span>
           </div>
 
           <!-- Dear Sir -->
           <div class="q-dear">Dear Sir,</div>
-          <div class="q-body" id="d-q-body" contenteditable="true">Thank you for your enquiry. We are pleased to submit the final curated quotation, shared after successful completion of the delivery, as per the agreed scope and requirements.</div>
+          <div class="q-body" id="d-q-body" contenteditable="true" data-placeholder="Opening paragraph"></div>
 
           <!-- Items Table -->
           <div class="items-wrap">
@@ -1867,14 +1893,14 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
           </div>
 
           <!-- Closing -->
-          <div class="q-closing" id="d-q-closing" contenteditable="true">Kindly proceed with initiating the Purchase Order (PO) process based on the attached quotation and arrange to raise the PO accordingly.</div>
+          <div class="q-closing" id="d-q-closing" contenteditable="true" data-placeholder="Closing paragraph"></div>
 
           <!-- Contact -->
           <div class="q-contact">
             <strong>For any queries regarding the quotation, please reach out to :</strong>
-            <span><strong>Name:</strong> <span id="d-q-cname" contenteditable="true">Sai Susheel Gupta Sanagapalli</span></span>
-            <span><strong>Contact No:</strong> <span id="d-q-cphone" contenteditable="true">+91 9515858993</span></span>
-            <span><strong>Mail:</strong> <span id="d-q-cmail" contenteditable="true">srujansgifting@gmail.com</span></span>
+            <span><strong>Name:</strong> <span id="d-q-cname" contenteditable="true" data-placeholder="Contact person"></span></span>
+            <span><strong>Contact No:</strong> <span id="d-q-cphone" contenteditable="true" data-placeholder="Phone"></span></span>
+            <span><strong>Mail:</strong> <span id="d-q-cmail" contenteditable="true" data-placeholder="Email"></span></span>
           </div>
         </div>
 
@@ -1889,33 +1915,33 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
             <div>
               <div class="inv-party" style="border-bottom:1px solid #aaa;">
                 <div class="inv-party-label">Consignee (Ship to)</div>
-                <div class="inv-party-name" id="d-inv-cname" contenteditable="true">Pernod Ricard India Private Limited</div>
-                <div id="d-inv-caddr" contenteditable="true" style="font-size:0.72rem;line-height:1.6;">(LESSEE) At B.V.S. Distilleries Pvt. Ltd., Godavarru Village, Kankipadu Mandal, Krishna District - 521151, State - Andhra Pradesh,</div>
-                <div class="gst-only" id="d-inv-cgst-wrap" style="font-size:0.73rem;">GSTIN-<strong><span id="d-inv-cgst" contenteditable="true">37AAACS4781P1ZO</span></strong></div>
+                <div class="inv-party-name" id="d-inv-cname" contenteditable="true" data-placeholder="Ship-to name"></div>
+                <div id="d-inv-caddr" contenteditable="true" data-placeholder="Ship-to address" style="font-size:0.72rem;line-height:1.6;"></div>
+                <div class="gst-only" id="d-inv-cgst-wrap" style="font-size:0.73rem;">GSTIN-<strong><span id="d-inv-cgst" contenteditable="true" data-placeholder="GSTIN"></span></strong></div>
               </div>
               <div class="inv-party">
                 <div class="inv-party-label">Buyer (Bill to)</div>
-                <div class="inv-party-name" id="d-inv-bname" contenteditable="true">Pernod Ricard India Private Limited</div>
-                <div id="d-inv-baddr" contenteditable="true" style="font-size:0.72rem;line-height:1.6;">(LESSEE) At B.V.S. Distilleries Pvt. Ltd., Godavarru Village, Kankipadu Mandal, Krishna District - 521151, State - Andhra Pradesh,</div>
-                <div class="gst-only" id="d-inv-bgst-wrap" style="font-size:0.73rem;">GSTIN-<strong><span id="d-inv-bgst" contenteditable="true">37AAACS4781P1ZO</span></strong></div>
+                <div class="inv-party-name" id="d-inv-bname" contenteditable="true" data-placeholder="Bill-to name"></div>
+                <div id="d-inv-baddr" contenteditable="true" data-placeholder="Bill-to address" style="font-size:0.72rem;line-height:1.6;"></div>
+                <div class="gst-only" id="d-inv-bgst-wrap" style="font-size:0.73rem;">GSTIN-<strong><span id="d-inv-bgst" contenteditable="true" data-placeholder="GSTIN"></span></strong></div>
               </div>
             </div>
             <!-- RIGHT: Invoice meta -->
             <div class="inv-party-right">
               <div class="inv-party-row">
-                <div class="inv-party-cell"><strong>Invoice No:</strong> <span id="d-inv-no" contenteditable="true">8</span></div>
-                <div class="inv-party-cell"><strong>Date:</strong> <span id="d-inv-date" contenteditable="true">21/04/2026</span></div>
+                <div class="inv-party-cell"><strong>Invoice No:</strong> <span id="d-inv-no" data-placeholder="Assigned on save"></span></div>
+                <div class="inv-party-cell"><strong>Date:</strong> <span id="d-inv-date" contenteditable="true"></span></div>
               </div>
               <div class="inv-party-row">
-                <div class="inv-party-cell"><strong>Place of Supply:</strong><br><span id="d-inv-pos" contenteditable="true">Andhra Pradesh</span></div>
-                <div class="inv-party-cell"><strong>Terms of Payment:</strong><br><span id="d-inv-terms" contenteditable="true">30 Days</span></div>
+                <div class="inv-party-cell"><strong>Place of Supply:</strong><br><span id="d-inv-pos" contenteditable="true" data-placeholder="State"></span></div>
+                <div class="inv-party-cell"><strong>Terms of Payment:</strong><br><span id="d-inv-terms" contenteditable="true" data-placeholder="Terms"></span></div>
               </div>
               <div class="inv-party-row">
-                <div class="inv-party-cell" style="grid-column:1/-1;"><strong>ReferenceNo. &amp; Date:</strong><br><span id="d-inv-ref" contenteditable="true">101BVS/H1/2513651/2026 | 10/04/2026</span></div>
+                <div class="inv-party-cell" style="grid-column:1/-1;"><strong>ReferenceNo. &amp; Date:</strong><br><span id="d-inv-ref" contenteditable="true" data-placeholder="Reference"></span></div>
               </div>
               <div class="inv-party-row" style="flex:1;">
-                <div class="inv-party-cell"><strong>Buyer's Order No:</strong><br><span id="d-inv-bon" contenteditable="true">101BVS/H1/2513651/2026</span></div>
-                <div class="inv-party-cell"><strong>Dated:</strong><br><span id="d-inv-bod" contenteditable="true">10/04/2026</span></div>
+                <div class="inv-party-cell"><strong>Buyer's Order No:</strong><br><span id="d-inv-bon" contenteditable="true" data-placeholder="PO number"></span></div>
+                <div class="inv-party-cell"><strong>Dated:</strong><br><span id="d-inv-bod" contenteditable="true"></span></div>
               </div>
             </div>
           </div>
@@ -1967,15 +1993,15 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
           <div class="inv-bank">
             <div class="inv-bank-left">
               <strong>Bank Details:</strong><br>
-              <strong>Account Name:</strong> <span id="d-bank-aname" contenteditable="true">ARYA VYSYA PRESS</span><br>
-              <strong>Bank Name:</strong> <span id="d-bank-bname" contenteditable="true">ICICI BANK, KRISHNA NAGAR BRANCH, VIJAYAWADA</span><br>
-              <strong>Account No:</strong> <span id="d-bank-ano" contenteditable="true">438005000506</span><br>
-              <strong>IFSC:</strong> <span id="d-bank-ifsc" contenteditable="true">ICIC0004380</span>
+              <strong>Account Name:</strong> <span id="d-bank-aname"></span><br>
+              <strong>Bank Name:</strong> <span id="d-bank-bname"></span><br>
+              <strong>Account No:</strong> <span id="d-bank-ano"></span><br>
+              <strong>IFSC:</strong> <span id="d-bank-ifsc"></span>
             </div>
             <div class="inv-bank-right">
               <div class="inv-sig">
                 <br><br>
-                <strong>For <span id="d-sig-company">Arya Vysya Press</span></strong>
+                <strong>For <span id="d-sig-company"></span></strong>
                 Authorized Signatory
               </div>
             </div>
@@ -2134,7 +2160,7 @@ import { InvoiceService } from './js/services/invoiceService.js';
 import { PaymentService } from './js/services/paymentService.js';
 import { LetterheadService } from './js/services/letterheadService.js';
 import { TemplateService } from './js/services/templateService.js';
-import { SYNC_COLLECTIONS } from './js/modules/app-config.js';
+import { SYNC_COLLECTIONS, LEGACY_FIRM_ID } from './js/modules/app-config.js';
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // STATE
@@ -2228,14 +2254,14 @@ const stateService = new BusinessStateService();
 const customerService = new CustomerService(
   () => stateService.getState(),
   () => stateService.saveState(),
-  kind => stateService.nextId(kind),
+  (kind, firm) => stateService.nextId(kind, firm),
   () => businessNowIso()
 );
 
 const quotationService = new QuotationService(
   () => stateService.getState(),
   () => stateService.saveState(),
-  kind => stateService.nextId(kind),
+  (kind, firm) => stateService.nextId(kind, firm),
   () => businessNowIso(),
   (rows, gstEnabled) => computeTotals(rows, gstEnabled)
 );
@@ -2243,7 +2269,7 @@ const quotationService = new QuotationService(
 const invoiceService = new InvoiceService(
   () => stateService.getState(),
   () => stateService.saveState(),
-  kind => stateService.nextId(kind),
+  (kind, firm) => stateService.nextId(kind, firm),
   () => businessNowIso(),
   (rows, gstEnabled) => computeTotals(rows, gstEnabled)
 );
@@ -2251,21 +2277,21 @@ const invoiceService = new InvoiceService(
 const paymentService = new PaymentService(
   () => stateService.getState(),
   () => stateService.saveState(),
-  kind => stateService.nextId(kind),
+  (kind, firm) => stateService.nextId(kind, firm),
   () => businessNowIso()
 );
 
 const letterheadService = new LetterheadService(
   () => stateService.getState(),
   () => stateService.saveState(),
-  kind => stateService.nextId(kind),
+  (kind, firm) => stateService.nextId(kind, firm),
   () => businessNowIso()
 );
 
 const templateService = new TemplateService(
   () => stateService.getState(),
   () => stateService.saveState(),
-  kind => stateService.nextId(kind),
+  (kind, firm) => stateService.nextId(kind, firm),
   () => businessNowIso()
 );
 
@@ -2456,14 +2482,54 @@ function collectCustomerInputFromBuilder() {
 
 // Saves the quotation in the builder. With cloud sync on, new numbers come from the server first.
 async function saveQuotationRecord() {
+  const firmId = documentFirmId('quotation');
+  if (!firmId) return null;
   const needsCustomer = !customerService.findMatch(collectCustomerInputFromBuilder());
   return withServerIds(
     { customer: needsCustomer ? 1 : 0, quotation: currentQuotationEditId ? 0 : 1 },
-    saveQuotationRecordNow
+    () => saveQuotationRecordNow(firmId),
+    firmId
   );
 }
 
-function saveQuotationRecordNow() {
+// The firm a save belongs to: the open record's firm, or the firm being worked as for a new one.
+function documentFirmId(kind) {
+  const editId = kind === 'quotation' ? currentQuotationEditId : currentInvoiceEditId;
+  const open = editId ? (kind === 'quotation' ? bizState.quotations : bizState.invoices).find(item => item.id === editId) : null;
+  if (open) return recordFirmId(open);
+  if (getActiveFirm()) return activeFirmId;
+  showToast('Create your firm first (Firms in the menu), then save.', 'error', 6000);
+  switchView('firms');
+  return '';
+}
+
+// The builder fields that belong to one document, saved with it so editing restores it exactly.
+const DOC_FORM_FIELDS = {
+  quotation: ['f-q-to', 'f-q-cgst', 'f-q-subject', 'f-q-body', 'f-q-closing', 'f-q-cname', 'f-q-cphone', 'f-q-cmail', 'f-gst-enabled'],
+  invoice: ['f-inv-date', 'f-inv-pos', 'f-inv-terms', 'f-inv-ref', 'f-inv-bon', 'f-inv-bod', 'f-inv-cname', 'f-inv-caddr', 'f-inv-cgst', 'f-inv-bname', 'f-inv-baddr', 'f-inv-bgst', 'f-gst-enabled']
+};
+
+function collectDocForm(kind) {
+  const form = {};
+  DOC_FORM_FIELDS[kind].forEach(id => { form[id] = document.getElementById(id)?.value ?? ''; });
+  return form;
+}
+
+function restoreDocForm(kind, form) {
+  if (!form) return false;
+  DOC_FORM_FIELDS[kind].forEach(id => { if (id in form) setInputValue(id, form[id]); });
+  return true;
+}
+
+// M10: quotation number and date shown on the quotation.
+function updateQuotationMeta() {
+  const quote = currentQuotationEditId ? bizState.quotations.find(item => item.id === currentQuotationEditId) : null;
+  setText('d-q-no', quote ? (quote.quotationNumber || quote.id) : '');
+  const date = parseLocalIsoDate(quote ? quote.quotationDate : todayIsoDate());
+  setText('d-q-date', date ? date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '');
+}
+
+function saveQuotationRecordNow(firmId) {
   const customer = ensureCustomerFromCurrentBuilder();
   const gstEnabled = isGstEnabled();
   const existingQuotation = currentQuotationEditId ? bizState.quotations.find(item => item.id === currentQuotationEditId) : null;
@@ -2479,6 +2545,8 @@ function saveQuotationRecordNow() {
     notes: document.getElementById('f-q-closing')?.value || '',
     status: currentQuotationEditId ? (bizState.quotations.find(item => item.id === currentQuotationEditId)?.status || 'Issued') : 'Issued',
     createdBy: 'Local User',
+    firmId,
+    form: collectDocForm('quotation'),
     items: qRows.map(normalizeRow)
   };
 
@@ -2503,6 +2571,7 @@ function saveQuotationRecordNow() {
   bizState = stateService.getState();
   // Keep this quotation open: saving or exporting again updates it instead of creating a new one.
   currentQuotationEditId = quotation.id;
+  updateQuotationMeta();
   upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Quotation', quotation));
   saveBusinessState();
   renderBusinessViews();
@@ -2513,14 +2582,17 @@ function saveQuotationRecordNow() {
 }
 
 async function saveInvoiceRecord() {
+  const firmId = documentFirmId('invoice');
+  if (!firmId) return null;
   const needsCustomer = !customerService.findMatch(collectCustomerInputFromBuilder());
   return withServerIds(
     { customer: needsCustomer ? 1 : 0, invoice: currentInvoiceEditId ? 0 : 1 },
-    saveInvoiceRecordNow
+    () => saveInvoiceRecordNow(firmId),
+    firmId
   );
 }
 
-function saveInvoiceRecordNow() {
+function saveInvoiceRecordNow(firmId) {
   const customer = ensureCustomerFromCurrentBuilder();
   const gstEnabled = isGstEnabled();
   const invoiceDate = document.getElementById('f-inv-date')?.value || todayIsoDate();
@@ -2551,6 +2623,8 @@ function saveInvoiceRecordNow() {
     status: currentInvoiceEditId ? (bizState.invoices.find(item => item.id === currentInvoiceEditId)?.status || 'Issued') : 'Issued',
     sourceDocumentId: source.quotationId || '',
     createdBy: 'Local User',
+    firmId,
+    form: collectDocForm('invoice'),
     items: iRows.map(normalizeRow)
   };
 
@@ -2608,14 +2682,8 @@ function refreshBuilderRecordStatus() {
 }
 
 function startNewDocument(kind) {
-  if (kind === 'quotation') currentQuotationEditId = null;
-  else {
-    currentInvoiceEditId = null;
-    currentInvoiceSource = null;
-  }
-  refreshBuilderRecordStatus();
-  queuePersist();
-  showToast(`The next save creates a new ${kind}.`, 'success');
+  startBlankDocument(kind);
+  showToast(`New ${kind} started for ${getActiveFirm()?.name || 'your firm'}.`, 'success');
 }
 
 async function exportAndSaveActiveDocument(exportSettings) {
@@ -2638,6 +2706,22 @@ async function exportAndSaveActiveDocument(exportSettings) {
   else if (!synced) showToast(`${idLabel} exported. Sync failed; it will retry automatically.`, 'error');
 }
 
+function rowsFromItems(items) {
+  return (items || []).map(item => ({
+    id: nextRowId(),
+    desc: item.desc,
+    hsn: item.hsn,
+    price: Number(item.price || 0),
+    qty: Number(item.qty || 1),
+    gstPct: resolveGstPct(item.gstPct)
+  }));
+}
+
+function clearDocForm(kind) {
+  DOC_FORM_FIELDS[kind].forEach(id => { if (id !== 'f-gst-enabled') setInputValue(id, ''); });
+}
+
+// "Create Invoice" from a quotation: a new invoice for the same firm and customer, with its items.
 function loadQuotationIntoInvoiceBuilder(quotationId, forceDuplicate) {
   const quote = bizState.quotations.find(q => q.id === quotationId);
   if (!quote) {
@@ -2650,27 +2734,27 @@ function loadQuotationIntoInvoiceBuilder(quotationId, forceDuplicate) {
     if (!allowAnother) return;
   }
 
+  currentInvoiceEditId = null;
+  currentQuotationEditId = null;
+  setActiveFirm(recordFirmId(quote), { fromRecord: true });
   const customer = bizState.customers.find(item => item.id === quote.customerId) || {};
+  const name = customer.companyName || quote.companyName || quote.customerName || '';
 
-  setInputValue('f-inv-cname', customer.companyName || quote.companyName || quote.customerName);
-  setInputValue('f-inv-bname', customer.companyName || quote.companyName || quote.customerName);
-  setInputValue('f-inv-caddr', customer.shippingAddress || customer.billingAddress || document.getElementById('f-inv-caddr')?.value || '');
-  setInputValue('f-inv-baddr', customer.billingAddress || customer.shippingAddress || document.getElementById('f-inv-baddr')?.value || '');
+  clearDocForm('invoice');
+  setInputValue('f-inv-no', '');
+  setInputValue('f-inv-cname', name);
+  setInputValue('f-inv-bname', name);
+  setInputValue('f-inv-caddr', customer.shippingAddress || customer.billingAddress || '');
+  setInputValue('f-inv-baddr', customer.billingAddress || customer.shippingAddress || '');
   setInputValue('f-inv-cgst', customer.gstin || '');
   setInputValue('f-inv-bgst', customer.gstin || '');
   setInputValue('f-inv-date', todayIsoDate());
-  setInputValue('f-inv-terms', quote.paymentTerms || '30 Days');
-  setInputValue('f-inv-ref', `Source Quotation ${quote.quotationNumber}`);
-  setInputValue('f-inv-pos', customer.state || document.getElementById('f-inv-pos')?.value || '');
+  setInputValue('f-inv-terms', quote.paymentTerms || getActiveFirm()?.defaultTerms || '');
+  setInputValue('f-inv-ref', `Quotation ${quote.quotationNumber}`);
+  setInputValue('f-inv-pos', customer.state || '');
 
-  iRows = (quote.items || []).map(item => ({
-    id: nextRowId(),
-    desc: item.desc,
-    hsn: item.hsn,
-    price: Number(item.price || 0),
-    qty: Number(item.qty || 0),
-    gstPct: resolveGstPct(item.gstPct)
-  }));
+  iRows = rowsFromItems(quote.items);
+  if (!iRows.length) iRows = [blankRow()];
   setInputValue('f-gst-enabled', quote.gstApplicable === false ? 'false' : 'true');
   applyGstMode();
   renderRows('i');
@@ -2680,8 +2764,6 @@ function loadQuotationIntoInvoiceBuilder(quotationId, forceDuplicate) {
     quotationNumber: quote.quotationNumber,
     customerId: quote.customerId
   };
-  currentInvoiceEditId = null;
-  currentQuotationEditId = null;
 
   setMode('invoice');
   switchView('builder');
@@ -2690,6 +2772,7 @@ function loadQuotationIntoInvoiceBuilder(quotationId, forceDuplicate) {
   showToast(`Invoice draft loaded from ${quote.quotationNumber}.`, 'success');
 }
 
+// Opens a saved quotation for editing, exactly as it was saved (M4).
 function loadQuotationIntoQuotationBuilder(quotationId) {
   const quote = bizState.quotations.find(q => q.id === quotationId);
   if (!quote) {
@@ -2697,34 +2780,33 @@ function loadQuotationIntoQuotationBuilder(quotationId) {
     return;
   }
 
-  setMode('quotation');
-  switchView('builder');
   currentQuotationEditId = quote.id;
   currentInvoiceEditId = null;
   currentInvoiceSource = null;
-  setInputValue('f-q-to', quote.companyName || quote.customerName || '');
-  setInputValue('f-q-cgst', (bizState.customers.find(customer => customer.id === quote.customerId)?.gstin) || '');
-  setInputValue('f-q-subject', `Quotation ${quote.quotationNumber}`);
-  setInputValue('f-q-body', quote.notes || document.getElementById('d-q-body')?.textContent || '');
-  setInputValue('f-q-closing', quote.notes || document.getElementById('d-q-closing')?.textContent || '');
+  setActiveFirm(recordFirmId(quote), { fromRecord: true });
+  setMode('quotation');
+  switchView('builder');
 
-  qRows = (quote.items || []).map(item => ({
-    id: nextRowId(),
-    desc: item.desc,
-    hsn: item.hsn,
-    price: Number(item.price || 0),
-    qty: Number(item.qty || 1),
-    gstPct: resolveGstPct(item.gstPct)
-  }));
+  if (!restoreDocForm('quotation', quote.form)) {
+    // Saved before documents kept their own fields: rebuild what we can.
+    clearDocForm('quotation');
+    setInputValue('f-q-to', quote.companyName || quote.customerName || '');
+    setInputValue('f-q-cgst', (bizState.customers.find(customer => customer.id === quote.customerId)?.gstin) || '');
+    setInputValue('f-q-closing', quote.notes || '');
+    setInputValue('f-gst-enabled', quote.gstApplicable === false ? 'false' : 'true');
+  }
 
-  setInputValue('f-gst-enabled', quote.gstApplicable === false ? 'false' : 'true');
+  qRows = rowsFromItems(quote.items);
+  if (!qRows.length) qRows = [blankRow()];
   applyGstMode();
   renderRows('q');
+  updateQuotationMeta();
   refreshBuilderRecordStatus();
   queuePersist();
   showToast(`Quotation ${quote.quotationNumber} loaded for editing.`, 'success');
 }
 
+// Opens a saved invoice for editing, exactly as it was saved (M4).
 function loadInvoiceIntoBuilder(invoiceId) {
   const invoice = bizState.invoices.find(item => item.id === invoiceId);
   if (!invoice) {
@@ -2732,50 +2814,65 @@ function loadInvoiceIntoBuilder(invoiceId) {
     return;
   }
 
-  const customer = bizState.customers.find(item => item.id === invoice.customerId) || {};
-  setMode('invoice');
-  switchView('builder');
   currentInvoiceEditId = invoice.id;
   currentQuotationEditId = null;
-  currentInvoiceSource = {
-    quotationId: invoice.quotationId || '',
-    quotationNumber: invoice.quotationNumber || '',
-    customerId: invoice.customerId || ''
-  };
+  setActiveFirm(recordFirmId(invoice), { fromRecord: true });
+  setMode('invoice');
+  switchView('builder');
   setInputValue('f-inv-no', invoice.invoiceNumber || '');
-  setInputValue('f-inv-date', invoice.invoiceDate || todayIsoDate());
-  setInputValue('f-inv-pos', document.getElementById('f-inv-pos')?.value || '');
-  setInputValue('f-inv-terms', invoice.paymentTerms || '30 Days');
-  setInputValue('f-inv-ref', invoice.notes || '');
-  setInputValue('f-inv-bon', invoice.quotationNumber || '');
-  setInputValue('f-inv-bod', invoice.invoiceDate || todayIsoDate());
-  setInputValue('f-inv-cname', customer.companyName || invoice.customerName || '');
-  setInputValue('f-inv-caddr', customer.billingAddress || '');
-  setInputValue('f-inv-cgst', customer.gstin || '');
-  setInputValue('f-inv-bname', customer.companyName || invoice.customerName || '');
-  setInputValue('f-inv-baddr', customer.billingAddress || '');
-  setInputValue('f-inv-bgst', customer.gstin || '');
 
-  iRows = (invoice.items || []).map(item => ({
-    id: nextRowId(),
-    desc: item.desc,
-    hsn: item.hsn,
-    price: Number(item.price || 0),
-    qty: Number(item.qty || 1),
-    gstPct: resolveGstPct(item.gstPct)
-  }));
+  if (!restoreDocForm('invoice', invoice.form)) {
+    // Saved before documents kept their own fields: rebuild what we can.
+    const customer = bizState.customers.find(item => item.id === invoice.customerId) || {};
+    const name = customer.companyName || invoice.customerName || '';
+    clearDocForm('invoice');
+    setInputValue('f-inv-date', invoice.invoiceDate || todayIsoDate());
+    setInputValue('f-inv-terms', invoice.paymentTerms || '');
+    setInputValue('f-inv-ref', invoice.notes || '');
+    setInputValue('f-inv-pos', customer.state || '');
+    setInputValue('f-inv-cname', name);
+    setInputValue('f-inv-caddr', customer.shippingAddress || customer.billingAddress || '');
+    setInputValue('f-inv-cgst', customer.gstin || '');
+    setInputValue('f-inv-bname', name);
+    setInputValue('f-inv-baddr', customer.billingAddress || '');
+    setInputValue('f-inv-bgst', customer.gstin || '');
+    setInputValue('f-gst-enabled', invoice.gstApplicable === false ? 'false' : 'true');
+  }
 
-  setInputValue('f-gst-enabled', invoice.gstApplicable === false ? 'false' : 'true');
+  iRows = rowsFromItems(invoice.items);
+  if (!iRows.length) iRows = [blankRow()];
   applyGstMode();
   renderRows('i');
-  currentInvoiceSource = {
-    quotationId: invoice.quotationId || '',
+  currentInvoiceSource = invoice.quotationId ? {
+    quotationId: invoice.quotationId,
     quotationNumber: invoice.quotationNumber || '',
     customerId: invoice.customerId || ''
-  };
+  } : null;
   refreshBuilderRecordStatus();
   queuePersist();
   showToast(`Invoice ${invoice.invoiceNumber} loaded for editing.`, 'success');
+}
+
+// Clears the builder for a new quotation or invoice for the firm being worked as.
+function startBlankDocument(kind) {
+  if (kind === 'quotation') {
+    currentQuotationEditId = null;
+    clearDocForm('quotation');
+    qRows = [blankRow()];
+    renderRows('q');
+  } else {
+    currentInvoiceEditId = null;
+    currentInvoiceSource = null;
+    clearDocForm('invoice');
+    setInputValue('f-inv-no', '');
+    setInputValue('f-inv-date', todayIsoDate());
+    iRows = [blankRow()];
+    renderRows('i');
+  }
+  applyFirmToBuilder(getActiveFirm(), { newDocument: true });
+  updateQuotationMeta();
+  refreshBuilderRecordStatus();
+  queuePersist();
 }
 
 function populatePaymentInvoiceOptions(preferredInvoiceId) {
@@ -2860,6 +2957,7 @@ function resetPaymentEntryForm(preferredInvoiceId) {
 function appendPaymentForInvoice(invoice, payload) {
   const amount = Number(payload.amountReceived || 0);
   const payment = paymentService.record({
+    firmId: recordFirmId(invoice),
     invoiceId: invoice.id,
     invoiceNumber: invoice.invoiceNumber,
     quotationId: invoice.quotationId || '',
@@ -3018,7 +3116,7 @@ async function submitStructuredPaymentForm(event) {
   const recorded = await withServerIds({ payment: 1 }, () => {
     appendPaymentForInvoice(invoice, paymentFields);
     return true;
-  });
+  }, recordFirmId(invoice));
   if (!recorded) return;
 
   saveBusinessState();
@@ -3096,7 +3194,7 @@ function renderCustomersView() {
 function renderQuotationsView() {
   const body = document.getElementById('quotations-tbody');
   if (!body) return;
-  const rows = active(bizState.quotations).filter(item => matchesSearch('search-quotations', [item.quotationNumber, item.customerName, item.companyName, item.status]));
+  const rows = active(bizState.quotations).filter(item => matchesFirmFilter(item) && matchesSearch('search-quotations', [item.quotationNumber, item.customerName, item.companyName, item.status]));
 
   body.innerHTML = rows.map(item => {
     const id = escapeHtml(item.id);
@@ -3106,7 +3204,7 @@ function renderQuotationsView() {
       : `<select class="status-select" data-quotation-status="${id}" aria-label="Status of ${id}">${QUOTATION_STATUSES.map(s => `<option value="${s}"${s === status ? ' selected' : ''}>${s}</option>`).join('')}</select>`;
     return `
     <tr>
-      <td>${escapeHtml(item.quotationNumber || item.id)}</td>
+      <td>${escapeHtml(item.quotationNumber || item.id)}${firmTag(item)}</td>
       <td>${formatDateForTable(item.quotationDate)}</td>
       <td>${escapeHtml(item.customerName || '--')}</td>
       <td class="right-text">${formatMoney(item.grandTotal || 0)}</td>
@@ -3130,14 +3228,14 @@ function renderInvoicesView() {
   if (!body) return;
 
   active(bizState.invoices).forEach(invoice => recalcInvoiceFinancials(invoice));
-  const rows = active(bizState.invoices).filter(item => matchesSearch('search-invoices', [item.invoiceNumber, item.customerName, item.paymentStatus, item.quotationNumber]));
+  const rows = active(bizState.invoices).filter(item => matchesFirmFilter(item) && matchesSearch('search-invoices', [item.invoiceNumber, item.customerName, item.paymentStatus, item.quotationNumber]));
 
   body.innerHTML = rows.map(item => {
     const id = escapeHtml(item.id);
     const cancelled = item.status === 'Cancelled';
     return `
     <tr${cancelled ? ' class="row-cancelled"' : ''}>
-      <td>${escapeHtml(item.invoiceNumber || item.id)}</td>
+      <td>${escapeHtml(item.invoiceNumber || item.id)}${firmTag(item)}</td>
       <td>${formatDateForTable(item.invoiceDate)}</td>
       <td>${escapeHtml(item.customerName || '--')}</td>
       <td class="right-text">${formatMoney(item.grandTotal || 0)}</td>
@@ -3165,7 +3263,7 @@ function renderPaymentsView() {
   const body = document.getElementById('payments-tbody');
   if (!body) return;
   const selectedInvoiceId = document.getElementById('p-invoice-id')?.value || '';
-  const rows = active(bizState.payments).filter(item => matchesSearch('search-payments', [item.id, item.invoiceNumber, item.customerName, item.transactionReference, item.creditedTo, item.transferredTo, item.paymentDetails]));
+  const rows = active(bizState.payments).filter(item => matchesFirmFilter(item) && matchesSearch('search-payments', [item.id, item.invoiceNumber, item.customerName, item.transactionReference, item.creditedTo, item.transferredTo, item.paymentDetails]));
 
   body.innerHTML = rows.map(item => `
     <tr>
@@ -3192,9 +3290,9 @@ function renderPaymentsView() {
 }
 
 function renderDashboardView() {
-  const invoices = active(bizState.invoices);
+  const invoices = active(bizState.invoices).filter(matchesFirmFilter);
   const liveInvoices = invoices.filter(inv => inv.status !== 'Cancelled');
-  const quotations = active(bizState.quotations);
+  const quotations = active(bizState.quotations).filter(matchesFirmFilter);
   const customerCount = active(bizState.customers).length;
   const quotationCount = quotations.length;
   const invoiceCount = liveInvoices.length;
@@ -3211,7 +3309,7 @@ function renderDashboardView() {
   }, { outstanding: 0, pending: 0, overdue: 0 });
 
   const now = new Date();
-  const paidThisMonth = active(bizState.payments).reduce((acc, pay) => {
+  const paidThisMonth = active(bizState.payments).filter(matchesFirmFilter).reduce((acc, pay) => {
     const d = parseLocalIsoDate(pay.paymentDate) || new Date(pay.createdDate);
     if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) {
       acc += Number(pay.amountReceived || 0);
@@ -3252,7 +3350,7 @@ function renderDashboardView() {
   if (!overdueRows.length) overdueBody.innerHTML = '<tr><td colspan="5">No overdue invoices.</td></tr>';
 
   const recentRows = [...bizState.documentHistory]
-    .filter(item => item.status !== 'Deleted')
+    .filter(item => item.status !== 'Deleted' && matchesFirmFilter(item))
     .sort((a, b) => new Date(b.lastUpdated || b.createdDate) - new Date(a.lastUpdated || a.createdDate))
     .slice(0, 8);
 
@@ -3288,9 +3386,10 @@ function renderBusinessViews() {
   renderQuotationsView();
   renderInvoicesView();
   renderPaymentsView();
-  renderLetterheadsView();
   renderTemplatesView();
   renderDocumentHistoryView();
+  renderFirmsView();
+  renderFirmPickers();
 }
 
 async function openDriveRootFolder() {
@@ -3334,6 +3433,7 @@ function normalizeDocumentHistoryEntry(entry) {
     id: String(entry?.id || `DOC-${Date.now()}`),
     documentType: String(entry?.documentType || 'Document'),
     documentNumber: String(entry?.documentNumber || '--'),
+    firmId: String(entry?.firmId || LEGACY_FIRM_ID),
     customerId: String(entry?.customerId || ''),
     customerName: String(entry?.customerName || '--'),
     documentDate: String(entry?.documentDate || todayIsoDate()),
@@ -3372,6 +3472,7 @@ function buildDocumentHistoryEntryFromRecord(type, record, overrides = {}) {
   return normalizeDocumentHistoryEntry({
     // Stable ID (e.g. "Invoice-INV-00007") so the same document never gets two register rows across devices.
     id: overrides.id || `${type}-${documentNumber}`,
+    firmId: recordFirmId(record),
     documentType: type,
     documentNumber,
     customerId: record.customerId,
@@ -3394,6 +3495,7 @@ function renderDocumentHistoryView() {
   if (!body) return;
   const q = (document.getElementById('search-documents')?.value || '').toLowerCase().trim();
   const rows = bizState.documentHistory.filter(item => {
+    if (!matchesFirmFilter(item)) return false;
     if (!q) return true;
     return [item.id, item.documentType, item.documentNumber, item.customerName, item.status]
       .some(v => String(v || '').toLowerCase().includes(q));
@@ -3822,20 +3924,27 @@ function applyTemplateToBuilder(templateId) {
     gstPct: Number(line.gstPct ?? item.gstPct ?? 0)
   }));
 
+  // A template without line items keeps the current rows (M12). The letterhead comes from the
+  // firm being worked as, so templates no longer change it.
   if (mode === 'quotation') {
-    qRows = rows;
-    renderRows('q');
+    if (rows.length) {
+      qRows = rows;
+      renderRows('q');
+    }
     if (item.notes) setInputValue('f-q-closing', item.notes);
   } else {
-    iRows = rows;
-    renderRows('i');
+    if (rows.length) {
+      iRows = rows;
+      renderRows('i');
+    }
     if (item.notes) setInputValue('f-inv-ref', item.notes);
   }
 
   if (item.paymentTerms) setInputValue('f-inv-terms', item.paymentTerms);
-  if (item.letterheadId) applyLetterheadToBuilder(item.letterheadId);
   switchView('builder');
-  showToast(`Template ${item.templateName} applied.`, 'success');
+  showToast(rows.length
+    ? `Template ${item.templateName} applied.`
+    : `Template ${item.templateName} has no line items; terms and notes applied, your items were kept.`, 'success');
 }
 
 // ── Customers: create / edit form ──
@@ -4033,11 +4142,13 @@ function toggleCustomerArchive(customerId) {
 }
 
 async function duplicateQuotationRecord(quotationId) {
+  const firmId = recordFirmId(bizState.quotations.find(item => item.id === quotationId));
   const duplicated = await withServerIds({ quotation: 1 }, () => quotationService.duplicateFromExisting(quotationId, {
     quotationDate: todayIsoDate(),
     status: 'Draft',
-    createdBy: 'Local User'
-  }));
+    createdBy: 'Local User',
+    firmId
+  }), firmId);
 
   if (!duplicated) {
     if (!serverIdUnavailable) showToast('Unable to duplicate quotation.', 'error');
@@ -4052,11 +4163,13 @@ async function duplicateQuotationRecord(quotationId) {
 }
 
 async function duplicateInvoiceRecord(invoiceId) {
+  const firmId = recordFirmId(bizState.invoices.find(item => item.id === invoiceId));
   const duplicated = await withServerIds({ invoice: 1 }, () => invoiceService.duplicateFromExisting(invoiceId, {
     invoiceDate: todayIsoDate(),
     status: 'Draft',
-    createdBy: 'Local User'
-  }));
+    createdBy: 'Local User',
+    firmId
+  }), firmId);
 
   if (!duplicated) {
     if (!serverIdUnavailable) showToast('Unable to duplicate invoice.', 'error');
@@ -4068,6 +4181,468 @@ async function duplicateInvoiceRecord(invoiceId) {
   saveBusinessState();
   renderBusinessViews();
   showToast(`Invoice ${duplicated.invoiceNumber} created from existing.`, 'success');
+}
+
+// ═════════════════════════════════════════════
+// FIRMS (one or more businesses; each has its own letterhead, bank details and number series)
+// ═════════════════════════════════════════════
+const UI_PREFS_KEY = 'avp_ui_prefs_v1';
+const FIRM_SEED_TIMESTAMP = '2000-01-01T00:00:00.000Z';
+const FIRM_LOGO_MAX_CHARS = 45000; // the logo is synced in one Sheet cell (limit 50,000)
+let activeFirmId = '';
+let firmFilter = 'all';
+let editingFirmId = null;
+let editingFirmLogo = '';
+
+function loadUiPrefs() {
+  try { return JSON.parse(localStorage.getItem(UI_PREFS_KEY) || '{}') || {}; } catch (e) { return {}; }
+}
+
+function saveUiPrefs() {
+  try { localStorage.setItem(UI_PREFS_KEY, JSON.stringify({ activeFirmId, firmFilter })); } catch (e) { /* ignore */ }
+}
+
+function firmsList() {
+  return active(bizState.firms).sort((a, b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0) || String(a.name).localeCompare(String(b.name)));
+}
+
+function getFirm(firmId) {
+  return active(bizState.firms).find(firm => firm.id === firmId) || null;
+}
+
+function getActiveFirm() {
+  return getFirm(activeFirmId);
+}
+
+// Records made before firms existed have no firmId: they belong to the legacy firm.
+function recordFirmId(record) {
+  return (record && record.firmId) || LEGACY_FIRM_ID;
+}
+
+function isLegacyFirm(firmId) {
+  return firmId === LEGACY_FIRM_ID;
+}
+
+function matchesFirmFilter(record) {
+  return firmFilter === 'all' || recordFirmId(record) === firmFilter;
+}
+
+function firmTag(record) {
+  if (firmsList().length < 2) return '';
+  const code = recordFirmId(record);
+  return String(record.id || '').startsWith(`${code}-`) ? '' : ` <span class="firm-tag">${escapeHtml(code)}</span>`;
+}
+
+// One-time: the letterhead and builder details used before firms existed become firm "AVP",
+// which also owns the older records. Old timestamp, so a firm edited on another device wins.
+function migrateLegacyFirm() {
+  if ((bizState.firms || []).length) return;
+  const letterhead = (bizState.letterheads || []).find(item => item.isDefault && !item.deleted) || (bizState.letterheads || [])[0];
+  const value = id => (document.getElementById(id)?.value || '').trim();
+  const name = (letterhead && letterhead.companyName) || value('f-company');
+  if (!name) return; // brand-new setup: the owner creates the first firm
+
+  const lines = letterhead ? letterheadAddressLines(letterhead) : { addr1: value('f-addr1'), addr2: value('f-addr2') };
+  const firm = {
+    id: LEGACY_FIRM_ID,
+    name,
+    tagline: (letterhead && letterhead.tagline) || value('f-tagline'),
+    gstin: (letterhead && letterhead.gstin) || value('f-gstin'),
+    addr1: lines.addr1 || value('f-addr1'),
+    addr2: lines.addr2 || value('f-addr2'),
+    phone: (letterhead && letterhead.phone) || value('f-cell'),
+    email: (letterhead && letterhead.email) || value('f-email'),
+    website: (letterhead && letterhead.website) || '',
+    bankAccountName: value('f-bank-aname'),
+    bankName: value('f-bank-bname'),
+    bankAccountNo: value('f-bank-ano'),
+    ifsc: value('f-bank-ifsc'),
+    contactName: value('f-q-cname'),
+    contactPhone: value('f-q-cphone'),
+    contactEmail: value('f-q-cmail'),
+    defaultTerms: value('f-inv-terms') || '30 Days',
+    quotationIntro: value('f-q-body'),
+    quotationClosing: value('f-q-closing'),
+    logo: '',
+    isDefault: true,
+    status: 'Active',
+    createdDate: FIRM_SEED_TIMESTAMP,
+    lastUpdated: FIRM_SEED_TIMESTAMP
+  };
+  bizState.firms = [firm];
+  stateService.saveState();
+
+  // Carry over the builder's logo, shrunk to fit the synced firm record.
+  const logo = document.getElementById('d-logo-img')?.getAttribute('src') || '';
+  if (logo) {
+    shrinkFirmLogo(logo).then(small => {
+      const current = getFirm(LEGACY_FIRM_ID);
+      if (small && current && !current.logo) {
+        current.logo = small;
+        stateService.saveState();
+        if (activeFirmId === LEGACY_FIRM_ID) applyFirmToBuilder(current, { newDocument: false });
+        renderFirmsView();
+      }
+    });
+  }
+}
+
+function initFirmSelection() {
+  const prefs = loadUiPrefs();
+  const firms = firmsList();
+  activeFirmId = (getFirm(prefs.activeFirmId) && prefs.activeFirmId) || (firms.find(f => f.isDefault) || firms[0] || {}).id || '';
+  firmFilter = prefs.firmFilter === 'all' || getFirm(prefs.firmFilter) ? (prefs.firmFilter || 'all') : 'all';
+  renderFirmPickers();
+}
+
+function renderFirmPickers() {
+  const firms = firmsList();
+  const activeSelect = document.getElementById('active-firm');
+  const filterSelect = document.getElementById('firm-filter');
+  if (activeSelect) {
+    activeSelect.innerHTML = firms.length
+      ? firms.map(f => `<option value="${escapeHtml(f.id)}">${escapeHtml(f.name)} (${escapeHtml(f.id)})</option>`).join('')
+      : '<option value="">No firm yet</option>';
+    activeSelect.value = activeFirmId;
+  }
+  if (filterSelect) {
+    filterSelect.innerHTML = ['<option value="all">All firms</option>']
+      .concat(firms.map(f => `<option value="${escapeHtml(f.id)}">${escapeHtml(f.name)}</option>`)).join('');
+    filterSelect.value = firmFilter;
+  }
+  const summary = document.getElementById('builder-firm-summary');
+  const firm = getActiveFirm();
+  // App branding shows the firm being worked as.
+  setText('brand-firm-name', firm ? firm.name.toUpperCase() : 'DOCUMENT MANAGER');
+  setText('header-firm-name', firm ? firm.name : 'Document Manager');
+  setText('topnav-firm-name', firm ? `${firm.name.toUpperCase()} — ` : '');
+  document.title = firm ? `${firm.name} - Document Manager` : 'Document Manager';
+  if (summary) {
+    summary.innerHTML = firm
+      ? `<strong>${escapeHtml(firm.name)}</strong> (${escapeHtml(firm.id)})${firm.gstin ? `<br>GSTIN ${escapeHtml(firm.gstin)}` : ''}<br><span class="muted-text">Change the firm at the top ("Working as").</span>`
+      : 'No firm yet. Create your firm in <strong>Firms</strong> first.';
+  }
+  renderCustomerPickers();
+}
+
+// Switches the firm new documents are created for. A document already open for another firm is
+// closed (the next save starts a new one), so its letterhead never changes under it.
+function setActiveFirm(firmId, { fromRecord = false } = {}) {
+  if (!getFirm(firmId) || firmId === activeFirmId) {
+    renderFirmPickers();
+    return;
+  }
+  activeFirmId = firmId;
+  saveUiPrefs();
+  if (!fromRecord) {
+    const openQuote = currentQuotationEditId && bizState.quotations.find(q => q.id === currentQuotationEditId);
+    const openInvoice = currentInvoiceEditId && bizState.invoices.find(i => i.id === currentInvoiceEditId);
+    if (openQuote && recordFirmId(openQuote) !== firmId) currentQuotationEditId = null;
+    if (openInvoice && recordFirmId(openInvoice) !== firmId) { currentInvoiceEditId = null; currentInvoiceSource = null; }
+  }
+  applyFirmToBuilder(getActiveFirm(), { newDocument: !fromRecord && !(currentQuotationEditId || currentInvoiceEditId) });
+  renderFirmPickers();
+  refreshBuilderRecordStatus();
+  queuePersist();
+  if (!fromRecord) showToast(`Working as ${getActiveFirm().name}.`, 'success');
+}
+
+// Fills the builder's letterhead, bank and signature from the firm. For a new document it also
+// fills the firm's contact person, default terms and quotation opening/closing text.
+function applyFirmToBuilder(firm, { newDocument = false } = {}) {
+  const set = (id, value) => setInputValue(id, value || '');
+  set('f-company', firm && firm.name);
+  set('f-tagline', firm && firm.tagline);
+  set('f-gstin', firm && firm.gstin);
+  set('f-addr1', firm && firm.addr1);
+  set('f-addr2', firm && firm.addr2);
+  set('f-cell', firm && firm.phone);
+  set('f-email', firm && firm.email);
+  set('f-bank-aname', firm && firm.bankAccountName);
+  set('f-bank-bname', firm && firm.bankName);
+  set('f-bank-ano', firm && firm.bankAccountNo);
+  set('f-bank-ifsc', firm && firm.ifsc);
+
+  const img = document.getElementById('d-logo-img');
+  const placeholder = document.querySelector('.lh-logo-placeholder');
+  if (img && placeholder) {
+    if (firm && firm.logo) {
+      img.src = firm.logo;
+      img.style.display = 'block';
+      placeholder.style.display = 'none';
+    } else {
+      img.removeAttribute('src');
+      img.style.display = 'none';
+      placeholder.style.display = firm ? 'flex' : 'none';
+    }
+  }
+  setText('d-logo-text', firm ? firm.name : '');
+
+  if (firm && newDocument) {
+    set('f-q-cname', firm.contactName);
+    set('f-q-cphone', firm.contactPhone);
+    set('f-q-cmail', firm.contactEmail);
+    set('f-q-body', firm.quotationIntro);
+    set('f-q-closing', firm.quotationClosing);
+    set('f-inv-terms', firm.defaultTerms);
+  }
+}
+
+// Shrinks a logo until it fits in one synced cell (~45,000 characters).
+function shrinkFirmLogo(dataUrl) {
+  return new Promise(resolve => {
+    if (!dataUrl) return resolve('');
+    const image = new Image();
+    image.onload = () => {
+      const sizes = [[360, 144], [300, 120], [240, 96], [180, 72], [140, 56]];
+      for (const [maxW, maxH] of sizes) {
+        const scale = Math.min(1, maxW / image.naturalWidth, maxH / image.naturalHeight);
+        const width = Math.max(1, Math.round(image.naturalWidth * scale));
+        const height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        const png = (ctx.drawImage(image, 0, 0, width, height), canvas.toDataURL('image/png'));
+        if (png.length <= FIRM_LOGO_MAX_CHARS) return resolve(png);
+        ctx.globalCompositeOperation = 'destination-over'; // JPEG has no transparency: use white
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+        for (const quality of [0.85, 0.7, 0.55]) {
+          const jpeg = canvas.toDataURL('image/jpeg', quality);
+          if (jpeg.length <= FIRM_LOGO_MAX_CHARS) return resolve(jpeg);
+        }
+      }
+      resolve('');
+    };
+    image.onerror = () => resolve('');
+    image.src = dataUrl;
+  });
+}
+
+// ── Firms screen ──
+function hydrateFirmForm(firm) {
+  const set = (id, value) => { const el = document.getElementById(id); if (el) el.value = value || ''; };
+  editingFirmId = firm ? firm.id : null;
+  editingFirmLogo = (firm && firm.logo) || '';
+  set('firm-code', firm && firm.id);
+  set('firm-name', firm && firm.name);
+  set('firm-tagline', firm && firm.tagline);
+  set('firm-gstin', firm && firm.gstin);
+  set('firm-addr1', firm && firm.addr1);
+  set('firm-addr2', firm && firm.addr2);
+  set('firm-phone', firm && firm.phone);
+  set('firm-email', firm && firm.email);
+  set('firm-bank-aname', firm && firm.bankAccountName);
+  set('firm-bank-bname', firm && firm.bankName);
+  set('firm-bank-ano', firm && firm.bankAccountNo);
+  set('firm-bank-ifsc', firm && firm.ifsc);
+  set('firm-contact-name', firm && firm.contactName);
+  set('firm-contact-phone', firm && firm.contactPhone);
+  set('firm-contact-email', firm && firm.contactEmail);
+  set('firm-terms', firm ? firm.defaultTerms : '30 Days');
+  set('firm-intro', firm && firm.quotationIntro);
+  set('firm-closing', firm && firm.quotationClosing);
+  const codeInput = document.getElementById('firm-code');
+  if (codeInput) codeInput.readOnly = !!firm;
+  const defaultBox = document.getElementById('firm-default');
+  if (defaultBox) defaultBox.checked = firm ? !!firm.isDefault : firmsList().length === 0;
+  const logoInput = document.getElementById('firm-logo');
+  if (logoInput) logoInput.value = '';
+  showFirmLogoPreview();
+  setText('firm-form-title', firm ? `Edit firm ${firm.name} (${firm.id})` : 'New firm');
+}
+
+function showFirmLogoPreview() {
+  const wrap = document.getElementById('firm-logo-preview');
+  const img = document.getElementById('firm-logo-img');
+  const remove = document.getElementById('btn-firm-logo-remove');
+  if (img) img.src = editingFirmLogo || '';
+  if (wrap) wrap.hidden = !editingFirmLogo;
+  if (remove) remove.hidden = !editingFirmLogo;
+}
+
+async function handleFirmLogoUpload(input) {
+  const file = input && input.files ? input.files[0] : null;
+  if (!file) return;
+  if (!file.type || !file.type.startsWith('image/')) {
+    showToast('Please select an image file.', 'error');
+    input.value = '';
+    return;
+  }
+  const dataUrl = await new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = () => resolve('');
+    reader.readAsDataURL(file);
+  });
+  const small = await shrinkFirmLogo(dataUrl);
+  if (!small) {
+    showToast('This image could not be used as a logo. Try a simpler or smaller image.', 'error');
+    input.value = '';
+    return;
+  }
+  editingFirmLogo = small;
+  showFirmLogoPreview();
+}
+
+function saveFirmEntry(event) {
+  if (event) event.preventDefault();
+  const value = id => (document.getElementById(id)?.value || '').trim();
+  const code = value('firm-code').toUpperCase();
+  const name = value('firm-name');
+  if (!editingFirmId) {
+    if (!/^[A-Z0-9]{2,5}$/.test(code)) {
+      showToast('Firm code must be 2 to 5 letters or digits (e.g. AVP).', 'error');
+      return;
+    }
+    if ((bizState.firms || []).some(firm => firm.id === code)) {
+      showToast(`Firm code ${code} is already used. Choose another code.`, 'error');
+      return;
+    }
+  }
+  if (!name) {
+    showToast('Firm name is required.', 'error');
+    return;
+  }
+
+  const now = businessNowIso();
+  const makeDefault = !!document.getElementById('firm-default')?.checked || firmsList().length === 0;
+  const fields = {
+    name,
+    tagline: value('firm-tagline'),
+    gstin: value('firm-gstin').toUpperCase(),
+    addr1: value('firm-addr1'),
+    addr2: value('firm-addr2'),
+    phone: value('firm-phone'),
+    email: value('firm-email'),
+    bankAccountName: value('firm-bank-aname'),
+    bankName: value('firm-bank-bname'),
+    bankAccountNo: value('firm-bank-ano'),
+    ifsc: value('firm-bank-ifsc').toUpperCase(),
+    contactName: value('firm-contact-name'),
+    contactPhone: value('firm-contact-phone'),
+    contactEmail: value('firm-contact-email'),
+    defaultTerms: value('firm-terms'),
+    quotationIntro: value('firm-intro'),
+    quotationClosing: value('firm-closing'),
+    logo: editingFirmLogo,
+    isDefault: makeDefault,
+    status: 'Active',
+    lastUpdated: now
+  };
+
+  if (!Array.isArray(bizState.firms)) bizState.firms = [];
+  if (makeDefault) {
+    bizState.firms.forEach(firm => {
+      if (firm.isDefault) { firm.isDefault = false; firm.lastUpdated = now; }
+    });
+  }
+  let firm;
+  if (editingFirmId) {
+    firm = bizState.firms.find(item => item.id === editingFirmId);
+    Object.assign(firm, fields);
+  } else {
+    firm = { id: code, createdDate: now, ...fields };
+    bizState.firms.push(firm);
+  }
+  saveBusinessState();
+
+  if (!activeFirmId || activeFirmId === firm.id) {
+    activeFirmId = firm.id;
+    saveUiPrefs();
+    applyFirmToBuilder(firm, { newDocument: !(currentQuotationEditId || currentInvoiceEditId) });
+  }
+  hydrateFirmForm(null);
+  renderBusinessViews();
+  showToast(`Firm ${firm.name} (${firm.id}) saved.`, 'success');
+}
+
+function setDefaultFirm(firmId) {
+  const now = businessNowIso();
+  (bizState.firms || []).forEach(firm => {
+    const isDefault = firm.id === firmId;
+    if (!!firm.isDefault !== isDefault) { firm.isDefault = isDefault; firm.lastUpdated = now; }
+  });
+  saveBusinessState();
+  renderBusinessViews();
+  showToast(`${getFirm(firmId).name} is now the default firm.`, 'success');
+}
+
+function deleteFirm(firmId) {
+  const firm = getFirm(firmId);
+  if (!firm) return;
+  const used = [bizState.quotations, bizState.invoices, bizState.payments]
+    .some(list => active(list).some(record => recordFirmId(record) === firmId));
+  if (used) {
+    showToast(`${firm.name} has quotations, invoices or payments, so it can't be deleted.`, 'error', 6000);
+    return;
+  }
+  if (firmsList().length === 1) {
+    showToast('You need at least one firm.', 'error');
+    return;
+  }
+  if (!confirm(`Delete firm ${firm.name} (${firm.id})? Its code can't be reused.`)) return;
+  Object.assign(firm, { deleted: true, status: 'Deleted', isDefault: false, lastUpdated: businessNowIso() });
+  if (!firmsList().some(item => item.isDefault)) firmsList()[0].isDefault = true;
+  if (activeFirmId === firmId) setActiveFirm(firmsList()[0].id);
+  if (firmFilter === firmId) firmFilter = 'all';
+  saveUiPrefs();
+  saveBusinessState();
+  renderBusinessViews();
+  showToast(`Firm ${firm.name} deleted.`, 'success');
+}
+
+function renderFirmsView() {
+  const body = document.getElementById('firms-tbody');
+  if (!body) return;
+  const firms = firmsList();
+  body.innerHTML = firms.map(firm => `
+    <tr>
+      <td><strong>${escapeHtml(firm.id)}</strong></td>
+      <td>${escapeHtml(firm.name)}${firm.id === activeFirmId ? ' <span class="firm-tag">working as</span>' : ''}</td>
+      <td>${escapeHtml(firm.gstin || '--')}</td>
+      <td>${escapeHtml(firm.phone || '--')}</td>
+      <td>${firm.isDefault ? 'Yes' : 'No'}</td>
+      <td class="row-actions">
+        <button class="btn btn-outline btn-sm" data-firm-action="edit" data-firm-id="${escapeHtml(firm.id)}">Edit</button>
+        ${firm.id === activeFirmId ? '' : `<button class="btn btn-outline btn-sm" data-firm-action="use" data-firm-id="${escapeHtml(firm.id)}">Work as</button>`}
+        ${firm.isDefault ? '' : `<button class="btn btn-outline btn-sm" data-firm-action="default" data-firm-id="${escapeHtml(firm.id)}">Set default</button>`}
+        <button class="btn btn-outline btn-sm btn-danger" data-firm-action="delete" data-firm-id="${escapeHtml(firm.id)}">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+  if (!firms.length) body.innerHTML = '<tr><td colspan="6">No firms yet. Fill in the form above to create your first firm.</td></tr>';
+}
+
+// ── Customer picker in the builder ──
+function renderCustomerPickers() {
+  const customers = active(bizState.customers).filter(c => c.status !== 'Archived')
+    .sort((a, b) => String(a.companyName || a.customerName).localeCompare(String(b.companyName || b.customerName)));
+  document.querySelectorAll('select[data-customer-picker]').forEach(select => {
+    select.innerHTML = ['<option value="">Select a saved customer...</option>']
+      .concat(customers.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.companyName || c.customerName)}${c.gstin ? ` (${escapeHtml(c.gstin)})` : ''}</option>`))
+      .join('');
+  });
+}
+
+function applyCustomerToBuilder(kind, customerId) {
+  const customer = active(bizState.customers).find(c => c.id === customerId);
+  if (!customer) return;
+  const name = customer.companyName || customer.customerName;
+  if (kind === 'quotation') {
+    setInputValue('f-q-to', name);
+    setInputValue('f-q-cgst', customer.gstin);
+  } else {
+    setInputValue('f-inv-bname', name);
+    setInputValue('f-inv-bgst', customer.gstin);
+    setInputValue('f-inv-baddr', customer.billingAddress);
+    setInputValue('f-inv-cname', name);
+    setInputValue('f-inv-cgst', customer.gstin);
+    setInputValue('f-inv-caddr', customer.shippingAddress || customer.billingAddress);
+    if (customer.state) setInputValue('f-inv-pos', customer.state);
+  }
+  showToast(`${name} filled in.`, 'success');
 }
 
 // ═════════════════════════════════════════════
@@ -4118,6 +4693,11 @@ function applyRemoteRegister(remote) {
     applyingRemoteState = false;
   }
   bizState = stateService.getState();
+
+  // Firms may have arrived or changed on another device.
+  const hadFirm = !!getActiveFirm();
+  if (!hadFirm) initFirmSelection();
+  if (getActiveFirm()) applyFirmToBuilder(getActiveFirm(), { newDocument: !hadFirm && !(currentQuotationEditId || currentInvoiceEditId) });
   renderBusinessViews();
 }
 
@@ -4218,7 +4798,7 @@ function refreshSyncChip(phase) {
 
 // Gets new record numbers from the server before creating records, so two devices never issue
 // the same number. Without cloud sync, numbers come from this device's counters as before.
-async function reserveServerIds(kinds) {
+async function reserveServerIds(kinds, firmId) {
   stateService.clearReservedIds();
   serverIdUnavailable = false;
   const wanted = {};
@@ -4226,7 +4806,7 @@ async function reserveServerIds(kinds) {
   if (!Object.keys(wanted).length || !googleIntegration.canCallApi()) return true;
 
   try {
-    stateService.reserveIds(await googleIntegration.allocateIds(wanted));
+    stateService.reserveIds(await googleIntegration.allocateIds(wanted, firmId || '', isLegacyFirm(firmId)));
     return true;
   } catch (error) {
     serverIdUnavailable = true;
@@ -4306,8 +4886,9 @@ function signOutDevice(removeData) {
   showToast('Signed out on this device.', 'success');
 }
 
-async function withServerIds(kinds, fn) {
-  if (!(await reserveServerIds(kinds))) return null;
+// Runs fn with server-issued numbers for `kinds`, in the given firm's series.
+async function withServerIds(kinds, fn, firmId) {
+  if (!(await reserveServerIds(kinds, firmId))) return null;
   try {
     return await fn();
   } finally {
@@ -4420,7 +5001,7 @@ async function handleGoogleInitializeWorkspace() {
     updateGoogleStatusUi({
       drive: 'Connected',
       sheets: 'Connected',
-      spreadsheetName: result?.register?.spreadsheetName || 'Arya Vysya Press - Business Register',
+      spreadsheetName: result?.register?.spreadsheetName || 'Business Register',
       driveRoot: result?.drive?.rootFolderId || cfg.driveRootId || '--',
       spreadsheetUrl: result?.register?.spreadsheetUrl || '',
       quotationsFolder: result?.drive?.quotationsFolderUrl || '',
@@ -4474,20 +5055,16 @@ function bindBusinessEvents() {
   const toBuilderInvoice = document.getElementById('btn-new-invoice');
   if (toBuilderQuote) {
     toBuilderQuote.addEventListener('click', () => {
-      currentQuotationEditId = null;
-      currentInvoiceEditId = null;
-      currentInvoiceSource = null;
       switchView('builder');
       setMode('quotation');
+      startBlankDocument('quotation');
     });
   }
   if (toBuilderInvoice) {
     toBuilderInvoice.addEventListener('click', () => {
-      currentQuotationEditId = null;
-      currentInvoiceEditId = null;
-      currentInvoiceSource = null;
       switchView('builder');
       setMode('invoice');
+      startBlankDocument('invoice');
     });
   }
 
@@ -4717,6 +5294,10 @@ function normalizeRow(row) {
     qty: Number((row && row.qty) || 0),
     gstPct: resolveGstPct(row && row.gstPct)
   };
+}
+
+function blankRow() {
+  return { id: nextRowId(), desc: '', hsn: '', price: 0, qty: 1, gstPct: 18 };
 }
 
 // Defaults to 18% only when the rate is missing; an explicit 0% (exempt) is kept.
@@ -4966,6 +5547,8 @@ function setMode(m, tabEl) {
 
   refreshBuilderRecordStatus();
 
+  updateQuotationMeta();
+
   // Only offer the save action that matches the active document.
   const saveQuotationBtn = document.getElementById('btn-save-quotation');
   const saveInvoiceBtn = document.getElementById('btn-save-invoice');
@@ -4984,6 +5567,11 @@ function sync(fromId, toId) {
   if (from && to) to.textContent = from.value;
   // The invoice signature line ("For <company>") follows the letterhead company name.
   if (from && toId === 'd-company') setText('d-sig-company', from.value);
+  // Comma between the two address lines only when both are filled in.
+  if (toId === 'd-addr1' || toId === 'd-addr2') {
+    const both = document.getElementById('f-addr1')?.value && document.getElementById('f-addr2')?.value;
+    setText('d-addr-sep', both ? ', ' : '');
+  }
   queuePersist();
 }
 
@@ -5055,20 +5643,10 @@ function resetToDefaults() {
     el.dispatchEvent(new Event('input', { bubbles: true }));
   });
 
-  const qSeed = [
-    { desc:'Foam Board (5mm) - 24/36', hsn:'', price:900, qty:5, gstPct:18 },
-    { desc:'Adhesive Tape -1 Inch', hsn:'4820', price:335, qty:4, gstPct:18 },
-    { desc:'Foam Board (5mm) - 12/18', hsn:'', price:230, qty:10, gstPct:18 },
-  ];
-  qSeed.forEach(s => qRows.push({ id: nextRowId(), ...s }));
-
-  const iSeed = [
-    { desc:'Tshirts (S,M,L)', hsn:'4820', price:600, qty:15, gstPct:18 },
-    { desc:'Tshirts (XL,XXL)', hsn:'4820', price:650, qty:2, gstPct:18 },
-    { desc:'Posters (4/6)', hsn:'', price:850, qty:2, gstPct:18 },
-    { desc:'Goodies', hsn:'', price:293.38, qty:18, gstPct:18 },
-  ];
-  iSeed.forEach(s => iRows.push({ id: nextRowId(), ...s }));
+  // Blank documents: one empty line each, and the active firm's details and defaults.
+  qRows = [blankRow()];
+  iRows = [blankRow()];
+  applyFirmToBuilder(getActiveFirm(), { newDocument: true });
 
   renderRows('q');
   renderRows('i');
@@ -5417,8 +5995,11 @@ function updateTotals(tbl) {
   }
 }
 
-function fmt(n) { return 'Rs ' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
-function fmtIN(n) { return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function fmt(n) { return 'Rs ' + fmtIN(n); }
+// Indian digit grouping: 12,34,567.00
+function fmtIN(n) {
+  return Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
 
 function escapeHtml(value) {
@@ -5572,11 +6153,16 @@ async function uploadRecordPdf(kind, recordId, { silent = false } = {}) {
   try {
     if (!silent) showToast(`Saving ${record.quotationNumber || record.invoiceNumber} PDF to Google Drive...`, 'success', 6000);
     const base64 = await renderActiveDocumentPdf();
+    const firm = getFirm(recordFirmId(record));
     const result = await googleIntegration.savePdf({
       kind,
       fileName: pdfFileName(kind, record),
       base64,
       fileId: record.driveFileId || '',
+      // Each firm's PDFs go to its own Drive folder (the legacy firm keeps the original one).
+      firmCode: recordFirmId(record),
+      firmName: firm ? firm.name : '',
+      legacyFirm: isLegacyFirm(recordFirmId(record)),
       year: String((record.quotationDate || record.invoiceDate || todayIsoDate()).slice(0, 4))
     });
     const update = { driveFileId: result.fileId, driveFileUrl: result.fileUrl, pdfSavedAt: result.savedAt, pdfPending: false };
@@ -5655,6 +6241,7 @@ function savePDF(options) {
     const isQuote = activeContent.id === 'd-quotation';
     const docLabel = isQuote ? 'Quotation' : 'Invoice';
     const pageSpec = `${settings.paper} ${settings.orientation}`;
+    const exportTitle = `${document.getElementById('f-company')?.value || 'Document'} - ${docLabel}`;
 
     const exportSheet = buildExportSheet();
 
@@ -5668,7 +6255,7 @@ function savePDF(options) {
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Arya Vysya Press - ${docLabel}</title>
+  <title>${escapeHtml(exportTitle)}</title>
   ${stylesheetLinks}
   ${styleTags}
   <style>
@@ -5766,7 +6353,7 @@ function savePDF(options) {
 </head>
 <body${bodyClass}>
   <div class="no-print">
-    <span>Arya Vysya Press - ${docLabel} | Review once and click Save as PDF</span>
+    <span>${escapeHtml(exportTitle)} | Review once and click Save as PDF</span>
     <span class="no-print-actions">
       <button id="print-btn" type="button">Save as PDF (Ctrl+P)</button>
       <button id="close-btn" type="button">Close</button>
@@ -5880,15 +6467,6 @@ function savePDF(options) {
   installEditableGuards();
 
   loadBusinessState();
-  letterheadService.ensureDefault({
-    companyName: document.getElementById('f-company')?.value || 'Arya Vysya Press',
-    tagline: document.getElementById('f-tagline')?.value || 'Quality Printers & Binders',
-    gstin: document.getElementById('f-gstin')?.value || '',
-    addr1: document.getElementById('f-addr1')?.value || '',
-    addr2: document.getElementById('f-addr2')?.value || '',
-    phone: document.getElementById('f-cell')?.value || '',
-    email: document.getElementById('f-email')?.value || ''
-  });
   templateService.ensureSeedTemplates();
   bizState = stateService.getState();
   activeLetterheadId = (bizState.letterheads || []).find(item => item.isDefault)?.id
@@ -5906,6 +6484,45 @@ function savePDF(options) {
   stateService.onSave = () => scheduleCloudSync();
   document.addEventListener('visibilitychange', syncOnReturn);
   window.addEventListener('focus', syncOnReturn);
+  // Firms: switcher, filter, Firms screen, builder shortcut, customer pickers.
+  document.getElementById('active-firm')?.addEventListener('change', e => setActiveFirm(e.target.value));
+  document.getElementById('firm-filter')?.addEventListener('change', e => {
+    firmFilter = e.target.value || 'all';
+    saveUiPrefs();
+    renderBusinessViews();
+  });
+  document.getElementById('firm-entry-form')?.addEventListener('submit', saveFirmEntry);
+  document.getElementById('btn-firm-reset')?.addEventListener('click', () => hydrateFirmForm(null));
+  document.getElementById('firm-logo')?.addEventListener('change', e => handleFirmLogoUpload(e.target));
+  document.getElementById('btn-firm-logo-remove')?.addEventListener('click', () => {
+    editingFirmLogo = '';
+    const input = document.getElementById('firm-logo');
+    if (input) input.value = '';
+    showFirmLogoPreview();
+  });
+  document.getElementById('firms-tbody')?.addEventListener('click', e => {
+    const button = e.target.closest('button[data-firm-action]');
+    if (!button) return;
+    const firmId = button.dataset.firmId;
+    if (button.dataset.firmAction === 'edit') {
+      hydrateFirmForm(getFirm(firmId));
+      document.getElementById('firm-name')?.focus();
+    }
+    if (button.dataset.firmAction === 'use') setActiveFirm(firmId);
+    if (button.dataset.firmAction === 'default') setDefaultFirm(firmId);
+    if (button.dataset.firmAction === 'delete') deleteFirm(firmId);
+  });
+  document.getElementById('btn-builder-edit-firm')?.addEventListener('click', () => {
+    switchView('firms');
+    hydrateFirmForm(getActiveFirm());
+  });
+  document.querySelectorAll('select[data-customer-picker]').forEach(select => {
+    select.addEventListener('change', () => {
+      if (select.value) applyCustomerToBuilder(select.dataset.customerPicker, select.value);
+      select.value = '';
+    });
+  });
+
   document.getElementById('builder-record-status')?.addEventListener('click', e => {
     const button = e.target.closest('[data-start-new]');
     if (button) startNewDocument(button.dataset.startNew);
@@ -5940,22 +6557,22 @@ function savePDF(options) {
   if (invDateEl && !invDateEl.value) invDateEl.value = today;
 
   if (!restored) {
-    // Seed quotation rows
-    const qSeed = [
-      { desc:'Foam Board (5mm) - 24/36', hsn:'', price:900, qty:5, gstPct:18 },
-      { desc:'Adhesive Tape -1 Inch', hsn:'4820', price:335, qty:4, gstPct:18 },
-      { desc:'Foam Board (5mm) - 12/18', hsn:'', price:230, qty:10, gstPct:18 },
-    ];
-    qSeed.forEach(s => { const r = { id: nextRowId(), ...s }; qRows.push(r); });
+    // New device: blank documents with one empty line each.
+    qRows = [blankRow()];
+    iRows = [blankRow()];
+  }
 
-    // Seed invoice rows
-    const iSeed = [
-      { desc:'Tshirts (S,M,L)', hsn:'4820', price:600, qty:15, gstPct:18 },
-      { desc:'Tshirts (XL,XXL)', hsn:'4820', price:650, qty:2, gstPct:18 },
-      { desc:'Posters (4/6)', hsn:'', price:850, qty:2, gstPct:18 },
-      { desc:'Goodies', hsn:'', price:293.38, qty:18, gstPct:18 },
-    ];
-    iSeed.forEach(s => { const r = { id: nextRowId(), ...s }; iRows.push(r); });
+  // Firms: adopt the pre-firm letterhead as the first firm, choose the active firm, fill the builder.
+  migrateLegacyFirm();
+  initFirmSelection();
+  applyFirmToBuilder(getActiveFirm(), { newDocument: !restored });
+  hydrateFirmForm(null);
+  if (!firmsList().length) {
+    // First use (and nothing synced yet): set up the first firm.
+    switchView('firms');
+    showToast(googleIntegration.canCallApi()
+      ? 'Checking Google Sheets for your firms... If none appear, create your firm here.'
+      : 'Welcome! Create your firm here to get started (or sign in to load your firms).', 'success', 8000);
   }
 
   renderRows('q');

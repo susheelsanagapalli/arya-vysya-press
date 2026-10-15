@@ -42,7 +42,7 @@ export class InvoiceService {
     const state = this.getState();
     const gstEnabled = input.gstEnabled !== false;
     const totals = this.computeTotals(input.items || [], gstEnabled);
-    const id = this.nextId('invoice');
+    const id = this.nextId('invoice', input.firmId);
     const invoiceDate = input.invoiceDate || toIsoDate();
 
     const invoice = {
@@ -56,6 +56,8 @@ export class InvoiceService {
       invoiceDate,
       dueDate: input.dueDate || plusDays(invoiceDate, 30),
       letterheadId: input.letterheadId || 'LH-DEFAULT',
+      firmId: input.firmId || '',
+      form: input.form || null,
       subtotal: totals.subtotal,
       gst: totals.gst,
       grandTotal: totals.total,
@@ -115,6 +117,8 @@ export class InvoiceService {
       status: patch.status || 'Draft',
       sourceDocumentId: source.id,
       createdBy: patch.createdBy || source.createdBy,
+      firmId: patch.firmId || source.firmId || '',
+      form: source.form ? { ...source.form } : null,
       items: (source.items || []).map(item => ({ ...item }))
     });
   }

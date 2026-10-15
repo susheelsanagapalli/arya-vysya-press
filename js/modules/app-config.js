@@ -29,8 +29,13 @@ export const SYNC_COLLECTIONS = [
   'payments',
   'documentHistory',
   'letterheads',
-  'templates'
+  'templates',
+  'firms'
 ];
+
+// Records created before firms existed have no firmId; they belong to this firm, which also
+// continues their unprefixed numbers (INV-00003 -> AVP-INV-00004).
+export const LEGACY_FIRM_ID = 'AVP';
 
 export const REQUIRED_SHEETS = [
   'Customers',

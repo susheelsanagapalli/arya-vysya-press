@@ -154,9 +154,9 @@ export class GoogleIntegrationService {
     return response.data || {};
   }
 
-  // Server-issued record numbers, e.g. { invoice: 1 } -> { invoice: ['INV-00012'] }.
-  async allocateIds(kinds) {
-    const response = await this.sheets.allocateIds(kinds || {});
+  // Server-issued record numbers for a firm, e.g. ({ invoice: 1 }, 'AVP') -> { invoice: ['AVP-INV-00012'] }.
+  async allocateIds(kinds, firm, legacyFirm) {
+    const response = await this.sheets.allocateIds(kinds || {}, firm || '', !!legacyFirm);
     return response.data || {};
   }
 }

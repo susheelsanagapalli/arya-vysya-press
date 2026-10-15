@@ -31,6 +31,12 @@ On a shared computer, untick **Remember on this device**, or use **Settings > Si
 - Each tab keeps readable columns plus a hidden **Record JSON** column holding the complete record (line items included). Don't edit the Record JSON column by hand.
 - Deleted records are kept with `deleted: true` and Status "Deleted" so the deletion reaches every device. Invoices are cancelled, never deleted.
 
+## Firms and numbering
+- The **Firms** tab holds each business (name, GSTIN, address, bank details, contact, default texts; the logo is in its own column).
+- Quotation, invoice and payment numbers are issued per firm: `<CODE>-QUO-00001`, `<CODE>-INV-00001`, `<CODE>-PAY-00001`. Customers are shared (`CUS-00001`).
+- Records created before firms existed (unprefixed, e.g. `INV-00003`) belong to firm `AVP`, whose series continues that count (`AVP-INV-00004`).
+- Each firm's PDFs go to a top-level Drive folder named after the firm; `AVP` keeps the original `Arya Vysya Press` folder.
+
 ## PDFs in Google Drive
 - **Save** / **Export & Save** renders the quotation or invoice to PDF in the browser (an exact copy of the preview) and uploads it (`savePdf`) to `Arya Vysya Press/Quotations/<year>/` or `Invoices/<year>/`, named `<number> - <customer>.pdf`.
 - Saving the same record again updates the same Drive file (same link; Drive keeps earlier versions). Without the Drive API the old file is trashed and a new one created.

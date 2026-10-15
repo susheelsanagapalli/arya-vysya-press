@@ -26,8 +26,8 @@ export class GoogleSheetsService {
     return this.postFn('syncAll', collections);
   }
 
-  // kinds: { invoice: 1, customer: 1 } -> data: { invoice: ['INV-00012'], customer: ['CUS-00004'] }
-  async allocateIds(kinds) {
-    return this.postFn('allocateIds', { kinds });
+  // kinds: { invoice: 1, customer: 1 }, firm 'AVP' -> data: { invoice: ['AVP-INV-00012'], customer: ['CUS-00004'] }
+  async allocateIds(kinds, firm, legacyFirm) {
+    return this.postFn('allocateIds', { kinds, firm, legacyFirm });
   }
 }

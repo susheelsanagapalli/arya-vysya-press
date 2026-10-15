@@ -20,7 +20,8 @@ export class PaymentService {
   record(input) {
     const state = this.getState();
     const payment = {
-      id: this.nextId('payment'),
+      id: this.nextId('payment', input.firmId),
+      firmId: input.firmId || '',
       invoiceId: input.invoiceId,
       invoiceNumber: input.invoiceNumber,
       quotationId: input.quotationId || '',

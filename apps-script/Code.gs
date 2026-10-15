@@ -60,6 +60,18 @@ const TAB_COLUMNS = {
     ['Default', 'isDefault', r => (r.isDefault ? 'Yes' : 'No'), v => v === 'Yes' || v === true],
     ['Status', 'status', r => r.status || 'Active']
   ],
+  Firms: [
+    ['Firm Code', 'id'], ['Firm Name', 'name'], ['Tagline', 'tagline'], ['GSTIN', 'gstin'],
+    ['Address Line 1', 'addr1'], ['Address Line 2', 'addr2'], ['Phone', 'phone'], ['Email', 'email'],
+    ['Website', 'website'], ['Bank Account Name', 'bankAccountName'], ['Bank Name & Branch', 'bankName'],
+    ['Bank Account No', 'bankAccountNo'], ['IFSC', 'ifsc'], ['Contact Person', 'contactName'],
+    ['Contact Phone', 'contactPhone'], ['Contact Email', 'contactEmail'], ['Default Terms', 'defaultTerms'],
+    ['Quotation Opening Text', 'quotationIntro'], ['Quotation Closing Text', 'quotationClosing'],
+    ['Default', 'isDefault', r => (r.isDefault ? 'Yes' : 'No'), v => v === 'Yes' || v === true],
+    ['Created Date', 'createdDate'], ['Last Updated', 'lastUpdated'], ['Status', 'status', r => r.status || 'Active'],
+    // The logo is kept in its own cell (not in Record JSON) to stay under the 50,000-character cell limit.
+    ['Logo', 'logo']
+  ],
   Templates: [
     ['Template ID', 'id'], ['Template Name', 'templateName'], ['GST %', 'gstPct'], ['Payment Terms', 'paymentTerms'],
     ['Notes', 'notes'], ['Letterhead ID', 'letterheadId'],
@@ -70,6 +82,9 @@ const TAB_COLUMNS = {
 
 const RECORD_JSON_HEADER = 'Record JSON';
 
+// Large fields stored only in their own column, not inside Record JSON (cell limit 50,000 chars).
+const JSON_EXCLUDED_FIELDS = { Firms: ['logo'] };
+
 // App collection name -> sheet tab.
 const COLLECTION_TABS = {
   customers: 'Customers',
@@ -78,7 +93,8 @@ const COLLECTION_TABS = {
   payments: 'Payments',
   documentHistory: 'Document Register',
   letterheads: 'Letterheads',
-  templates: 'Templates'
+  templates: 'Templates',
+  firms: 'Firms'
 };
 
 // Server-issued record numbers.
@@ -151,7 +167,7 @@ function doPost(e) {
         });
         break;
       case 'allocateIds':
-        data = withLock(() => allocateIds(payload.kinds || {}));
+        data = withLock(() => allocateIds(payload.kinds || {}, payload.firm || '', payload.legacyFirm === true));
         break;
       case 'savePdf':
         data = savePdf(payload);
@@ -347,26 +363,36 @@ function upsertCollections(payload) {
   return result;
 }
 
-// payload.kinds: { invoice: 1, customer: 1 } -> { invoice: ['INV-00012'], customer: ['CUS-00004'] }
-function allocateIds(kinds) {
+// kinds: { invoice: 1, customer: 1 }, firm: 'AVP' -> { invoice: ['AVP-INV-00012'], customer: ['CUS-00004'] }
+// Quotations, invoices and payments are numbered per firm; customers are shared (CUS-...).
+// legacyFirm: this firm also owns the older unprefixed numbers (INV-00003), so its count continues them.
+function allocateIds(kinds, firm, legacyFirm) {
   const spreadsheet = getRegister(true);
   const props = PropertiesService.getScriptProperties();
+  const firmCode = String(firm || '').toUpperCase();
+  if (firmCode && !/^[A-Z0-9]{1,6}$/.test(firmCode)) throw new Error('Invalid firm code: ' + firm);
   const out = {};
 
   Object.keys(kinds).forEach(kind => {
     const prefix = ID_PREFIXES[kind];
     const count = Math.min(Math.max(Number(kinds[kind]) || 0, 0), 20);
     if (!prefix || !count) return;
-    let current = bumpCounterToSheetMax(spreadsheet, kind);
+    const code = kind === 'customer' ? '' : firmCode;
+    const base = code ? code + '-' + prefix : prefix;
+    let current = bumpCounterToSheetMax(spreadsheet, kind, code, legacyFirm);
     out[kind] = [];
     for (let i = 0; i < count; i += 1) {
       current += 1;
-      out[kind].push(prefix + '-' + String(current).padStart(5, '0'));
+      out[kind].push(base + '-' + String(current).padStart(5, '0'));
     }
-    props.setProperty(PROP_COUNTER_PREFIX + kind, String(current));
+    props.setProperty(counterKey(kind, code), String(current));
   });
 
   return out;
+}
+
+function counterKey(kind, firmCode) {
+  return PROP_COUNTER_PREFIX + (firmCode ? firmCode + '_' : '') + kind;
 }
 
 // Saves a quotation/invoice PDF to Drive: <root>/Quotations|Invoices/<year>/<fileName>.
@@ -392,7 +418,8 @@ function savePdf(payload) {
   }
 
   const year = String(payload.year || new Date().getFullYear());
-  const folder = getOrCreateChild(getOrCreateChild(getDriveRoot(), kindFolder), year);
+  const firmRoot = payload.firmCode ? getFirmRoot(payload.firmCode, payload.firmName, payload.legacyFirm === true) : getDriveRoot();
+  const folder = getOrCreateChild(getOrCreateChild(firmRoot, kindFolder), year);
   const file = folder.createFile(blob);
   return pdfResult(file.getId());
 }
@@ -414,6 +441,28 @@ function getDriveRoot() {
   const iter = DriveApp.getFoldersByName('Arya Vysya Press');
   const root = iter.hasNext() ? iter.next() : DriveApp.createFolder('Arya Vysya Press');
   props.setProperty(PROP_DRIVE_ROOT_ID, root.getId());
+  return root;
+}
+
+// Each firm has its own top-level Drive folder named after the firm (e.g. "Srujans Gifting").
+// The legacy firm keeps the original "Arya Vysya Press" root folder.
+function getFirmRoot(firmCode, firmName, legacyFirm) {
+  const code = String(firmCode).toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const props = PropertiesService.getScriptProperties();
+  const key = 'AVP_FIRM_ROOT_' + code;
+  const storedId = props.getProperty(key);
+  if (storedId) {
+    try { return DriveApp.getFolderById(storedId); } catch (error) { /* recreate below */ }
+  }
+  let root;
+  if (legacyFirm) {
+    root = getDriveRoot();
+  } else {
+    const name = String(firmName || code).replace(/[\\/:*?"<>|]+/g, '-').trim() || code;
+    const iter = DriveApp.getFoldersByName(name);
+    root = iter.hasNext() ? iter.next() : DriveApp.createFolder(name);
+  }
+  props.setProperty(key, root.getId());
   return root;
 }
 
@@ -473,13 +522,23 @@ function rowFromRecord(tab, record) {
     const value = col[2] ? col[2](record) : record[col[1]];
     return value === undefined || value === null ? '' : value;
   });
-  cells.push(JSON.stringify(record));
+  const excluded = JSON_EXCLUDED_FIELDS[tab] || [];
+  const forJson = {};
+  Object.keys(record).forEach(key => { if (excluded.indexOf(key) < 0) forJson[key] = record[key]; });
+  cells.push(JSON.stringify(forJson));
   return cells;
 }
 
 function recordFromRow(tab, headers, row, jsonIdx) {
   const parsed = safeJsonParse(row[jsonIdx], null);
-  if (parsed && typeof parsed === 'object') return parsed;
+  if (parsed && typeof parsed === 'object') {
+    // Put back the fields kept in their own columns.
+    (JSON_EXCLUDED_FIELDS[tab] || []).forEach(field => {
+      const idx = TAB_COLUMNS[tab].findIndex(col => col[1] === field);
+      if (idx >= 0 && row[idx] !== '') parsed[field] = row[idx];
+    });
+    return parsed;
+  }
 
   // Rows written before the Record JSON column existed: rebuild from the readable columns.
   const record = {};
@@ -509,20 +568,29 @@ function stampOf(record) {
   return String((record && (record.lastUpdated || record.createdDate)) || '');
 }
 
-// Raises the stored counter for a kind to the highest number already in its tab; returns it.
-function bumpCounterToSheetMax(spreadsheet, kind) {
+// Raises the stored counter for a kind (and firm) to the highest number already in its tab; returns it.
+// For the legacy firm, the older unprefixed numbers (INV-00003) count too, so its series continues.
+function bumpCounterToSheetMax(spreadsheet, kind, firmCode, legacyFirm) {
   const props = PropertiesService.getScriptProperties();
   const prefix = ID_PREFIXES[kind];
-  let max = Number(props.getProperty(PROP_COUNTER_PREFIX + kind) || 0);
+  const code = firmCode || '';
+  let max = Number(props.getProperty(counterKey(kind, code)) || 0);
+  if (code && legacyFirm) max = Math.max(max, Number(props.getProperty(counterKey(kind, '')) || 0));
+
+  const patterns = [];
+  if (code) patterns.push(new RegExp('^' + code + '-' + prefix + '-(\\d+)$'));
+  if (!code || legacyFirm) patterns.push(new RegExp('^' + prefix + '-(\\d+)$'));
+
   const sheet = spreadsheet.getSheetByName(ID_TABS[kind]);
   if (sheet && sheet.getLastRow() > 1) {
-    const pattern = new RegExp('^' + prefix + '-(\\d+)$');
     sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues().forEach(r => {
-      const m = pattern.exec(String(r[0]));
-      if (m) max = Math.max(max, Number(m[1]));
+      patterns.forEach(pattern => {
+        const m = pattern.exec(String(r[0]));
+        if (m) max = Math.max(max, Number(m[1]));
+      });
     });
   }
-  props.setProperty(PROP_COUNTER_PREFIX + kind, String(max));
+  props.setProperty(counterKey(kind, code), String(max));
   return max;
 }
 

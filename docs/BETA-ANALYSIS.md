@@ -105,6 +105,29 @@ Fixes go to `beta-enhanced` only, in small commits, highest severity first.
 | 3 | Editing and presentation | M3, M4, M8, M10, M11, M12, L5, L8 |
 | Needs a decision | Backend auth and redeploy (H2), server-issued IDs and invoice numbering (H6), storage namespacing and data migration (H11), state refactor (M5), Drive uploads (M6), sync locking (M7), other Low items | |
 
+### 5.0 Batch 3 requirements (added 2026-10-15)
+
+**R1. No pre-filled client or sample data.** Today `index.html` ships with a sample client (Pernod Ricard India: name, GSTIN, consignee/buyer addresses, reference and order numbers), sample line items (Foam Board, Tshirts, Goodies...) and fixed quotation subject/body/closing text. Every new quotation or invoice must start blank, with placeholders (e.g. "Customer name") instead of real data. Picking an existing customer fills in their details.
+
+**R2. Multiple firms.** "Letterhead" becomes a full **Firm** profile: name, logo, tagline, GSTIN, address, phone, email, bank details (account name, bank and branch, account number, IFSC), contact person, default terms and closing text, and a short **firm code** used for numbering.
+- A **firm switcher** at the top chooses the firm you are working as; the builder uses that firm's letterhead, bank details and contact.
+- Every quotation, invoice and payment is tagged with its firm.
+
+**R3. No firm details in the code.** Arya Vysya Press details (letterhead, GSTIN, address, phone, email, bank account, IFSC, contact person) are removed from `index.html`. Firms are created once in the app and sync to all devices.
+
+Decisions (answered by the owner):
+
+| # | Question | Decision |
+| --- | --- | --- |
+| 1 | Numbering | **Each firm has its own quotation and invoice series** (e.g. `AVP-INV-00001`, `SRG-INV-00001`), issued by the server. This also settles H6 |
+| 2 | Registers and dashboard | **All firms together, with a firm filter** |
+| 3 | Customers | **Shared across firms** |
+| 4 | Google Drive | **Separate folder per firm**, e.g. `Arya Vysya Press/Invoices/2026`, `Srujans Gifting/Invoices/2026` |
+| 5 | Login | **One business password for all firms** |
+| 6 | Existing data | **Assigned to Arya Vysya Press as the first firm** |
+
+Remaining Batch 3 items: M4 (editing overwrites quotation fields), M10 (number and date on quotation PDFs), M12 (empty seed templates), L8 (Indian digit grouping).
+
 ### 5.1 Status
 
 | Item | Status |
@@ -118,6 +141,15 @@ Fixes go to `beta-enhanced` only, in small commits, highest severity first.
 | M6 | **Fixed**: Save uploads the PDF to Google Drive (exact copy of the preview), re-saving updates the same file, and View file opens it from every register |
 | Create / edit / delete (new) | **Done**: customer form (replaces pop-ups, fixes L2), delete for customers/quotations/payments/letterheads/templates, payment edit, quotation status, invoice Cancel / Undo Cancel; deletions sync to all devices |
 | M13 | **Partly fixed**: invoice paid amount is always derived from its payments (edits/deletes can't drift); overpayment is still not recorded as credit |
+| R1 | **Done** (Batch 3): new documents start blank with placeholders; "Pick customer" fills client details |
+| R2 | **Done** (Batch 3): Firms (profile, logo, bank, contact, default texts), "Working as" switcher, "Show" firm filter on registers/dashboard, per-firm number series, per-firm Drive folders, shared customers |
+| R3 | **Done** (Batch 3): no firm or sample-client details in the code; the existing letterhead and records became firm AVP |
+| H6 | **Fixed** (Batch 3): invoice numbers come from the firm's series (AVP continues the old count: INV-00003 -> AVP-INV-00004); the number field is read-only |
+| M4 | **Fixed** (Batch 3): quotations and invoices keep their own fields; editing restores them exactly |
+| M10 | **Fixed** (Batch 3): quotation number and date shown on the quotation |
+| M12 | **Fixed** (Batch 3): an empty template keeps the current line items |
+| L8 | **Fixed** (Batch 3): Indian digit grouping (12,34,567.00) |
+| L5 | **Fixed**: signature follows the firm name |
 | Cross-device sync (new) | **Done**: the Google Sheet is the shared copy; two-way `syncAll` on start, after every save and on return to the app; full records kept in a hidden Record JSON column |
 | H1 | **Fixed**: requests sent as `text/plain` (no CORS preflight) |
 | H2 | **Fixed**: API key required on every request (Script Properties); spreadsheet ID fixed on the server |
