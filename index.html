@@ -1573,7 +1573,6 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
   <div class="topnav-brand">ARYA VYSYA PRESS &mdash; <span>Document Builder</span></div>
   <div class="topnav-actions">
     <button class="btn btn-outline btn-sm" id="btn-open-drive-root">Open Drive Root</button>
-    <button class="btn btn-gold btn-sm" id="btn-export-save-top">Export &amp; Save</button>
     <button class="btn btn-outline btn-sm" id="btn-save-quotation">Save Quotation</button>
     <button class="btn btn-outline btn-sm" id="btn-save-invoice">Save Invoice</button>
     <button class="btn btn-outline btn-sm" id="btn-reset-top">Reset</button>
@@ -1765,7 +1764,6 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
   <div class="preview-panel">
     <div class="preview-controls">
       <span class="preview-label">Live document preview - click any text to edit inline</span>
-      <button class="btn btn-outline btn-sm" id="btn-export-save-preview">Export &amp; Save</button>
       <button class="btn btn-gold btn-sm" data-export-btn="true" id="btn-export-preview" aria-label="Export and save from preview">Export &amp; Save</button>
     </div>
 
@@ -1787,7 +1785,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
             </div>
           </div>
           <div class="lh-address">
-            <strong># <span id="d-addr1" contenteditable="true">26-4-10, Krishnamurthy Road,</span> Near Gymkhana Club, <span id="d-addr2" contenteditable="true">VIJAYAWADA - 520 003.</span></strong><br>
+            <strong><span id="d-addr1" contenteditable="true"># 26-4-10, Krishnamurthy Road, Near Gymkhana Club</span>, <span id="d-addr2" contenteditable="true">VIJAYAWADA - 520 003.</span></strong><br>
             CELL: <span id="d-cell" contenteditable="true">9515858993</span>, EMAIL: <span id="d-email" contenteditable="true">aryavysya1942@gmail.com</span>
           </div>
           <hr class="lh-divider">
@@ -1824,6 +1822,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
                   <th style="width:80px">UnitPrice</th>
                   <th style="width:48px">Qty</th>
                   <th style="width:72px">Sub Total</th>
+                  <th style="width:50px" class="gst-only">GST %</th>
                   <th style="width:60px" id="q-gst-head" class="gst-only">Gst</th>
                   <th style="width:72px">Total</th>
                   <th style="width:24px"></th>
@@ -1907,6 +1906,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
                   <th style="width:80px">Unit Price</th>
                   <th style="width:54px">Qty</th>
                   <th style="width:72px">Sub Total</th>
+                  <th style="width:50px" class="gst-only">GST %</th>
                   <th style="width:60px" id="i-gst-head" class="gst-only">GST</th>
                   <th style="width:72px">Total</th>
                   <th style="width:24px"></th>
@@ -1918,6 +1918,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
                   <td colspan="4" class="bold" style="border:1px solid #bbb;padding:7px 8px;">Total</td>
                   <td class="bold" style="border:1px solid #bbb;padding:7px 8px;"></td>
                   <td class="bold right" style="border:1px solid #bbb;padding:7px 8px;" id="i-subtotal-total"></td>
+                  <td class="gst-only" style="border:1px solid #bbb;"></td>
                   <td class="bold right gst-only" style="border:1px solid #bbb;padding:7px 8px;" id="i-gst-total"></td>
                   <td class="bold right" style="border:1px solid #bbb;padding:7px 8px;" id="i-grand-total"></td>
                   <td style="border:1px solid #bbb;"></td>
@@ -1949,7 +1950,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
             <div class="inv-bank-right">
               <div class="inv-sig">
                 <br><br>
-                <strong>For Arya Vysya Press</strong>
+                <strong>For <span id="d-sig-company">Arya Vysya Press</span></strong>
                 Authorized Signatory
               </div>
             </div>
@@ -2000,7 +2001,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 
     <label class="modal-check" for="export-auto-print">
       <input type="checkbox" id="export-auto-print" checked>
-      Auto open print dialog after export window opens
+      Open the print dialog straight away (untick to see a full-screen preview first)
     </label>
 
     <div class="modal-actions">
@@ -2166,8 +2167,21 @@ function businessNowIso() {
   return new Date().toISOString();
 }
 
+// Local calendar date as YYYY-MM-DD (toISOString would give the UTC date,
+// which is the previous day between 00:00 and 05:29 IST).
+function toLocalIsoDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function parseLocalIsoDate(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ''));
+  if (match) return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  const d = new Date(value);
+  return isNaN(d) ? null : d;
+}
+
 function todayIsoDate() {
-  return new Date().toISOString().slice(0, 10);
+  return toLocalIsoDate(new Date());
 }
 
 function isGstEnabled() {
@@ -2179,6 +2193,8 @@ function applyGstMode() {
   document.body.classList.toggle('gst-disabled', !gstEnabled);
   setText('q-grand-label', gstEnabled ? 'Grand Total (Including GST):' : 'Grand Total (Without GST):');
   setText('d-inv-title', gstEnabled ? 'TAX INVOICE' : 'INVOICE');
+  const invoiceTab = document.querySelector('.tab[data-mode="invoice"]');
+  if (invoiceTab) invoiceTab.textContent = gstEnabled ? 'Tax Invoice' : 'Invoice';
 }
 
 function formatDateForTable(value) {
@@ -2189,10 +2205,10 @@ function formatDateForTable(value) {
 }
 
 function getDatePlusDays(dateStr, days) {
-  const d = new Date(dateStr);
-  if (isNaN(d)) return todayIsoDate();
+  const d = parseLocalIsoDate(dateStr);
+  if (!d) return todayIsoDate();
   d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+  return toLocalIsoDate(d);
 }
 
 function parseCurrency(value) {
@@ -2484,7 +2500,7 @@ function loadQuotationIntoInvoiceBuilder(quotationId, forceDuplicate) {
     hsn: item.hsn,
     price: Number(item.price || 0),
     qty: Number(item.qty || 0),
-    gstPct: Number(item.gstPct || 18)
+    gstPct: resolveGstPct(item.gstPct)
   }));
   setInputValue('f-gst-enabled', quote.gstApplicable === false ? 'false' : 'true');
   applyGstMode();
@@ -2527,7 +2543,7 @@ function loadQuotationIntoQuotationBuilder(quotationId) {
     hsn: item.hsn,
     price: Number(item.price || 0),
     qty: Number(item.qty || 1),
-    gstPct: Number(item.gstPct || 18)
+    gstPct: resolveGstPct(item.gstPct)
   }));
 
   setInputValue('f-gst-enabled', quote.gstApplicable === false ? 'false' : 'true');
@@ -2573,7 +2589,7 @@ function loadInvoiceIntoBuilder(invoiceId) {
     hsn: item.hsn,
     price: Number(item.price || 0),
     qty: Number(item.qty || 1),
-    gstPct: Number(item.gstPct || 18)
+    gstPct: resolveGstPct(item.gstPct)
   }));
 
   setInputValue('f-gst-enabled', invoice.gstApplicable === false ? 'false' : 'true');
@@ -3138,14 +3154,21 @@ function renderDocumentHistoryView() {
   if (!rows.length) body.innerHTML = '<tr><td colspan="8">No documents found.</td></tr>';
 }
 
+// Letterhead address lines. Newer letterheads store addr1/addr2 directly; older ones only have a
+// combined address, which is split at the last comma (line 2 is usually the city and pin code).
+function letterheadAddressLines(item) {
+  if (item && (item.addr1 || item.addr2)) return { addr1: item.addr1 || '', addr2: item.addr2 || '' };
+  return splitAddressLines(item?.address || '');
+}
+
 function splitAddressLines(address) {
   const clean = String(address || '').trim();
   if (!clean) return { addr1: '', addr2: '' };
-  const parts = clean.split(',').map(part => part.trim()).filter(Boolean);
-  if (parts.length <= 1) return { addr1: clean, addr2: '' };
+  const lastComma = clean.lastIndexOf(',');
+  if (lastComma < 0) return { addr1: clean, addr2: '' };
   return {
-    addr1: parts[0],
-    addr2: parts.slice(1).join(', ')
+    addr1: clean.slice(0, lastComma).trim(),
+    addr2: clean.slice(lastComma + 1).trim()
   };
 }
 
@@ -3158,6 +3181,8 @@ function collectLetterheadFormValue() {
     tagline: (document.getElementById('lh-tagline')?.value || '').trim(),
     gstin: (document.getElementById('lh-gstin')?.value || '').trim(),
     address: [addr1, addr2].filter(Boolean).join(', '),
+    addr1,
+    addr2,
     phone: (document.getElementById('lh-phone')?.value || '').trim(),
     email: (document.getElementById('lh-email')?.value || '').trim(),
     website: (document.getElementById('lh-website')?.value || '').trim(),
@@ -3169,7 +3194,7 @@ function collectLetterheadFormValue() {
 }
 
 function hydrateLetterheadForm(item) {
-  const address = splitAddressLines(item?.address || '');
+  const address = letterheadAddressLines(item);
   const set = (id, value) => {
     const el = document.getElementById(id);
     if (el) el.value = value || '';
@@ -3213,7 +3238,7 @@ function applyLetterheadToBuilder(letterheadId) {
     return;
   }
 
-  const address = splitAddressLines(item.address || '');
+  const address = letterheadAddressLines(item);
   activeLetterheadId = item.id;
   setInputValue('f-company', item.companyName || '');
   setInputValue('f-tagline', item.tagline || '');
@@ -4019,8 +4044,15 @@ function normalizeRow(row) {
     hsn: String((row && row.hsn) || ''),
     price: Number((row && row.price) || 0),
     qty: Number((row && row.qty) || 0),
-    gstPct: Number((row && row.gstPct) || 18)
+    gstPct: resolveGstPct(row && row.gstPct)
   };
+}
+
+// Defaults to 18% only when the rate is missing; an explicit 0% (exempt) is kept.
+function resolveGstPct(value) {
+  if (value === undefined || value === null || value === '') return 18;
+  const pct = Number(value);
+  return Number.isFinite(pct) ? pct : 18;
 }
 
 function queuePersist() {
@@ -4105,6 +4137,11 @@ function installEditableGuards() {
       insertPlainTextAtCursor(text);
     });
 
+    // Fields are plain single-block text; Enter would insert <div>/<br> markup that gets flattened.
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter') e.preventDefault();
+    });
+
     el.addEventListener('input', () => {
       sanitizeEditable(el);
       queuePersist();
@@ -4135,8 +4172,11 @@ function insertPlainTextAtCursor(text) {
 
 function sanitizeEditable(el) {
   if (!el) return;
-  const plain = (el.textContent || '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
-  if (el.childElementCount > 0 || el.innerHTML !== plain) {
+  const text = el.textContent || '';
+  const plain = text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+  // Only rewrite when markup or control characters crept in. Comparing innerHTML with the text
+  // would also fire for '&', '<', '>' (escaped in innerHTML) and reset the cursor on every keystroke.
+  if (el.childElementCount > 0 || plain !== text) {
     el.textContent = plain;
   }
 }
@@ -4227,6 +4267,12 @@ function setMode(m, tabEl) {
     document.getElementById('d-invoice').classList.add('visible');
   }
 
+  // Only offer the save action that matches the active document.
+  const saveQuotationBtn = document.getElementById('btn-save-quotation');
+  const saveInvoiceBtn = document.getElementById('btn-save-invoice');
+  if (saveQuotationBtn) saveQuotationBtn.hidden = m !== 'quotation';
+  if (saveInvoiceBtn) saveInvoiceBtn.hidden = m === 'quotation';
+
   queuePersist();
 }
 
@@ -4237,6 +4283,8 @@ function sync(fromId, toId) {
   const from = document.getElementById(fromId);
   const to = document.getElementById(toId);
   if (from && to) to.textContent = from.value;
+  // The invoice signature line ("For <company>") follows the letterhead company name.
+  if (from && toId === 'd-company') setText('d-sig-company', from.value);
   queuePersist();
 }
 
@@ -4244,8 +4292,8 @@ function syncDate(fromId, toId) {
   const from = document.getElementById(fromId);
   const to = document.getElementById(toId);
   if (!from || !to) return;
-  const d = new Date(from.value);
-  if (!isNaN(d)) to.textContent = d.toLocaleDateString('en-IN', { day:'2-digit', month:'2-digit', year:'numeric' }).replace(/\//g, '/');
+  const d = parseLocalIsoDate(from.value);
+  if (d) to.textContent = d.toLocaleDateString('en-IN', { day:'2-digit', month:'2-digit', year:'numeric' });
   queuePersist();
 }
 
@@ -4396,13 +4444,6 @@ function bindStaticEvents() {
     });
   }
 
-  const exportSaveTop = document.getElementById('btn-export-save-top');
-  if (exportSaveTop) {
-    exportSaveTop.addEventListener('click', () => {
-      exportAndSaveActiveDocument();
-    });
-  }
-
   const openDriveRootBtn = document.getElementById('btn-open-drive-root');
   if (openDriveRootBtn) {
     openDriveRootBtn.addEventListener('click', () => {
@@ -4410,12 +4451,6 @@ function bindStaticEvents() {
     });
   }
 
-  const exportSavePreview = document.getElementById('btn-export-save-preview');
-  if (exportSavePreview) {
-    exportSavePreview.addEventListener('click', () => {
-      exportAndSaveActiveDocument();
-    });
-  }
 
   document.querySelectorAll('[data-add-row]').forEach(btn => {
     btn.addEventListener('click', () => addRow(btn.dataset.addRow));
@@ -4595,8 +4630,8 @@ function renderRows(tbl) {
   const rows = tbl === 'q' ? qRows : iRows;
   const tbody = document.getElementById(tbl + '-tbody');
   const labels = tbl === 'q'
-    ? ['S.No', 'Description', 'HSN', 'Unit Price', 'Qty', 'Sub Total', 'GST', 'Total', 'Action']
-    : ['S.No', 'Item Description', 'HSN', 'Unit Price', 'Qty', 'Sub Total', 'GST', 'Total', 'Action'];
+    ? ['S.No', 'Description', 'HSN', 'Unit Price', 'Qty', 'Sub Total', 'GST %', 'GST', 'Total', 'Action']
+    : ['S.No', 'Item Description', 'HSN', 'Unit Price', 'Qty', 'Sub Total', 'GST %', 'GST', 'Total', 'Action'];
   tbody.innerHTML = '';
   rows.forEach((row, idx) => {
     const sub = row.price * row.qty;
@@ -4611,9 +4646,10 @@ function renderRows(tbl) {
       <td data-label="${labels[3]}"><input type="number" value="${row.price || ''}" placeholder="0.00" step="0.01" style="width:70px;" data-row-id="${row.id}" data-field="price" aria-label="Unit price row ${idx + 1}"></td>
       <td data-label="${labels[4]}"><input type="number" value="${row.qty}" placeholder="1" step="0.01" style="width:42px;" data-row-id="${row.id}" data-field="qty" aria-label="Quantity row ${idx + 1}"></td>
       <td class="right" data-label="${labels[5]}" id="${tbl}-row-${row.id}-sub">${fmt(sub)}</td>
-      <td class="right gst-only" data-label="${labels[6]}" id="${tbl}-row-${row.id}-gst">${fmt(gst)}</td>
-      <td class="right bold" data-label="${labels[7]}" id="${tbl}-row-${row.id}-total">${fmt(total)}</td>
-      <td data-label="${labels[8]}"><button class="rm-btn" type="button" data-row-id="${row.id}" aria-label="Remove row ${idx + 1}">x</button></td>
+      <td class="gst-only" data-label="${labels[6]}"><input type="number" value="${resolveGstPct(row.gstPct)}" min="0" step="0.01" style="width:44px;" data-row-id="${row.id}" data-field="gstPct" aria-label="GST percent row ${idx + 1}"></td>
+      <td class="right gst-only" data-label="${labels[7]}" id="${tbl}-row-${row.id}-gst">${fmt(gst)}</td>
+      <td class="right bold" data-label="${labels[8]}" id="${tbl}-row-${row.id}-total">${fmt(total)}</td>
+      <td data-label="${labels[9]}"><button class="rm-btn" type="button" data-row-id="${row.id}" aria-label="Remove row ${idx + 1}">x</button></td>
     `;
     tbody.appendChild(tr);
   });
@@ -4731,9 +4767,16 @@ function savePDF(options) {
     exportSheet.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
     exportSheet.querySelectorAll('td input').forEach(inp => {
       const span = document.createElement('span');
-      span.textContent = inp.value;
+      span.textContent = inp.dataset.field === 'gstPct' ? `${inp.value}%` : inp.value;
       inp.replaceWith(span);
     });
+    // The last column of the items table only holds the remove buttons; drop it from the PDF.
+    exportSheet.querySelectorAll('.items-tbl tr').forEach(tr => {
+      if (tr.lastElementChild) tr.lastElementChild.remove();
+    });
+
+    // Non-GST mode hides GST columns/GSTINs via a class on <body>; the export document needs it too.
+    const bodyClass = document.body.classList.contains('gst-disabled') ? ' class="gst-disabled"' : '';
 
     const styleTags = Array.from(document.querySelectorAll('style')).map(tag => tag.outerHTML).join('\n');
     const stylesheetLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map(link => link.outerHTML).join('\n');
@@ -4823,6 +4866,8 @@ function savePDF(options) {
       top: 0;
       z-index: 10;
     }
+    .no-print .no-print-actions { display: flex; gap: 8px; }
+    .no-print #close-btn { background: transparent; color: white; border: 1px solid #777; }
     .no-print button {
       background: #F5A800;
       border: none;
@@ -4836,10 +4881,13 @@ function savePDF(options) {
     }
   </style>
 </head>
-<body>
+<body${bodyClass}>
   <div class="no-print">
     <span>Arya Vysya Press - ${docLabel} | Review once and click Save as PDF</span>
-    <button id="print-btn" type="button">Save as PDF (Ctrl+P)</button>
+    <span class="no-print-actions">
+      <button id="print-btn" type="button">Save as PDF (Ctrl+P)</button>
+      <button id="close-btn" type="button">Close</button>
+    </span>
   </div>
 
   <div class="export-wrap">
@@ -4847,15 +4895,19 @@ function savePDF(options) {
   </div>
 
   <script>
+    // Printing is started by the parent page only (auto-print), so this document never prints by itself.
     const printButton = document.getElementById('print-btn');
     if (printButton) {
       printButton.addEventListener('click', function() {
         window.print();
       });
     }
-    window.onload = function() {
-      ${settings.autoPrint ? 'setTimeout(function(){ window.print(); }, 500);' : ''}
-    };
+    const closeButton = document.getElementById('close-btn');
+    if (closeButton) {
+      closeButton.addEventListener('click', function() {
+        if (window.frameElement) window.frameElement.remove();
+      });
+    }
   <\/script>
 </body>
 </html>`;
@@ -4866,12 +4918,23 @@ function savePDF(options) {
     const frame = document.createElement('iframe');
     frame.id = 'pdf-print-frame';
     frame.style.position = 'fixed';
-    frame.style.right = '0';
-    frame.style.bottom = '0';
-    frame.style.width = '0';
-    frame.style.height = '0';
     frame.style.border = '0';
-    frame.setAttribute('aria-hidden', 'true');
+    if (settings.autoPrint) {
+      // Hidden frame; the print dialog is opened from frame.onload below.
+      frame.style.right = '0';
+      frame.style.bottom = '0';
+      frame.style.width = '0';
+      frame.style.height = '0';
+      frame.setAttribute('aria-hidden', 'true');
+    } else {
+      // No auto-print: show the export as a full-screen preview with its own Save as PDF / Close buttons.
+      frame.style.inset = '0';
+      frame.style.width = '100%';
+      frame.style.height = '100%';
+      frame.style.zIndex = '1300';
+      frame.style.background = '#f0f0f0';
+      frame.title = `${docLabel} preview`;
+    }
     document.body.appendChild(frame);
 
     const cleanupFrame = () => {
@@ -4892,9 +4955,13 @@ function savePDF(options) {
         return;
       }
 
-      showToast('PDF export is ready. Use the print dialog to save.', 'success');
+      if (!settings.autoPrint) {
+        setExportSpinner(false);
+        showToast('Preview opened. Click "Save as PDF" to save, or Close to return.', 'success');
+        return;
+      }
 
-      if (!settings.autoPrint) return;
+      showToast('PDF export is ready. Use the print dialog to save.', 'success');
 
       printWindow.onafterprint = cleanupFrame;
       setTimeout(() => {
@@ -4960,7 +5027,7 @@ function savePDF(options) {
   const restored = restoreAppState();
 
   // Set today's date
-  const today = new Date().toISOString().split('T')[0];
+  const today = todayIsoDate();
   const invDateEl = document.getElementById('f-inv-date');
   if (invDateEl && !invDateEl.value) invDateEl.value = today;
 

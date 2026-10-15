@@ -105,6 +105,17 @@ Fixes go to `beta-enhanced` only, in small commits, highest severity first.
 | 3 | Editing and presentation | M3, M4, M8, M10, M11, M12, L5, L8 |
 | Needs a decision | Backend auth and redeploy (H2), server-issued IDs and invoice numbering (H6), storage namespacing and data migration (H11), state refactor (M5), Drive uploads (M6), sync locking (M7), other Low items | |
 
+### 5.1 Status
+
+| Item | Status |
+| --- | --- |
+| H7, H8, H10, M1, M2, L13 | **Fixed** (Batch 1) |
+| M3 (letterhead address), M8 (cursor jump), M11 (per-line GST %), L5 (signature) | **Fixed** (UI round, pulled forward from Batch 3) |
+| H5 | **Partly fixed**: duplicate Export buttons removed and all export buttons disabled while exporting; repeated exports still create new records |
+| Everything else | Open |
+
+UI changes made in the same round: Save button follows the active tab; invoice tab reads "Invoice" for Non-GST bills; export dialog explains the preview option.
+
 ## 6. Running Locally
 
 ```powershell
