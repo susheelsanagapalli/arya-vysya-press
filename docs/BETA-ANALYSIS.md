@@ -112,6 +112,13 @@ Fixes go to `beta-enhanced` only, in small commits, highest severity first.
 | H7, H8, H10, M1, M2, L13 | **Fixed** (Batch 1) |
 | M3 (letterhead address), M8 (cursor jump), M11 (per-line GST %), L5 (signature) | **Fixed** (UI round, pulled forward from Batch 3) |
 | H5 | **Partly fixed**: duplicate Export buttons removed and all export buttons disabled while exporting; repeated exports still create new records |
+| Cross-device sync (new) | **Done**: the Google Sheet is the shared copy; two-way `syncAll` on start, after every save and on return to the app; full records kept in a hidden Record JSON column |
+| H1 | **Fixed**: requests sent as `text/plain` (no CORS preflight) |
+| H2 | **Fixed**: API key required on every request (Script Properties); spreadsheet ID fixed on the server |
+| H3 | **Mitigated**: nothing is sent to Google until an API key is entered on the device |
+| H6 | **Partly fixed**: quotation, invoice, payment and customer numbers are issued by the server, so devices can't clash; typed invoice numbers are still replaced |
+| H9 | **Fixed**: builder Reset no longer erases the Document Register |
+| M7 | **Fixed**: writes run under a script lock in one request |
 | Everything else | Open |
 
 UI changes made in the same round: Save button follows the active tab; invoice tab reads "Invoice" for Non-GST bills; export dialog explains the preview option.

@@ -1,86 +1,157 @@
-const SHEET_HEADERS = {
+// Arya Vysya Press - Business Register backend (Google Apps Script web app).
+//
+// The Google Sheet is the shared copy of the business register; every device syncs with it.
+// Every request must carry the API key stored in Script Properties (run setupApiKey once).
+
+// Column layout per tab: [header, record field, optional toCell(record), optional fromCell(value)].
+// The last column of every tab is 'Record JSON', which holds the full record so it round-trips exactly.
+const TAB_COLUMNS = {
   Customers: [
-    'Customer ID','Customer Name','Company Name','Contact Person','Phone','Email','Billing Address','Shipping Address',
-    'GSTIN','PAN','State','State Code','Pincode','Customer Type','Notes','Drive Folder ID','Created Date','Last Updated','Status'
+    ['Customer ID', 'id'], ['Customer Name', 'customerName'], ['Company Name', 'companyName'],
+    ['Contact Person', 'contactPerson'], ['Phone', 'phone'], ['Email', 'email'],
+    ['Billing Address', 'billingAddress'], ['Shipping Address', 'shippingAddress'], ['GSTIN', 'gstin'],
+    ['PAN', 'pan'], ['State', 'state'], ['State Code', 'stateCode'], ['Pincode', 'pincode'],
+    ['Customer Type', 'customerType'], ['Notes', 'notes'], ['Drive Folder ID', 'driveFolderId'],
+    ['Created Date', 'createdDate'], ['Last Updated', 'lastUpdated'], ['Status', 'status']
   ],
   Quotations: [
-    'Quotation ID','Quotation Number','Customer ID','Customer Name','Company Name','Quotation Date','Valid Until','Letterhead ID',
-    'Subtotal','GST','Grand Total','Currency','Payment Terms','Notes','Status','Source Document ID','Created Date','Last Updated',
-    'Drive File ID','Drive File URL','Created By','Converted Invoice ID','Tax Mode'
+    ['Quotation ID', 'id'], ['Quotation Number', 'quotationNumber'], ['Customer ID', 'customerId'],
+    ['Customer Name', 'customerName'], ['Company Name', 'companyName'], ['Quotation Date', 'quotationDate'],
+    ['Valid Until', 'validUntil'], ['Letterhead ID', 'letterheadId'], ['Subtotal', 'subtotal'], ['GST', 'gst'],
+    ['Grand Total', 'grandTotal'], ['Currency', 'currency'], ['Payment Terms', 'paymentTerms'], ['Notes', 'notes'],
+    ['Status', 'status'], ['Source Document ID', 'sourceDocumentId'], ['Created Date', 'createdDate'],
+    ['Last Updated', 'lastUpdated'], ['Drive File ID', 'driveFileId'], ['Drive File URL', 'driveFileUrl'],
+    ['Created By', 'createdBy'], ['Converted Invoice ID', 'convertedInvoiceId'],
+    ['Tax Mode', 'taxMode', r => r.taxMode || (r.gstApplicable === false ? 'NON_GST' : 'GST')]
   ],
   Invoices: [
-    'Invoice ID','Invoice Number','Quotation ID','Quotation Number','Customer ID','Customer Name','Company Name','Invoice Date','Due Date',
-    'Letterhead ID','Subtotal','GST','Grand Total','Amount Paid','Balance Due','Payment Status','Payment Terms','Notes','Status',
-    'Source Document ID','Created Date','Last Updated','Drive File ID','Drive File URL','Created By','Tax Mode'
+    ['Invoice ID', 'id'], ['Invoice Number', 'invoiceNumber'], ['Quotation ID', 'quotationId'],
+    ['Quotation Number', 'quotationNumber'], ['Customer ID', 'customerId'], ['Customer Name', 'customerName'],
+    ['Company Name', 'companyName'], ['Invoice Date', 'invoiceDate'], ['Due Date', 'dueDate'],
+    ['Letterhead ID', 'letterheadId'], ['Subtotal', 'subtotal'], ['GST', 'gst'], ['Grand Total', 'grandTotal'],
+    ['Amount Paid', 'amountPaid'], ['Balance Due', 'balanceDue'], ['Payment Status', 'paymentStatus'],
+    ['Payment Terms', 'paymentTerms'], ['Notes', 'notes'], ['Status', 'status'],
+    ['Source Document ID', 'sourceDocumentId'], ['Created Date', 'createdDate'], ['Last Updated', 'lastUpdated'],
+    ['Drive File ID', 'driveFileId'], ['Drive File URL', 'driveFileUrl'], ['Created By', 'createdBy'],
+    ['Tax Mode', 'taxMode', r => r.taxMode || (r.gstApplicable === false ? 'NON_GST' : 'GST')]
   ],
   Payments: [
-    'Payment ID','Invoice ID','Invoice Number','Quotation ID','Customer ID','Customer Name','Payment Date','Amount Received',
-    'Payment Mode','Credited To','Transferred To','Transaction Reference','Bank / Account','Payment Details','Notes','Recorded By','Created Date'
+    ['Payment ID', 'id'], ['Invoice ID', 'invoiceId'], ['Invoice Number', 'invoiceNumber'],
+    ['Quotation ID', 'quotationId'], ['Customer ID', 'customerId'], ['Customer Name', 'customerName'],
+    ['Payment Date', 'paymentDate'], ['Amount Received', 'amountReceived'], ['Payment Mode', 'paymentMode'],
+    ['Credited To', 'creditedTo'], ['Transferred To', 'transferredTo'],
+    ['Transaction Reference', 'transactionReference'], ['Bank / Account', 'bankAccount'],
+    ['Payment Details', 'paymentDetails'], ['Notes', 'notes'], ['Recorded By', 'recordedBy'],
+    ['Created Date', 'createdDate']
   ],
   'Document Register': [
-    'Document ID','Document Type','Document Number','Customer ID','Customer Name','Document Date','Amount','Status','Drive File ID','Drive URL',
-    'Source Quotation ID','Source Invoice ID','Created Date','Last Updated'
+    ['Document ID', 'id'], ['Document Type', 'documentType'], ['Document Number', 'documentNumber'],
+    ['Customer ID', 'customerId'], ['Customer Name', 'customerName'], ['Document Date', 'documentDate'],
+    ['Amount', 'amount'], ['Status', 'status'], ['Drive File ID', 'driveFileId'], ['Drive URL', 'driveFileUrl'],
+    ['Source Quotation ID', 'sourceQuotationId'], ['Source Invoice ID', 'sourceInvoiceId'],
+    ['Created Date', 'createdDate'], ['Last Updated', 'lastUpdated']
   ],
   Letterheads: [
-    'Letterhead ID','Letterhead Name','Company Name','Tagline','GSTIN','Address','Phone','Email','Website','Footer','Terms','Brand Style',
-    'Logo Drive File ID','Logo Drive URL','Created Date','Last Updated','Default','Status'
+    ['Letterhead ID', 'id'], ['Letterhead Name', 'letterheadName'], ['Company Name', 'companyName'],
+    ['Tagline', 'tagline'], ['GSTIN', 'gstin'], ['Address', 'address'], ['Phone', 'phone'], ['Email', 'email'],
+    ['Website', 'website'], ['Footer', 'footer'], ['Terms', 'terms'], ['Brand Style', 'brandStyle'],
+    ['Logo Drive File ID', 'logoDriveFileId'], ['Logo Drive URL', 'logoDriveUrl'], ['Created Date', 'createdDate'],
+    ['Last Updated', 'lastUpdated'],
+    ['Default', 'isDefault', r => (r.isDefault ? 'Yes' : 'No'), v => v === 'Yes' || v === true],
+    ['Status', 'status', r => r.status || 'Active']
   ],
   Templates: [
-    'Template ID','Template Name','GST %','Payment Terms','Notes','Letterhead ID','Line Items JSON','Created Date','Last Updated','Status'
-  ],
-  Settings: ['Key','Value','Updated Date']
+    ['Template ID', 'id'], ['Template Name', 'templateName'], ['GST %', 'gstPct'], ['Payment Terms', 'paymentTerms'],
+    ['Notes', 'notes'], ['Letterhead ID', 'letterheadId'],
+    ['Line Items JSON', 'lineItems', r => JSON.stringify(r.lineItems || []), v => safeJsonParse(v, [])],
+    ['Created Date', 'createdDate'], ['Last Updated', 'lastUpdated'], ['Status', 'status', r => r.status || 'Active']
+  ]
 };
 
-const DRIVE_STRUCTURE = {
-  Customers: [],
-  Quotations: [],
-  Invoices: [],
-  Letterheads: [],
-  Logos: [],
-  Templates: []
+const RECORD_JSON_HEADER = 'Record JSON';
+
+// App collection name -> sheet tab.
+const COLLECTION_TABS = {
+  customers: 'Customers',
+  quotations: 'Quotations',
+  invoices: 'Invoices',
+  payments: 'Payments',
+  documentHistory: 'Document Register',
+  letterheads: 'Letterheads',
+  templates: 'Templates'
 };
 
-const DRIVE_ROOT_PROPERTY_KEY = 'AVP_DRIVE_ROOT_FOLDER_ID';
+// Server-issued record numbers.
+const ID_PREFIXES = { customer: 'CUS', quotation: 'QUO', invoice: 'INV', payment: 'PAY' };
+const ID_TABS = { customer: 'Customers', quotation: 'Quotations', invoice: 'Invoices', payment: 'Payments' };
 
+const SETTINGS_HEADERS = ['Key', 'Value', 'Updated Date'];
+
+const DRIVE_FOLDERS = ['Customers', 'Quotations', 'Invoices', 'Letterheads', 'Logos', 'Templates'];
+
+const PROP_API_KEY = 'AVP_API_KEY';
+const PROP_SPREADSHEET_ID = 'AVP_SPREADSHEET_ID';
+const PROP_DRIVE_ROOT_ID = 'AVP_DRIVE_ROOT_FOLDER_ID';
+const PROP_COUNTER_PREFIX = 'AVP_COUNTER_';
+const REGISTER_TITLE = 'Arya Vysya Press - Business Register';
+
+// ---------------------------------------------------------------------------
+// One-time setup: run from the Apps Script editor (select setupApiKey, click Run).
+// ---------------------------------------------------------------------------
+function setupApiKey() {
+  const props = PropertiesService.getScriptProperties();
+  let key = props.getProperty(PROP_API_KEY);
+  if (key) {
+    Logger.log('An API key already exists (run rotateApiKey to replace it). Your API key is: ' + key);
+    return key;
+  }
+  key = 'avp_' + Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '').slice(0, 8);
+  props.setProperty(PROP_API_KEY, key);
+  Logger.log('Your API key is: ' + key);
+  Logger.log('Enter it in the app under Settings > API key on every device.');
+  return key;
+}
+
+// Replaces the API key. Every device must then be updated with the new key.
+function rotateApiKey() {
+  PropertiesService.getScriptProperties().deleteProperty(PROP_API_KEY);
+  return setupApiKey();
+}
+
+// ---------------------------------------------------------------------------
+// Web app entry point
+// ---------------------------------------------------------------------------
 function doPost(e) {
   try {
     const req = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    requireApiKey(req.apiKey);
+
     const action = req.action;
     const payload = req.payload || {};
     const config = req.config || {};
-
-    let data = {};
+    let data;
 
     switch (action) {
       case 'health':
-        data = health(config);
+        data = health();
         break;
       case 'initializeBusinessRegister':
-        data = initializeBusinessRegister(payload, config);
+        data = initializeBusinessRegister(config);
         break;
       case 'initializeDriveStructure':
         data = initializeDriveStructure(payload, config);
         break;
-      case 'upsertCustomers':
-        data = upsertRows('Customers', payload.customers || [], 'Customer ID', config);
+      case 'pullAll':
+        data = pullAll();
         break;
-      case 'upsertQuotations':
-        data = upsertRows('Quotations', payload.quotations || [], 'Quotation ID', config);
+      case 'syncAll':
+        data = withLock(() => {
+          const result = upsertCollections(payload);
+          return { result: result, records: pullAll() };
+        });
         break;
-      case 'upsertInvoices':
-        data = upsertRows('Invoices', payload.invoices || [], 'Invoice ID', config);
-        break;
-      case 'upsertPayments':
-        data = upsertRows('Payments', payload.payments || [], 'Payment ID', config);
-        break;
-      case 'upsertDocumentHistory':
-        data = upsertRows('Document Register', payload.documentHistory || [], 'Document ID', config);
-        break;
-      case 'upsertLetterheads':
-        data = upsertRows('Letterheads', payload.letterheads || [], 'Letterhead ID', config);
-        break;
-      case 'upsertTemplates':
-        data = upsertRows('Templates', payload.templates || [], 'Template ID', config);
+      case 'allocateIds':
+        data = withLock(() => allocateIds(payload.kinds || {}));
         break;
       default:
         throw new Error('Unsupported action: ' + action);
@@ -92,47 +163,69 @@ function doPost(e) {
   }
 }
 
-function health(config) {
-  const spreadsheet = resolveSpreadsheet(config.spreadsheetId);
-  const properties = PropertiesService.getScriptProperties();
-  const configuredRootId = config.driveRootId || properties.getProperty(DRIVE_ROOT_PROPERTY_KEY) || '';
-  let driveRoot = null;
+function requireApiKey(provided) {
+  const expected = PropertiesService.getScriptProperties().getProperty(PROP_API_KEY);
+  if (!expected) throw new Error('Server has no API key yet. Run setupApiKey in the Apps Script editor.');
+  if (!provided || String(provided) !== expected) throw new Error('Invalid API key. Check Settings > API key.');
+}
+
+function withLock(fn) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    return fn();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Actions
+// ---------------------------------------------------------------------------
+function health() {
+  const spreadsheet = getRegister(false);
+  const props = PropertiesService.getScriptProperties();
+  const rootId = props.getProperty(PROP_DRIVE_ROOT_ID) || '';
+  let driveRootUrl = '';
   let quotationsFolderUrl = '';
   let invoicesFolderUrl = '';
 
-  if (configuredRootId) {
+  if (rootId) {
     try {
-      driveRoot = DriveApp.getFolderById(configuredRootId);
-      const quotationsIter = driveRoot.getFoldersByName('Quotations');
-      if (quotationsIter.hasNext()) quotationsFolderUrl = quotationsIter.next().getUrl();
-      const invoicesIter = driveRoot.getFoldersByName('Invoices');
-      if (invoicesIter.hasNext()) invoicesFolderUrl = invoicesIter.next().getUrl();
+      const root = DriveApp.getFolderById(rootId);
+      driveRootUrl = root.getUrl();
+      const q = root.getFoldersByName('Quotations');
+      if (q.hasNext()) quotationsFolderUrl = q.next().getUrl();
+      const i = root.getFoldersByName('Invoices');
+      if (i.hasNext()) invoicesFolderUrl = i.next().getUrl();
     } catch (error) {
-      driveRoot = null;
+      driveRootUrl = '';
     }
   }
 
   return {
-    accountEmail: Session.getActiveUser().getEmail() || '',
     spreadsheetId: spreadsheet ? spreadsheet.getId() : '',
     spreadsheetName: spreadsheet ? spreadsheet.getName() : '',
     spreadsheetUrl: spreadsheet ? spreadsheet.getUrl() : '',
-    driveRootId: driveRoot ? driveRoot.getId() : configuredRootId,
-    driveRootUrl: driveRoot ? driveRoot.getUrl() : '',
+    driveRootId: rootId,
+    driveRootUrl: driveRootUrl,
     quotationsFolderUrl: quotationsFolderUrl,
-    invoicesFolderUrl: invoicesFolderUrl
+    invoicesFolderUrl: invoicesFolderUrl,
+    serverTime: new Date().toISOString()
   };
 }
 
-function initializeBusinessRegister(payload, config) {
-  const title = payload.title || 'Arya Vysya Press - Business Register';
-  const requiredSheets = payload.requiredSheets || Object.keys(SHEET_HEADERS);
-  const spreadsheet = resolveSpreadsheet(config.spreadsheetId, title);
-
-  requiredSheets.forEach(name => {
-    const headers = SHEET_HEADERS[name] || [];
-    ensureSheet(spreadsheet, name, headers);
-  });
+// Creates (or adopts) the register spreadsheet and makes sure every tab and header exists.
+// A client-supplied spreadsheet ID is only accepted the first time, before one is stored.
+function initializeBusinessRegister(config) {
+  const props = PropertiesService.getScriptProperties();
+  if (!props.getProperty(PROP_SPREADSHEET_ID) && config.spreadsheetId) {
+    const adopted = SpreadsheetApp.openById(config.spreadsheetId);
+    props.setProperty(PROP_SPREADSHEET_ID, adopted.getId());
+  }
+  const spreadsheet = getRegister(true);
+  Object.keys(TAB_COLUMNS).forEach(tab => ensureTab(spreadsheet, tab));
+  ensureSheet(spreadsheet, 'Settings', SETTINGS_HEADERS);
 
   return {
     spreadsheetId: spreadsheet.getId(),
@@ -142,344 +235,233 @@ function initializeBusinessRegister(payload, config) {
 }
 
 function initializeDriveStructure(payload, config) {
-  const rootFolderName = payload.rootFolderName || 'Arya Vysya Press';
-  const root = resolveRootFolder(config.driveRootId || payload.rootFolderId, rootFolderName);
-  const childFolders = {};
+  const props = PropertiesService.getScriptProperties();
+  let root = null;
+  const storedId = props.getProperty(PROP_DRIVE_ROOT_ID);
+  const requestedId = config.driveRootId || payload.rootFolderId;
 
-  Object.keys(DRIVE_STRUCTURE).forEach(folderName => {
-    const child = getOrCreateFolder(root, folderName);
-    childFolders[folderName] = {
-      id: child.getId(),
-      url: child.getUrl()
-    };
-    const nested = DRIVE_STRUCTURE[folderName] || [];
-    let current = child;
-    nested.forEach(sub => {
-      current = getOrCreateFolder(current, sub);
-    });
+  if (storedId) {
+    try { root = DriveApp.getFolderById(storedId); } catch (error) { root = null; }
+  }
+  if (!root && requestedId) {
+    root = DriveApp.getFolderById(requestedId);
+  }
+  if (!root) {
+    const name = payload.rootFolderName || 'Arya Vysya Press';
+    const iter = DriveApp.getFoldersByName(name);
+    root = iter.hasNext() ? iter.next() : DriveApp.createFolder(name);
+  }
+  props.setProperty(PROP_DRIVE_ROOT_ID, root.getId());
+
+  const folders = {};
+  DRIVE_FOLDERS.forEach(name => {
+    const iter = root.getFoldersByName(name);
+    const folder = iter.hasNext() ? iter.next() : root.createFolder(name);
+    folders[name] = { id: folder.getId(), url: folder.getUrl() };
   });
 
   return {
     rootFolderId: root.getId(),
     rootFolderName: root.getName(),
     rootFolderUrl: root.getUrl(),
-    quotationsFolderId: childFolders.Quotations ? childFolders.Quotations.id : '',
-    quotationsFolderUrl: childFolders.Quotations ? childFolders.Quotations.url : '',
-    invoicesFolderId: childFolders.Invoices ? childFolders.Invoices.id : '',
-    invoicesFolderUrl: childFolders.Invoices ? childFolders.Invoices.url : ''
+    quotationsFolderId: folders.Quotations.id,
+    quotationsFolderUrl: folders.Quotations.url,
+    invoicesFolderId: folders.Invoices.id,
+    invoicesFolderUrl: folders.Invoices.url
   };
 }
 
-function upsertRows(sheetName, items, keyHeader, config) {
-  const spreadsheet = resolveSpreadsheet(config.spreadsheetId);
-  if (!spreadsheet) {
-    throw new Error('Spreadsheet not found. Initialize workspace first.');
-  }
-
-  const headers = SHEET_HEADERS[sheetName] || [];
-  const sheet = ensureSheet(spreadsheet, sheetName, headers);
-  const keyIdx = headers.indexOf(keyHeader);
-  if (keyIdx < 0) throw new Error('Key header not found for ' + sheetName);
-
-  const existing = readSheetMap(sheet, keyIdx);
-  const rowsToAppend = [];
-  const rowsToUpdate = [];
-
-  items.forEach(item => {
-    const row = mapItemToRow(sheetName, item, headers);
-    const key = row[keyIdx];
-    if (!key) return;
-
-    if (existing[key]) {
-      rowsToUpdate.push({ rowNumber: existing[key], values: row });
-    } else {
-      rowsToAppend.push(row);
-    }
+// Returns every record of every collection.
+function pullAll() {
+  const spreadsheet = getRegister(false);
+  const out = { serverTime: new Date().toISOString() };
+  Object.keys(COLLECTION_TABS).forEach(collection => {
+    out[collection] = spreadsheet ? readTabRecords(spreadsheet, COLLECTION_TABS[collection]) : [];
   });
-
-  rowsToUpdate.forEach(entry => {
-    sheet.getRange(entry.rowNumber, 1, 1, headers.length).setValues([entry.values]);
-  });
-
-  if (rowsToAppend.length) {
-    const start = sheet.getLastRow() + 1;
-    sheet.getRange(start, 1, rowsToAppend.length, headers.length).setValues(rowsToAppend);
-  }
-
-  return {
-    sheet: sheetName,
-    appended: rowsToAppend.length,
-    updated: rowsToUpdate.length,
-    total: items.length
-  };
+  return out;
 }
 
-function mapItemToRow(sheetName, item, headers) {
-  const map = {
-    Customers: {
-      'Customer ID': item.id,
-      'Customer Name': item.customerName,
-      'Company Name': item.companyName,
-      'Contact Person': item.contactPerson,
-      'Phone': item.phone,
-      'Email': item.email,
-      'Billing Address': item.billingAddress,
-      'Shipping Address': item.shippingAddress,
-      'GSTIN': item.gstin,
-      'PAN': item.pan,
-      'State': item.state,
-      'State Code': item.stateCode,
-      'Pincode': item.pincode,
-      'Customer Type': item.customerType,
-      'Notes': item.notes,
-      'Drive Folder ID': item.driveFolderId,
-      'Created Date': item.createdDate,
-      'Last Updated': item.lastUpdated,
-      'Status': item.status
-    },
-    Quotations: {
-      'Quotation ID': item.id,
-      'Quotation Number': item.quotationNumber,
-      'Customer ID': item.customerId,
-      'Customer Name': item.customerName,
-      'Company Name': item.companyName,
-      'Quotation Date': item.quotationDate,
-      'Valid Until': item.validUntil,
-      'Letterhead ID': item.letterheadId,
-      'Subtotal': item.subtotal,
-      'GST': item.gst,
-      'Grand Total': item.grandTotal,
-      'Currency': item.currency,
-      'Payment Terms': item.paymentTerms,
-      'Notes': item.notes,
-      'Status': item.status,
-      'Source Document ID': item.sourceDocumentId,
-      'Created Date': item.createdDate,
-      'Last Updated': item.lastUpdated,
-      'Drive File ID': item.driveFileId,
-      'Drive File URL': item.driveFileUrl,
-      'Created By': item.createdBy,
-      'Converted Invoice ID': item.convertedInvoiceId,
-      'Tax Mode': item.taxMode || (item.gstApplicable === false ? 'NON_GST' : 'GST')
-    },
-    Invoices: {
-      'Invoice ID': item.id,
-      'Invoice Number': item.invoiceNumber,
-      'Quotation ID': item.quotationId,
-      'Quotation Number': item.quotationNumber,
-      'Customer ID': item.customerId,
-      'Customer Name': item.customerName,
-      'Company Name': item.companyName,
-      'Invoice Date': item.invoiceDate,
-      'Due Date': item.dueDate,
-      'Letterhead ID': item.letterheadId,
-      'Subtotal': item.subtotal,
-      'GST': item.gst,
-      'Grand Total': item.grandTotal,
-      'Amount Paid': item.amountPaid,
-      'Balance Due': item.balanceDue,
-      'Payment Status': item.paymentStatus,
-      'Payment Terms': item.paymentTerms,
-      'Notes': item.notes,
-      'Status': item.status,
-      'Source Document ID': item.sourceDocumentId,
-      'Created Date': item.createdDate,
-      'Last Updated': item.lastUpdated,
-      'Drive File ID': item.driveFileId,
-      'Drive File URL': item.driveFileUrl,
-      'Created By': item.createdBy,
-      'Tax Mode': item.taxMode || (item.gstApplicable === false ? 'NON_GST' : 'GST')
-    },
-    Payments: {
-      'Payment ID': item.id,
-      'Invoice ID': item.invoiceId,
-      'Invoice Number': item.invoiceNumber,
-      'Quotation ID': item.quotationId,
-      'Customer ID': item.customerId,
-      'Customer Name': item.customerName,
-      'Payment Date': item.paymentDate,
-      'Amount Received': item.amountReceived,
-      'Payment Mode': item.paymentMode,
-      'Credited To': item.creditedTo,
-      'Transferred To': item.transferredTo,
-      'Transaction Reference': item.transactionReference,
-      'Bank / Account': item.bankAccount,
-      'Payment Details': item.paymentDetails,
-      'Notes': item.notes,
-      'Recorded By': item.recordedBy,
-      'Created Date': item.createdDate
-    },
-    'Document Register': {
-      'Document ID': item.id,
-      'Document Type': item.documentType,
-      'Document Number': item.documentNumber,
-      'Customer ID': item.customerId,
-      'Customer Name': item.customerName,
-      'Document Date': item.documentDate,
-      'Amount': item.amount,
-      'Status': item.status,
-      'Drive File ID': item.driveFileId,
-      'Drive URL': item.driveFileUrl,
-      'Source Quotation ID': item.sourceQuotationId,
-      'Source Invoice ID': item.sourceInvoiceId,
-      'Created Date': item.createdDate,
-      'Last Updated': item.lastUpdated
-    },
-    Letterheads: {
-      'Letterhead ID': item.id,
-      'Letterhead Name': item.letterheadName,
-      'Company Name': item.companyName,
-      'Tagline': item.tagline,
-      'GSTIN': item.gstin,
-      'Address': item.address,
-      'Phone': item.phone,
-      'Email': item.email,
-      'Website': item.website,
-      'Footer': item.footer,
-      'Terms': item.terms,
-      'Brand Style': item.brandStyle,
-      'Logo Drive File ID': item.logoDriveFileId,
-      'Logo Drive URL': item.logoDriveUrl,
-      'Created Date': item.createdDate,
-      'Last Updated': item.lastUpdated,
-      'Default': item.isDefault ? 'Yes' : 'No',
-      'Status': item.status || 'Active'
-    },
-    Templates: {
-      'Template ID': item.id,
-      'Template Name': item.templateName,
-      'GST %': item.gstPct,
-      'Payment Terms': item.paymentTerms,
-      'Notes': item.notes,
-      'Letterhead ID': item.letterheadId,
-      'Line Items JSON': JSON.stringify(item.lineItems || []),
-      'Created Date': item.createdDate,
-      'Last Updated': item.lastUpdated,
-      'Status': item.status || 'Active'
+// Upserts records by ID. The newer version wins (lastUpdated, else createdDate).
+function upsertCollections(payload) {
+  const spreadsheet = getRegister(true);
+  const result = {};
+
+  Object.keys(COLLECTION_TABS).forEach(collection => {
+    const items = Array.isArray(payload[collection]) ? payload[collection] : [];
+    if (!items.length) {
+      result[collection] = { written: 0, skipped: 0 };
+      return;
     }
-  };
+    const tab = COLLECTION_TABS[collection];
+    const sheet = ensureTab(spreadsheet, tab);
+    const headers = tabHeaders(tab);
+    const width = headers.length;
+    const jsonIdx = width - 1;
+    const lastRow = sheet.getLastRow();
+    const rows = lastRow > 1 ? sheet.getRange(2, 1, lastRow - 1, width).getValues() : [];
 
-  const source = map[sheetName] || {};
-  return headers.map(h => source[h] !== undefined ? source[h] : '');
-}
+    const indexById = {};
+    rows.forEach((row, i) => { if (row[0]) indexById[String(row[0])] = i; });
 
-function resolveSpreadsheet(spreadsheetId, title) {
-  if (spreadsheetId) {
-    try {
-      return SpreadsheetApp.openById(spreadsheetId);
-    } catch (error) {
-      // Fall through to create logic.
-    }
-  }
-
-  if (title) {
-    const fileIter = DriveApp.getFilesByName(title);
-    while (fileIter.hasNext()) {
-      const file = fileIter.next();
-      if (file.getMimeType() === MimeType.GOOGLE_SHEETS) {
-        return SpreadsheetApp.openById(file.getId());
+    let written = 0;
+    let skipped = 0;
+    items.forEach(item => {
+      if (!item || !item.id) return;
+      const id = String(item.id);
+      const existingIdx = indexById[id];
+      if (existingIdx !== undefined) {
+        const existing = recordFromRow(tab, headers, rows[existingIdx], jsonIdx);
+        if (stampOf(existing) > stampOf(item)) { skipped += 1; return; }
+        rows[existingIdx] = rowFromRecord(tab, item);
+      } else {
+        indexById[id] = rows.length;
+        rows.push(rowFromRecord(tab, item));
       }
-    }
-
-    return SpreadsheetApp.create(title);
-  }
-
-  return null;
-}
-
-function resolveRootFolder(folderId, folderName) {
-  const properties = PropertiesService.getScriptProperties();
-  const lock = LockService.getScriptLock();
-
-  if (folderId) {
-    try {
-      const folder = DriveApp.getFolderById(folderId);
-      properties.setProperty(DRIVE_ROOT_PROPERTY_KEY, folder.getId());
-      return folder;
-    } catch (error) {
-      // Fall through to the shared root lookup.
-    }
-  }
-
-  const storedFolderId = properties.getProperty(DRIVE_ROOT_PROPERTY_KEY);
-  if (storedFolderId) {
-    try {
-      return DriveApp.getFolderById(storedFolderId);
-    } catch (error) {
-      properties.deleteProperty(DRIVE_ROOT_PROPERTY_KEY);
-    }
-  }
-
-  lock.waitLock(30000);
-  try {
-    const latestFolderId = properties.getProperty(DRIVE_ROOT_PROPERTY_KEY);
-    if (latestFolderId) {
-      try {
-        return DriveApp.getFolderById(latestFolderId);
-      } catch (error) {
-        properties.deleteProperty(DRIVE_ROOT_PROPERTY_KEY);
-      }
-    }
-
-    const iter = DriveApp.getFoldersByName(folderName);
-    const folder = iter.hasNext() ? iter.next() : DriveApp.createFolder(folderName);
-    properties.setProperty(DRIVE_ROOT_PROPERTY_KEY, folder.getId());
-    return folder;
-  } finally {
-    lock.releaseLock();
-  }
-}
-
-function getOrCreateFolder(parent, name) {
-  const iter = parent.getFoldersByName(name);
-  if (iter.hasNext()) return iter.next();
-  return parent.createFolder(name);
-}
-
-function ensureSheet(spreadsheet, sheetName, headers) {
-  let sheet = spreadsheet.getSheetByName(sheetName);
-  if (!sheet) sheet = spreadsheet.insertSheet(sheetName);
-
-  if (sheet.getLastRow() === 0) {
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    styleHeader(sheet, headers.length);
-  } else {
-    const firstRow = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
-    let mismatch = false;
-    headers.forEach((h, idx) => {
-      if (firstRow[idx] !== h) mismatch = true;
+      written += 1;
     });
-    if (mismatch) {
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      styleHeader(sheet, headers.length);
-    }
-  }
 
+    if (rows.length) sheet.getRange(2, 1, rows.length, width).setValues(rows);
+    result[collection] = { written: written, skipped: skipped };
+  });
+
+  // Keep the number counters ahead of any number that already exists in the sheet.
+  Object.keys(ID_PREFIXES).forEach(kind => bumpCounterToSheetMax(spreadsheet, kind));
+  return result;
+}
+
+// payload.kinds: { invoice: 1, customer: 1 } -> { invoice: ['INV-00012'], customer: ['CUS-00004'] }
+function allocateIds(kinds) {
+  const spreadsheet = getRegister(true);
+  const props = PropertiesService.getScriptProperties();
+  const out = {};
+
+  Object.keys(kinds).forEach(kind => {
+    const prefix = ID_PREFIXES[kind];
+    const count = Math.min(Math.max(Number(kinds[kind]) || 0, 0), 20);
+    if (!prefix || !count) return;
+    let current = bumpCounterToSheetMax(spreadsheet, kind);
+    out[kind] = [];
+    for (let i = 0; i < count; i += 1) {
+      current += 1;
+      out[kind].push(prefix + '-' + String(current).padStart(5, '0'));
+    }
+    props.setProperty(PROP_COUNTER_PREFIX + kind, String(current));
+  });
+
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+function getRegister(createIfMissing) {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty(PROP_SPREADSHEET_ID);
+  if (id) return SpreadsheetApp.openById(id);
+  if (!createIfMissing) return null;
+
+  let spreadsheet = null;
+  const files = DriveApp.getFilesByName(REGISTER_TITLE);
+  while (files.hasNext() && !spreadsheet) {
+    const file = files.next();
+    if (file.getMimeType() === MimeType.GOOGLE_SHEETS) spreadsheet = SpreadsheetApp.openById(file.getId());
+  }
+  if (!spreadsheet) spreadsheet = SpreadsheetApp.create(REGISTER_TITLE);
+  props.setProperty(PROP_SPREADSHEET_ID, spreadsheet.getId());
+  return spreadsheet;
+}
+
+function tabHeaders(tab) {
+  return TAB_COLUMNS[tab].map(col => col[0]).concat([RECORD_JSON_HEADER]);
+}
+
+function ensureTab(spreadsheet, tab) {
+  return ensureSheet(spreadsheet, tab, tabHeaders(tab));
+}
+
+function ensureSheet(spreadsheet, name, headers) {
+  let sheet = spreadsheet.getSheetByName(name);
+  if (!sheet) sheet = spreadsheet.insertSheet(name);
+
+  const current = sheet.getLastColumn() > 0
+    ? sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), headers.length)).getValues()[0]
+    : [];
+  const matches = headers.every((h, i) => current[i] === h);
+  if (!matches) {
+    // New columns are only ever appended, so existing data stays aligned.
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#f5f5f5');
+    sheet.setFrozenRows(1);
+    if (headers[headers.length - 1] === RECORD_JSON_HEADER) sheet.hideColumns(headers.length);
+  }
   return sheet;
 }
 
-function styleHeader(sheet, width) {
-  const headerRange = sheet.getRange(1, 1, 1, width);
-  headerRange.setFontWeight('bold');
-  headerRange.setBackground('#f5f5f5');
-  sheet.setFrozenRows(1);
-  if (sheet.getFilter()) sheet.getFilter().remove();
-  sheet.getRange(1, 1, Math.max(2, sheet.getLastRow()), width).createFilter();
-  for (let i = 1; i <= width; i += 1) {
-    sheet.autoResizeColumn(i);
-  }
+function rowFromRecord(tab, record) {
+  const cells = TAB_COLUMNS[tab].map(col => {
+    const value = col[2] ? col[2](record) : record[col[1]];
+    return value === undefined || value === null ? '' : value;
+  });
+  cells.push(JSON.stringify(record));
+  return cells;
 }
 
-function readSheetMap(sheet, keyIdx) {
-  const map = {};
-  const last = sheet.getLastRow();
-  if (last < 2) return map;
-  const values = sheet.getRange(2, 1, last - 1, sheet.getLastColumn()).getValues();
-  values.forEach((row, idx) => {
-    const key = row[keyIdx];
-    if (key) map[key] = idx + 2;
+function recordFromRow(tab, headers, row, jsonIdx) {
+  const parsed = safeJsonParse(row[jsonIdx], null);
+  if (parsed && typeof parsed === 'object') return parsed;
+
+  // Rows written before the Record JSON column existed: rebuild from the readable columns.
+  const record = {};
+  TAB_COLUMNS[tab].forEach((col, i) => {
+    let value = row[i];
+    if (value instanceof Date) value = Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    record[col[1]] = col[3] ? col[3](value) : value;
   });
-  return map;
+  if (tab === 'Quotations' || tab === 'Invoices') {
+    record.gstApplicable = record.taxMode !== 'NON_GST';
+    record.items = record.items || [];
+  }
+  return record;
+}
+
+function readTabRecords(spreadsheet, tab) {
+  const sheet = spreadsheet.getSheetByName(tab);
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  const headers = tabHeaders(tab);
+  const width = headers.length;
+  const jsonIdx = width - 1;
+  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, width).getValues();
+  return rows.filter(row => row[0]).map(row => recordFromRow(tab, headers, row, jsonIdx));
+}
+
+function stampOf(record) {
+  return String((record && (record.lastUpdated || record.createdDate)) || '');
+}
+
+// Raises the stored counter for a kind to the highest number already in its tab; returns it.
+function bumpCounterToSheetMax(spreadsheet, kind) {
+  const props = PropertiesService.getScriptProperties();
+  const prefix = ID_PREFIXES[kind];
+  let max = Number(props.getProperty(PROP_COUNTER_PREFIX + kind) || 0);
+  const sheet = spreadsheet.getSheetByName(ID_TABS[kind]);
+  if (sheet && sheet.getLastRow() > 1) {
+    const pattern = new RegExp('^' + prefix + '-(\\d+)$');
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues().forEach(r => {
+      const m = pattern.exec(String(r[0]));
+      if (m) max = Math.max(max, Number(m[1]));
+    });
+  }
+  props.setProperty(PROP_COUNTER_PREFIX + kind, String(max));
+  return max;
+}
+
+function safeJsonParse(value, fallback) {
+  if (value === '' || value === null || value === undefined) return fallback;
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    return fallback;
+  }
 }
 
 function jsonResponse(payload) {

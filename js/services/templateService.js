@@ -1,3 +1,5 @@
+const SEED_TIMESTAMP = '2000-01-01T00:00:00.000Z';
+
 export class TemplateService {
   constructor(getState, saveState, nextId, nowFn) {
     this.getState = getState;
@@ -98,8 +100,10 @@ export class TemplateService {
       notes: '',
       letterheadId: 'LH-DEFAULT',
       lineItems: [],
-      createdDate: this.nowFn(),
-      lastUpdated: this.nowFn(),
+      // Fixed old timestamp: every device seeds the same templates, and any real edit
+      // (synced from another device) must win over a freshly seeded copy.
+      createdDate: SEED_TIMESTAMP,
+      lastUpdated: SEED_TIMESTAMP,
       status: 'Active'
     }));
 

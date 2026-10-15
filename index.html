@@ -1530,6 +1530,11 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
             <input id="s-google-apps-script-url" type="text" placeholder="https://script.google.com/macros/s/.../exec">
           </div>
           <div class="field">
+            <label for="s-api-key">API Key</label>
+            <input id="s-api-key" type="password" autocomplete="off" spellcheck="false" placeholder="avp_...">
+            <div class="field-help">Required for syncing across devices. Get it by running <code>setupApiKey</code> in the Apps Script editor, then enter it here on every device. It is stored only in this browser.</div>
+          </div>
+          <div class="field">
             <label for="s-business-sheet-id">Business Register Spreadsheet ID</label>
             <input id="s-business-sheet-id" type="text" placeholder="Spreadsheet ID (optional for first setup)">
           </div>
@@ -2029,6 +2034,7 @@ import { InvoiceService } from './js/services/invoiceService.js';
 import { PaymentService } from './js/services/paymentService.js';
 import { LetterheadService } from './js/services/letterheadService.js';
 import { TemplateService } from './js/services/templateService.js';
+import { SYNC_COLLECTIONS } from './js/modules/app-config.js';
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // STATE
@@ -2297,6 +2303,10 @@ function setInputValue(inputId, value) {
 }
 
 function ensureCustomerFromCurrentBuilder() {
+  return customerService.upsertFromBuilder(collectCustomerInputFromBuilder());
+}
+
+function collectCustomerInputFromBuilder() {
   const qNameRaw = (document.getElementById('f-q-to')?.value || '').trim();
   const qGstin = (document.getElementById('f-q-cgst')?.value || '').trim();
   const invCompany = (document.getElementById('f-inv-cname')?.value || '').trim();
@@ -2309,7 +2319,7 @@ function ensureCustomerFromCurrentBuilder() {
   const phone = (document.getElementById('f-cell')?.value || '').trim();
   const email = (document.getElementById('f-email')?.value || '').trim();
 
-  return customerService.upsertFromBuilder({
+  return {
     customerName,
     companyName,
     contactPerson: customerName,
@@ -2319,10 +2329,19 @@ function ensureCustomerFromCurrentBuilder() {
     shippingAddress: document.getElementById('f-inv-caddr')?.value || '',
     gstin,
     status: 'Active'
-  });
+  };
 }
 
-function saveQuotationRecord() {
+// Saves the quotation in the builder. With cloud sync on, new numbers come from the server first.
+async function saveQuotationRecord() {
+  const needsCustomer = !customerService.findMatch(collectCustomerInputFromBuilder());
+  return withServerIds(
+    { customer: needsCustomer ? 1 : 0, quotation: currentQuotationEditId ? 0 : 1 },
+    saveQuotationRecordNow
+  );
+}
+
+function saveQuotationRecordNow() {
   const customer = ensureCustomerFromCurrentBuilder();
   const gstEnabled = isGstEnabled();
   const quotationPayload = {
@@ -2366,7 +2385,15 @@ function saveQuotationRecord() {
   return quotation;
 }
 
-function saveInvoiceRecord() {
+async function saveInvoiceRecord() {
+  const needsCustomer = !customerService.findMatch(collectCustomerInputFromBuilder());
+  return withServerIds(
+    { customer: needsCustomer ? 1 : 0, invoice: currentInvoiceEditId ? 0 : 1 },
+    saveInvoiceRecordNow
+  );
+}
+
+function saveInvoiceRecordNow() {
   const customer = ensureCustomerFromCurrentBuilder();
   const gstEnabled = isGstEnabled();
   const invoiceDate = document.getElementById('f-inv-date')?.value || todayIsoDate();
@@ -2434,39 +2461,22 @@ function saveInvoiceRecord() {
 }
 
 async function exportAndSaveActiveDocument(exportSettings) {
-  let savedRecord = null;
-
-  if (mode === 'quotation') {
-    savedRecord = saveQuotationRecord();
-  } else {
-    savedRecord = saveInvoiceRecord();
-  }
+  const savedRecord = mode === 'quotation' ? await saveQuotationRecord() : await saveInvoiceRecord();
+  if (!savedRecord) return; // No number could be issued (offline); nothing was saved or exported.
 
   savePDF(exportSettings || getExportSettings());
 
   if (!googleIntegration.canCallApi()) {
-    showToast('Document saved locally. Configure Google settings to enable cloud sync.', 'success');
+    showToast('Document saved on this device. Add your API key in Settings to sync across devices.', 'success');
     return;
   }
 
-  try {
-    await googleIntegration.syncBusinessRegister({
-      customers: bizState.customers,
-      quotations: bizState.quotations,
-      invoices: bizState.invoices,
-      payments: bizState.payments,
-      documentHistory: bizState.documentHistory || [],
-      letterheads: bizState.letterheads || [],
-      templates: bizState.templates || []
-    });
-
-    const idLabel = savedRecord
-      ? (savedRecord.quotationNumber || savedRecord.invoiceNumber || savedRecord.id)
-      : 'Document';
-    showToast(`${idLabel} exported and synced to Google Sheets.`, 'success');
-  } catch (error) {
-    showToast('PDF exported. Business register sync failed. Use Sync Register in Settings.', 'error');
-  }
+  const idLabel = savedRecord.quotationNumber || savedRecord.invoiceNumber || savedRecord.id;
+  const synced = await syncNow();
+  showToast(
+    synced ? `${idLabel} exported and synced to Google Sheets.` : `${idLabel} exported. Sync failed; it will retry automatically.`,
+    synced ? 'success' : 'error'
+  );
 }
 
 function loadQuotationIntoInvoiceBuilder(quotationId, forceDuplicate) {
@@ -2714,7 +2724,7 @@ function appendPaymentForInvoice(invoice, payload) {
   }));
 }
 
-function submitStructuredPaymentForm(event) {
+async function submitStructuredPaymentForm(event) {
   if (event) event.preventDefault();
 
   const invoiceId = (document.getElementById('p-invoice-id')?.value || '').trim();
@@ -2750,7 +2760,7 @@ function submitStructuredPaymentForm(event) {
     if (!allowOverpay) return;
   }
 
-  appendPaymentForInvoice(invoice, {
+  const paymentFields = {
     paymentDate,
     amountReceived: amount,
     paymentMode,
@@ -2760,7 +2770,13 @@ function submitStructuredPaymentForm(event) {
     bankAccount: (document.getElementById('p-bank-account')?.value || '').trim(),
     paymentDetails: (document.getElementById('p-payment-details')?.value || '').trim(),
     notes: (document.getElementById('p-payment-notes')?.value || '').trim()
+  };
+
+  const recorded = await withServerIds({ payment: 1 }, () => {
+    appendPaymentForInvoice(invoice, paymentFields);
+    return true;
   });
+  if (!recorded) return;
 
   saveBusinessState();
   renderBusinessViews();
@@ -3098,6 +3114,7 @@ function upsertDocumentHistoryEntry(entry) {
     bizState.documentHistory[existingIndex] = {
       ...bizState.documentHistory[existingIndex],
       ...normalized,
+      id: bizState.documentHistory[existingIndex].id, // keep the ID the entry was synced under
       lastUpdated: businessNowIso()
     };
   } else {
@@ -3109,10 +3126,12 @@ function upsertDocumentHistoryEntry(entry) {
 }
 
 function buildDocumentHistoryEntryFromRecord(type, record, overrides = {}) {
+  const documentNumber = overrides.documentNumber || record.quotationNumber || record.invoiceNumber || record.id;
   return normalizeDocumentHistoryEntry({
-    id: overrides.id,
+    // Stable ID (e.g. "Invoice-INV-00007") so the same document never gets two register rows across devices.
+    id: overrides.id || `${type}-${documentNumber}`,
     documentType: type,
-    documentNumber: record.quotationNumber || record.invoiceNumber || record.id,
+    documentNumber,
     customerId: record.customerId,
     customerName: record.customerName,
     documentDate: record.quotationDate || record.invoiceDate || record.paymentDate || todayIsoDate(),
@@ -3575,7 +3594,7 @@ function applyTemplateToBuilder(templateId) {
   showToast(`Template ${item.templateName} applied.`, 'success');
 }
 
-function addCustomerFromPrompt() {
+async function addCustomerFromPrompt() {
   const customerName = (prompt('Customer name:') || '').trim();
   if (!customerName) return;
   const companyName = (prompt('Company name:', customerName) || customerName).trim();
@@ -3583,7 +3602,7 @@ function addCustomerFromPrompt() {
   const email = (prompt('Email:') || '').trim();
   const gstin = (prompt('GSTIN:') || '').trim();
 
-  const customer = customerService.upsertFromBuilder({
+  const input = {
     customerName,
     companyName,
     contactPerson: customerName,
@@ -3593,7 +3612,12 @@ function addCustomerFromPrompt() {
     shippingAddress: '',
     gstin,
     status: 'Active'
-  });
+  };
+  const customer = await withServerIds(
+    { customer: customerService.findMatch(input) ? 0 : 1 },
+    () => customerService.upsertFromBuilder(input)
+  );
+  if (!customer) return;
 
   saveBusinessState();
   renderBusinessViews();
@@ -3646,15 +3670,15 @@ function toggleCustomerArchive(customerId) {
   showToast(nextArchived ? `Customer ${customerId} archived.` : `Customer ${customerId} reactivated.`, 'success');
 }
 
-function duplicateQuotationRecord(quotationId) {
-  const duplicated = quotationService.duplicateFromExisting(quotationId, {
+async function duplicateQuotationRecord(quotationId) {
+  const duplicated = await withServerIds({ quotation: 1 }, () => quotationService.duplicateFromExisting(quotationId, {
     quotationDate: todayIsoDate(),
     status: 'Draft',
     createdBy: 'Local User'
-  });
+  }));
 
   if (!duplicated) {
-    showToast('Unable to duplicate quotation.', 'error');
+    if (!serverIdUnavailable) showToast('Unable to duplicate quotation.', 'error');
     return;
   }
 
@@ -3665,15 +3689,15 @@ function duplicateQuotationRecord(quotationId) {
   showToast(`Quotation ${duplicated.quotationNumber} created from existing.`, 'success');
 }
 
-function duplicateInvoiceRecord(invoiceId) {
-  const duplicated = invoiceService.duplicateFromExisting(invoiceId, {
+async function duplicateInvoiceRecord(invoiceId) {
+  const duplicated = await withServerIds({ invoice: 1 }, () => invoiceService.duplicateFromExisting(invoiceId, {
     invoiceDate: todayIsoDate(),
     status: 'Draft',
     createdBy: 'Local User'
-  });
+  }));
 
   if (!duplicated) {
-    showToast('Unable to duplicate invoice.', 'error');
+    if (!serverIdUnavailable) showToast('Unable to duplicate invoice.', 'error');
     return;
   }
 
@@ -3682,6 +3706,173 @@ function duplicateInvoiceRecord(invoiceId) {
   saveBusinessState();
   renderBusinessViews();
   showToast(`Invoice ${duplicated.invoiceNumber} created from existing.`, 'success');
+}
+
+// ═════════════════════════════════════════════
+// CLOUD SYNC (Google Sheet is the shared copy across devices)
+// ═════════════════════════════════════════════
+const SYNC_DEBOUNCE_MS = 1500;
+const SYNC_RETRY_MS = 30000;
+const SYNC_ON_RETURN_THROTTLE_MS = 15000;
+let cloudSyncTimer = null;
+let cloudSyncInFlight = null;
+let cloudSyncQueued = false;
+let applyingRemoteState = false;
+let lastCloudSyncAt = 0;
+let lastCloudSyncError = '';
+let serverIdUnavailable = false;
+
+function recordStamp(record) {
+  return String((record && (record.lastUpdated || record.createdDate)) || '');
+}
+
+// Merges two versions of a collection by record ID; the newer version of each record wins.
+function mergeRecordLists(localList, remoteList) {
+  const byId = new Map();
+  const withoutId = [];
+  (localList || []).forEach(record => {
+    if (record && record.id) byId.set(String(record.id), record);
+    else if (record) withoutId.push(record);
+  });
+  (remoteList || []).forEach(record => {
+    if (!record || !record.id) return;
+    const id = String(record.id);
+    const local = byId.get(id);
+    if (!local || recordStamp(record) >= recordStamp(local)) byId.set(id, record);
+  });
+  return [...byId.values(), ...withoutId];
+}
+
+function applyRemoteRegister(remote) {
+  const state = stateService.getState();
+  SYNC_COLLECTIONS.forEach(collection => {
+    state[collection] = mergeRecordLists(state[collection], remote && remote[collection]);
+  });
+  stateService.reconcileCounters();
+  applyingRemoteState = true; // saving merged data must not trigger another sync
+  try {
+    stateService.saveState();
+  } finally {
+    applyingRemoteState = false;
+  }
+  bizState = stateService.getState();
+  renderBusinessViews();
+}
+
+function scheduleCloudSync(delayMs = SYNC_DEBOUNCE_MS) {
+  if (applyingRemoteState || !googleIntegration.canCallApi()) return;
+  if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
+  cloudSyncTimer = setTimeout(() => { syncNow(); }, delayMs);
+}
+
+// Pushes every local record to the sheet and merges the sheet's full register back.
+// Resolves true on success. Concurrent calls share one request and queue a follow-up.
+function syncNow({ silent = true } = {}) {
+  if (!googleIntegration.canCallApi()) {
+    refreshSyncChip();
+    return Promise.resolve(false);
+  }
+  if (cloudSyncInFlight) {
+    cloudSyncQueued = true;
+    return cloudSyncInFlight;
+  }
+  if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
+  cloudSyncTimer = null;
+  refreshSyncChip('syncing');
+
+  cloudSyncInFlight = (async () => {
+    try {
+      const state = stateService.getState();
+      const payload = {};
+      SYNC_COLLECTIONS.forEach(collection => { payload[collection] = state[collection] || []; });
+      const data = await googleIntegration.syncBusinessRegister(payload);
+      applyRemoteRegister(data.records || {});
+      lastCloudSyncAt = Date.now();
+      lastCloudSyncError = '';
+      refreshSyncChip();
+      if (!silent) showToast('Synced with Google Sheets.', 'success');
+      return true;
+    } catch (error) {
+      lastCloudSyncError = error.message || String(error);
+      refreshSyncChip();
+      if (!silent) showToast(`Sync failed: ${lastCloudSyncError}`, 'error');
+      scheduleCloudSync(SYNC_RETRY_MS);
+      return false;
+    } finally {
+      cloudSyncInFlight = null;
+      if (cloudSyncQueued) {
+        cloudSyncQueued = false;
+        scheduleCloudSync();
+      }
+    }
+  })();
+  return cloudSyncInFlight;
+}
+
+function syncOnReturn() {
+  if (document.visibilityState !== 'visible') return;
+  if (Date.now() - lastCloudSyncAt < SYNC_ON_RETURN_THROTTLE_MS) return;
+  syncNow();
+}
+
+function refreshSyncChip(phase) {
+  const chip = document.getElementById('google-connection-chip');
+  const message = document.getElementById('status-sync-message');
+  let text = 'Google: Not connected';
+  let title = 'Add the Apps Script URL and API key in Settings to sync across devices.';
+
+  if (googleIntegration.canCallApi()) {
+    if (phase === 'syncing') {
+      text = 'Google: Syncing...';
+      title = 'Syncing with Google Sheets';
+    } else if (lastCloudSyncError) {
+      text = 'Google: Sync error';
+      title = lastCloudSyncError;
+    } else if (lastCloudSyncAt) {
+      const time = new Date(lastCloudSyncAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      text = `Google: Synced ${time}`;
+      title = 'All changes are saved to Google Sheets.';
+    } else {
+      text = 'Google: Connected';
+      title = 'Waiting for the first sync.';
+    }
+  }
+
+  if (chip) {
+    chip.textContent = text;
+    chip.title = title;
+  }
+  if (message && phase !== 'syncing' && (lastCloudSyncError || lastCloudSyncAt)) {
+    message.textContent = lastCloudSyncError ? `Last sync failed: ${lastCloudSyncError}` : `Last synced at ${text.replace('Google: Synced ', '')}.`;
+  }
+}
+
+// Gets new record numbers from the server before creating records, so two devices never issue
+// the same number. Without cloud sync, numbers come from this device's counters as before.
+async function reserveServerIds(kinds) {
+  stateService.clearReservedIds();
+  serverIdUnavailable = false;
+  const wanted = {};
+  Object.keys(kinds || {}).forEach(kind => { if (kinds[kind] > 0) wanted[kind] = kinds[kind]; });
+  if (!Object.keys(wanted).length || !googleIntegration.canCallApi()) return true;
+
+  try {
+    stateService.reserveIds(await googleIntegration.allocateIds(wanted));
+    return true;
+  } catch (error) {
+    serverIdUnavailable = true;
+    showToast(`Couldn't get a new number from Google Sheets (${error.message || error}). Check the connection and try again.`, 'error');
+    return false;
+  }
+}
+
+async function withServerIds(kinds, fn) {
+  if (!(await reserveServerIds(kinds))) return null;
+  try {
+    return await fn();
+  } finally {
+    stateService.clearReservedIds();
+  }
 }
 
 function hydrateGoogleConfigToUi() {
@@ -3697,12 +3888,15 @@ function hydrateGoogleConfigToUi() {
   if (sheetEl) sheetEl.value = cfg.spreadsheetId || '';
   if (rootEl) rootEl.value = cfg.driveRootId || '';
   if (autoRootEl) autoRootEl.value = cfg.autoCreateRoot === false ? 'false' : 'true';
+  const apiKeyEl = document.getElementById('s-api-key');
+  if (apiKeyEl) apiKeyEl.value = cfg.apiKey || '';
 }
 
 function collectGoogleConfigFromUi() {
   return {
     clientId: document.getElementById('s-google-client-id')?.value?.trim() || '',
     appsScriptUrl: document.getElementById('s-google-apps-script-url')?.value?.trim() || '',
+    apiKey: document.getElementById('s-api-key')?.value?.trim() || '',
     spreadsheetId: document.getElementById('s-business-sheet-id')?.value?.trim() || '',
     driveRootId: document.getElementById('s-drive-root-id')?.value?.trim() || '',
     autoCreateRoot: document.getElementById('s-auto-create-root')?.value !== 'false'
@@ -3743,7 +3937,8 @@ function updateGoogleStatusUi(payload) {
     spreadsheetLink.href = sheetUrl || '#';
   }
   if (sync) sync.textContent = payload?.message || 'Configuration saved locally.';
-  if (chip) chip.textContent = hasApi ? 'Google: Configured' : 'Google: Not Connected';
+  if (chip) refreshSyncChip();
+  if (!hasApi && sync && !payload?.message) sync.textContent = 'Add the Apps Script URL and API key to sync across devices.';
 }
 
 async function handleGoogleTestConnection() {
@@ -3799,28 +3994,18 @@ async function handleGoogleInitializeWorkspace() {
   }
 }
 
+// Full two-way sync on demand: sends this device's records and pulls everyone else's.
 async function handleGoogleSyncRegister() {
-  try {
-    updateGoogleStatusUi({ message: 'Syncing local register to Google Sheets...' });
-    await googleIntegration.syncBusinessRegister({
-      customers: bizState.customers,
-      quotations: bizState.quotations,
-      invoices: bizState.invoices,
-      payments: bizState.payments,
-      documentHistory: bizState.documentHistory || [],
-      letterheads: bizState.letterheads || [],
-      templates: bizState.templates || []
-    });
-    updateGoogleStatusUi({
-      drive: 'Connected',
-      sheets: 'Connected',
-      message: 'Business register sync completed successfully.'
-    });
-    showToast('Business register synced to Google Sheets.', 'success');
-  } catch (error) {
-    updateGoogleStatusUi({ message: error.message || 'Business register sync failed.' });
-    showToast(error.message || 'Failed to sync register.', 'error');
+  if (!googleIntegration.canCallApi()) {
+    updateGoogleStatusUi({ message: 'Add the Apps Script URL and API key, then click Save Config.' });
+    showToast('Add the Apps Script URL and API key in Settings first.', 'error');
+    return;
   }
+  updateGoogleStatusUi({ message: 'Syncing with Google Sheets...' });
+  const ok = await syncNow({ silent: false });
+  updateGoogleStatusUi(ok
+    ? { drive: 'Connected', sheets: 'Connected', message: 'Sync completed. This device now has every record from Google Sheets.' }
+    : { message: `Sync failed: ${lastCloudSyncError}` });
 }
 
 function toggleMobileNav(forceClose) {
@@ -3873,8 +4058,10 @@ function bindBusinessEvents() {
     saveGoogleConfigBtn.addEventListener('click', () => {
       const nextCfg = collectGoogleConfigFromUi();
       googleIntegration.setConfig(nextCfg);
-      updateGoogleStatusUi({ message: 'Google configuration saved locally.' });
+      lastCloudSyncError = '';
+      updateGoogleStatusUi({ message: 'Google configuration saved on this device.' });
       showToast('Google configuration saved.', 'success');
+      if (googleIntegration.canCallApi()) syncNow();
     });
   }
 
@@ -4334,9 +4521,9 @@ function saveExportSettings(settings) {
 function resetToDefaults() {
   if (!confirm('This will clear all current edits and restore defaults. Continue?')) return;
 
+  // Reset only the builder. Business records (including the Document Register) are left untouched.
   qRows = [];
   iRows = [];
-  bizState.documentHistory = [];
   currentQuotationEditId = null;
   currentInvoiceEditId = null;
   currentInvoiceSource = null;
@@ -4428,19 +4615,17 @@ function bindStaticEvents() {
 
   const saveQuotationBtn = document.getElementById('btn-save-quotation');
   if (saveQuotationBtn) {
-    saveQuotationBtn.addEventListener('click', () => {
+    saveQuotationBtn.addEventListener('click', async () => {
       setMode('quotation');
-      saveQuotationRecord();
-      switchView('quotations');
+      if (await saveQuotationRecord()) switchView('quotations');
     });
   }
 
   const saveInvoiceBtn = document.getElementById('btn-save-invoice');
   if (saveInvoiceBtn) {
-    saveInvoiceBtn.addEventListener('click', () => {
+    saveInvoiceBtn.addEventListener('click', async () => {
       setMode('invoice');
-      saveInvoiceRecord();
-      switchView('invoices');
+      if (await saveInvoiceRecord()) switchView('invoices');
     });
   }
 
@@ -5018,6 +5203,12 @@ function savePDF(options) {
   resetPaymentEntryForm('');
   resetLetterheadForm();
   resetTemplateForm();
+
+  // Cloud sync: push after every local save; pull on start and whenever the app comes back into view.
+  stateService.onSave = () => scheduleCloudSync();
+  document.addEventListener('visibilitychange', syncOnReturn);
+  window.addEventListener('focus', syncOnReturn);
+  syncNow();
 
   // Snapshot initial defaults for reset operation.
   document.querySelectorAll('.form-panel input, .form-panel textarea, .form-panel select').forEach(el => {

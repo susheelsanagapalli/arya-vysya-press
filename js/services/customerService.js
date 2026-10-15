@@ -14,16 +14,21 @@ export class CustomerService {
     return (this.getState().customers || []).find(customer => customer.id === customerId) || null;
   }
 
-  upsertFromBuilder(input) {
-    const state = this.getState();
-    const now = this.nowFn();
-
-    const existing = (state.customers || []).find(c => {
+  // The existing customer that `input` refers to, or null if it would be a new customer.
+  findMatch(input) {
+    return (this.getState().customers || []).find(c => {
       if (input.gstin && c.gstin && c.gstin === input.gstin) return true;
       if (input.phone && c.phone && c.phone === input.phone) return true;
       if (input.email && c.email && c.email === input.email) return true;
       return c.customerName === input.customerName && c.companyName === input.companyName;
-    });
+    }) || null;
+  }
+
+  upsertFromBuilder(input) {
+    const state = this.getState();
+    const now = this.nowFn();
+
+    const existing = this.findMatch(input);
 
     if (existing) {
       existing.lastUpdated = now;

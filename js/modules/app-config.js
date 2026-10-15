@@ -6,7 +6,7 @@ export const APP_KEYS = {
 
 export const DEFAULT_GOOGLE_CONFIG = {
   clientId: '908002559329-fqjvqhbn8ktc7s6sif7te1s98eabbrqg.apps.googleusercontent.com',
-  appsScriptUrl: 'https://script.google.com/macros/s/AKfycby7S5PKZ14rlsPsKDESUX1WKfeTzxro6HBfSHiQlHL-TRY4lvDtqf2H6vrMBX8fcUUt/exec',
+  appsScriptUrl: 'https://script.google.com/macros/s/AKfycbwvKObpGZqbFXEuNpVdiJskTK_FTVbYPyq_8BRFxiJPBe0IUyGo4PYeRd8TSaFHNQPL/exec',
   spreadsheetId: '',
   spreadsheetUrl: '',
   driveRootId: '',
@@ -15,8 +15,22 @@ export const DEFAULT_GOOGLE_CONFIG = {
   quotationsFolderUrl: '',
   invoicesFolderId: '',
   invoicesFolderUrl: '',
-  autoCreateRoot: true
+  autoCreateRoot: true,
+  // Shared secret checked by the Apps Script backend. Entered per device in Settings and kept
+  // only in that browser's storage; it never ships in the code. Sync stays off until it is set.
+  apiKey: ''
 };
+
+// Business register collections that are synced with the Google Sheet.
+export const SYNC_COLLECTIONS = [
+  'customers',
+  'quotations',
+  'invoices',
+  'payments',
+  'documentHistory',
+  'letterheads',
+  'templates'
+];
 
 export const REQUIRED_SHEETS = [
   'Customers',

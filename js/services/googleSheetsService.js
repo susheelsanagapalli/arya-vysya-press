@@ -16,31 +16,18 @@ export class GoogleSheetsService {
     });
   }
 
-  async upsertCustomers(customers) {
-    return this.postFn('upsertCustomers', { customers });
+  // Returns every record of every collection from the sheet.
+  async pullAll() {
+    return this.postFn('pullAll', {});
   }
 
-  async upsertQuotations(quotations) {
-    return this.postFn('upsertQuotations', { quotations });
+  // Upserts the given collections (newer version wins) and returns the full register afterwards.
+  async syncAll(collections) {
+    return this.postFn('syncAll', collections);
   }
 
-  async upsertInvoices(invoices) {
-    return this.postFn('upsertInvoices', { invoices });
-  }
-
-  async upsertPayments(payments) {
-    return this.postFn('upsertPayments', { payments });
-  }
-
-  async upsertDocumentHistory(documentHistory) {
-    return this.postFn('upsertDocumentHistory', { documentHistory });
-  }
-
-  async upsertLetterheads(letterheads) {
-    return this.postFn('upsertLetterheads', { letterheads });
-  }
-
-  async upsertTemplates(templates) {
-    return this.postFn('upsertTemplates', { templates });
+  // kinds: { invoice: 1, customer: 1 } -> data: { invoice: ['INV-00012'], customer: ['CUS-00004'] }
+  async allocateIds(kinds) {
+    return this.postFn('allocateIds', { kinds });
   }
 }

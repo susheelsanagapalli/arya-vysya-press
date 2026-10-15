@@ -32,19 +32,30 @@ export class GoogleIntegrationService {
     return this.getConfig();
   }
 
+  // Sync runs only when both the endpoint and the API key are configured.
   canCallApi() {
-    return !!this.config.appsScriptUrl;
+    return !!this.config.appsScriptUrl && !!String(this.config.apiKey || '').trim();
   }
 
   async post(action, payload) {
     if (!this.config.appsScriptUrl) {
       throw new Error('Apps Script URL is missing. Configure it in Settings.');
     }
+    if (!String(this.config.apiKey || '').trim()) {
+      throw new Error('API key is missing. Enter it in Settings.');
+    }
 
+    // text/plain keeps this a "simple" CORS request: Apps Script web apps don't answer the
+    // preflight that application/json triggers. Code.gs parses the body as JSON either way.
     const response = await fetch(this.config.appsScriptUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, config: this.config, payload })
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action,
+        apiKey: String(this.config.apiKey).trim(),
+        config: { spreadsheetId: this.config.spreadsheetId || '', driveRootId: this.config.driveRootId || '' },
+        payload
+      })
     });
 
     if (!response.ok) {
@@ -98,25 +109,21 @@ export class GoogleIntegrationService {
     };
   }
 
-  async syncBusinessRegister(payload) {
-    const [customers, quotations, invoices, payments, documentHistory, letterheads, templates] = await Promise.all([
-      this.sheets.upsertCustomers(payload.customers || []),
-      this.sheets.upsertQuotations(payload.quotations || []),
-      this.sheets.upsertInvoices(payload.invoices || []),
-      this.sheets.upsertPayments(payload.payments || []),
-      this.sheets.upsertDocumentHistory(payload.documentHistory || []),
-      this.sheets.upsertLetterheads(payload.letterheads || []),
-      this.sheets.upsertTemplates(payload.templates || [])
-    ]);
+  // Two-way sync in one locked call: pushes the local collections (newer version wins on the
+  // server) and returns the full register, which the caller merges back into local state.
+  async syncBusinessRegister(collections) {
+    const response = await this.sheets.syncAll(collections || {});
+    return response.data || {};
+  }
 
-    return {
-      customers: customers.data || {},
-      quotations: quotations.data || {},
-      invoices: invoices.data || {},
-      payments: payments.data || {},
-      documentHistory: documentHistory.data || {},
-      letterheads: letterheads.data || {},
-      templates: templates.data || {}
-    };
+  async pullAll() {
+    const response = await this.sheets.pullAll();
+    return response.data || {};
+  }
+
+  // Server-issued record numbers, e.g. { invoice: 1 } -> { invoice: ['INV-00012'] }.
+  async allocateIds(kinds) {
+    const response = await this.sheets.allocateIds(kinds || {});
+    return response.data || {};
   }
 }

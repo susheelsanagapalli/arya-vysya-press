@@ -139,8 +139,10 @@ export class LetterheadService {
       brandStyle: '',
       logoDriveFileId: '',
       logoDriveUrl: '',
-      createdDate: this.nowFn(),
-      lastUpdated: this.nowFn(),
+      // Fixed old timestamp: every device seeds this letterhead, and a real edit synced from
+      // another device must win over a freshly seeded copy.
+      createdDate: '2000-01-01T00:00:00.000Z',
+      lastUpdated: '2000-01-01T00:00:00.000Z',
       isDefault: true,
       status: 'Active'
     };
