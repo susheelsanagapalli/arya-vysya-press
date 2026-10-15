@@ -918,6 +918,135 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
   #print-area .items-tbl { min-width: 0 !important; }
 }
 
+/* ══ CLASSIC LOOK ══
+   Warm off-white ground, white surfaces with thin borders, gold only for the main action of a
+   screen, Playfair Display for titles, sentence-case labels. Placed before the responsive rules
+   so those still apply on small screens. */
+:root {
+  --app-bg: #F7F5F0;
+  --ink: #1F1D1A;
+  --muted: #6B655C;
+  --line: #E5E0D5;
+  --line-soft: #EEEAE2;
+  --gold-ink: #8A6200;
+  --serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+}
+body { background: var(--app-bg); color: var(--ink); }
+
+/* Sidebar */
+.mgmt-shell { grid-template-columns: 220px 1fr; }
+.mgmt-sidebar { background: #fff; color: var(--ink); border-right: 1px solid var(--line); }
+.mgmt-brand { padding: 22px 20px 18px; border-bottom: 1px solid var(--line-soft); }
+.mgmt-brand-title { font-family: var(--serif); font-size: 1.3rem; font-weight: 700; letter-spacing: 0; line-height: 1.2; }
+.mgmt-brand-sub { margin-top: 3px; font-size: 0.75rem; color: var(--muted); }
+.mgmt-nav { padding: 14px 12px; gap: 2px; }
+.mgmt-nav-btn { border: 0; border-radius: 6px; padding: 9px 14px; font-size: 0.875rem; color: #3D3933; letter-spacing: 0; }
+.mgmt-nav-btn:hover { background: #F3EFE6; color: var(--ink); }
+.mgmt-nav-btn.active { background: #F3ECDA; color: #5E4300; font-weight: 600; border: 0; box-shadow: inset 3px 0 0 var(--gold); }
+.mgmt-nav-btn[data-view-target="firms"] { margin-top: 10px; position: relative; }
+.mgmt-nav-btn[data-view-target="firms"]::before { content: ''; position: absolute; left: 8px; right: 8px; top: -6px; border-top: 1px solid var(--line-soft); }
+
+/* Header: the open screen's title on the left, the firm and actions on the right */
+.mgmt-header { padding: 14px 22px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.mgmt-header-left { display: flex; align-items: center; gap: 10px; }
+.mgmt-header-title { font-family: var(--serif); font-size: 1.6rem; font-weight: 700; letter-spacing: 0; line-height: 1.2; }
+.mgmt-actions { gap: 10px; }
+.firm-picker { font-size: 0.8125rem; font-weight: 400; gap: 8px; color: var(--muted); }
+.firm-picker[hidden] { display: none; }
+.firm-picker select { padding: 7px 10px; font-size: 0.8125rem; border: 1px solid #D9D3C7; border-radius: 6px; background: #fff; color: var(--ink); min-height: 34px; }
+.sync-button { display: inline-flex; align-items: center; gap: 8px; }
+.sync-button[aria-busy="true"] { cursor: progress; }
+.sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #B8B0A2; flex: none; }
+.sync-dot[data-state="ok"] { background: #2E8B57; }
+.sync-dot[data-state="busy"] { background: var(--gold); }
+.sync-dot[data-state="error"] { background: #C62828; }
+
+/* Screens: the header carries the title; each screen keeps its one-line description */
+.mgmt-view { padding: 20px 22px 32px; }
+.mgmt-view .view-title { display: none; }
+.view-head { margin-bottom: 16px; }
+.view-sub { margin-top: 0; font-size: 0.875rem; color: var(--muted); }
+
+/* Buttons: white with a thin border; gold is kept for the main action */
+.btn { border-radius: 6px; font-weight: 500; letter-spacing: 0; border-width: 1px; }
+.btn-sm { font-size: 0.78rem; padding: 7px 12px; }
+.btn-outline { background: #fff; border-color: #D9D3C7; color: var(--ink); }
+.btn-outline:hover { border-color: #B8B0A2; background: #FBFAF7; color: var(--ink); }
+.btn-gold { font-weight: 600; color: var(--ink); }
+.btn-danger { color: #A32020; border-color: #E6C4C4; }
+
+/* Cards, KPIs and register toolbars */
+.kpi-grid { gap: 14px; margin-bottom: 18px; }
+.kpi-card, .register-card { border: 1px solid var(--line); border-radius: 8px; box-shadow: none; }
+.kpi-card { padding: 16px 18px; }
+.kpi-label { font-size: 0.8125rem; color: var(--muted); text-transform: none; letter-spacing: 0; }
+.kpi-value { font-family: var(--serif); font-size: 1.65rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+@media (max-width: 680px) { .kpi-value { font-size: 1.15rem; } }
+#kpi-overdue { color: #A32020; }
+#kpi-paid-this-month { color: #1F6E39; }
+.register-card + .register-card { margin-top: 16px; }
+.register-toolbar { background: #fff; border-bottom: 1px solid var(--line-soft); padding: 12px 16px; gap: 12px; justify-content: flex-start; }
+.register-toolbar > strong { font-family: var(--serif); font-size: 1.1rem; font-weight: 700; }
+.search-input { width: min(380px, 100%); padding: 9px 12px; border: 1px solid #D9D3C7; border-radius: 6px; font-size: 0.8125rem; }
+
+/* Tables */
+.register-table { font-size: 0.8125rem; }
+.register-table th { background: #FAF8F3; color: #4A453E; font-size: 0.8125rem; font-weight: 600; text-transform: none; letter-spacing: 0; padding: 10px 7px; border-bottom: 1px solid var(--line); }
+.register-table td { padding: 10px 7px; border-bottom: 1px solid #F0ECE4; vertical-align: middle; white-space: normal; }
+/* Names may wrap so the table fits; numbers, amounts, dates and statuses stay on one line. */
+.register-table td:first-child, .register-table td.right-text, .register-table .badge { white-space: nowrap; }
+.register-table td { min-width: 0; }
+#invoices-tbody td:nth-child(3), #quotations-tbody td:nth-child(3), #payments-tbody td:nth-child(4) { min-width: 8.5rem; }
+.sub-line { font-size: 0.7rem; color: var(--muted); margin-top: 2px; white-space: nowrap; }
+/* Playfair's default old-style figures make 0 look like "o": use regular-height digits. */
+.kpi-value, .mgmt-header-title, .mgmt-brand-title, .topnav-title { font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "lnum" 1, "tnum" 1; }
+.preview-label { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 0.8rem; }
+.register-table th:first-child, .register-table td:first-child { padding-left: 16px; }
+.register-table th:last-child, .register-table td:last-child { padding-right: 16px; }
+.register-table tbody tr:hover td { background: #FBF8F1; }
+.register-table td.right-text { font-variant-numeric: tabular-nums; }
+.register-table td.row-actions { min-width: 0; white-space: nowrap; text-align: right; }
+.row-actions .btn { padding: 5px 8px; font-size: 0.75rem; }
+.row-cancelled td { color: #9A948A; }
+.firm-tag { color: #6B4E00; border-color: #E8C97A; border-radius: 10px; padding: 0 6px; }
+
+/* "⋯" row menu */
+.row-menu { display: inline-block; }
+.row-menu-toggle { width: 32px; padding: 6px 0 !important; display: inline-flex; align-items: center; justify-content: center; color: #4A453E; vertical-align: middle; }
+.row-menu-list { position: fixed; z-index: 400; min-width: 180px; background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(31, 29, 26, 0.12); padding: 6px 0; display: flex; flex-direction: column; text-align: left; }
+.row-menu-list[hidden] { display: none; }
+.row-menu-item { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 9px 14px; font: inherit; font-size: 0.8125rem; color: var(--ink); cursor: pointer; white-space: nowrap; }
+.row-menu-item:hover, .row-menu-item:focus-visible { background: #F3EFE6; outline: none; }
+.row-menu-item.danger { color: #A32020; border-top: 1px solid var(--line-soft); margin-top: 4px; padding-top: 11px; }
+
+/* Status badges: thin outline, sentence case */
+.badge { font-size: 0.75rem; font-weight: 600; text-transform: none; letter-spacing: 0; padding: 2px 10px; border-radius: 12px; }
+.badge-converted, .badge-paid { color: #1F6E39; border-color: #9FCFAE; background: #F2FAF4; }
+.badge-partially-paid, .badge-issued, .badge-sent { color: #7A5600; border-color: #E8C97A; background: #FFF9EA; }
+.badge-unpaid, .badge-draft { color: #254B9F; border-color: #AFC3EE; background: #F3F6FD; }
+.badge-overdue, .badge-rejected { color: #A32020; border-color: #E6AAAA; background: #FDF2F2; }
+.badge-cancelled, .badge-deleted, .badge-archived { color: var(--muted); border-color: #D9D3C7; background: #F7F5F0; }
+
+/* Forms (Settings, Firms, Templates, Payments, Builder) */
+.field label { text-transform: none; letter-spacing: 0; font-size: 0.75rem; color: #4A453E; }
+.field input, .field select, .field textarea { border: 1px solid #D9D3C7; border-radius: 6px; padding: 8px 10px; font-size: 0.8125rem; background: #fff; }
+.field input[readonly] { background: #F7F5F0; color: #4A453E; }
+.panel-title { font-family: var(--serif); font-size: 1rem; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--ink); }
+.field-help { color: var(--muted); }
+
+/* Builder: white toolbar with a serif title; the document itself is unchanged */
+.builder-shell { border: 1px solid var(--line); border-radius: 8px; background: var(--app-bg); }
+.builder-shell .topnav { background: #fff; color: var(--ink); border-bottom: 1px solid var(--line); padding: 12px 24px; }
+.topnav-brand { letter-spacing: 0; }
+.topnav-title { font-family: var(--serif); font-size: 1.35rem; font-weight: 700; }
+.topnav-sub { font-size: 0.75rem; color: var(--muted); font-weight: 400; margin-top: 2px; }
+.topnav-sub:empty { display: none; }
+.tab-bar { border-bottom: 1px solid var(--line); }
+.tab { font-size: 0.875rem; letter-spacing: 0; padding: 12px 20px; color: var(--muted); }
+.tab.active { color: var(--ink); border-bottom-color: var(--gold); }
+.form-panel { border-right: 1px solid var(--line); }
+.panel-section { border-bottom: 1px solid var(--line-soft); }
+
 @media (max-width: 1200px) {
   :root { --sidebar-w: 300px; }
   .preview-panel { padding: 22px; }
@@ -1044,8 +1173,8 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 <div class="mgmt-shell" id="mgmt-shell">
   <aside class="mgmt-sidebar" aria-label="Main navigation">
     <div class="mgmt-brand">
-      <div class="mgmt-brand-title" id="brand-firm-name">DOCUMENT MANAGER</div>
-      <div class="mgmt-brand-sub">Document Management</div>
+      <div class="mgmt-brand-title" id="brand-firm-name">Document Manager</div>
+      <div class="mgmt-brand-sub">Document Manager</div>
     </div>
     <div class="mgmt-nav" role="tablist" aria-label="Application sections">
       <button class="mgmt-nav-btn active" data-view-target="dashboard">Dashboard</button>
@@ -1057,28 +1186,26 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
       <button class="mgmt-nav-btn" data-view-target="firms">Firms</button>
       <button class="mgmt-nav-btn" data-view-target="templates">Templates</button>
       <button class="mgmt-nav-btn" data-view-target="settings">Settings</button>
-      <button class="mgmt-nav-btn" data-view-target="builder">Builder</button>
+      <button class="mgmt-nav-btn" data-view-target="builder">Document Builder</button>
     </div>
   </aside>
 
   <main class="mgmt-main">
     <header class="mgmt-header">
-      <div>
+      <div class="mgmt-header-left">
         <button class="btn btn-outline btn-sm mgmt-menu-btn" id="btn-mgmt-menu" aria-label="Open navigation menu">Menu</button>
-        <div class="mgmt-header-title" id="header-firm-name">Document Manager</div>
-        <div class="mgmt-header-sub">Customer -> Quotation -> Invoice -> Payment</div>
+        <h1 class="mgmt-header-title" id="header-page-title">Dashboard</h1>
       </div>
       <div class="mgmt-actions">
         <label class="firm-picker" for="active-firm" title="The firm new quotations, invoices and payments are created for">
           <span>Working as</span>
           <select id="active-firm" aria-label="Working as firm"></select>
         </label>
-        <label class="firm-picker" for="firm-filter" title="Which firm's records the registers and dashboard show">
-          <span>Show</span>
-          <select id="firm-filter" aria-label="Show records for"></select>
-        </label>
-        <span class="integration-chip" id="google-connection-chip">Google: Not Connected</span>
-        <button class="btn btn-outline btn-sm" id="btn-sync-now" title="Send this device's changes and get the latest from other devices">&#x21bb; Sync now</button>
+        <button type="button" class="btn btn-outline btn-sm sync-button" id="google-connection-chip" title="Sync with Google Sheets">
+          <span class="sync-dot" id="sync-dot" aria-hidden="true"></span>
+          <span id="sync-chip-text">Not connected</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"></path><path d="M21 3v6h-6"></path></svg>
+        </button>
         <button class="btn btn-outline btn-sm" id="btn-new-quotation">+ New Quotation</button>
         <button class="btn btn-gold btn-sm" id="btn-new-invoice">+ New Invoice</button>
       </div>
@@ -1090,6 +1217,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
           <div class="view-title">Dashboard</div>
           <div class="view-sub">Business overview from the operational register</div>
         </div>
+        <label class="firm-picker" for="firm-filter" title="Which firm's records to show"><span>Show</span><select class="firm-filter-select" id="firm-filter" aria-label="Show records for"></select></label>
       </div>
 
       <div class="kpi-grid" id="dashboard-kpis">
@@ -1188,6 +1316,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
       <div class="register-card">
         <div class="register-toolbar">
           <input class="search-input" id="search-quotations" placeholder="Search number, customer, company, status">
+          <label class="firm-picker" for="firm-filter-quotations" title="Which firm's records to show"><span>Show</span><select class="firm-filter-select" id="firm-filter-quotations" aria-label="Show records for"></select></label>
         </div>
         <div class="register-table-wrap">
           <table class="register-table">
@@ -1218,6 +1347,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
       <div class="register-card">
         <div class="register-toolbar">
           <input class="search-input" id="search-invoices" placeholder="Search invoice, customer, status">
+          <label class="firm-picker" for="firm-filter-invoices" title="Which firm's records to show"><span>Show</span><select class="firm-filter-select" id="firm-filter-invoices" aria-label="Show records for"></select></label>
         </div>
         <div class="register-table-wrap">
           <table class="register-table">
@@ -1231,7 +1361,6 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
                 <th>Balance Due</th>
                 <th>Due Date</th>
                 <th>Payment Status</th>
-                <th>Source Quotation</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -1326,6 +1455,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
       <div class="register-card">
         <div class="register-toolbar">
           <input class="search-input" id="search-payments" placeholder="Search payment ID, invoice, customer, reference">
+          <label class="firm-picker" for="firm-filter-payments" title="Which firm's records to show"><span>Show</span><select class="firm-filter-select" id="firm-filter-payments" aria-label="Show records for"></select></label>
         </div>
         <div class="register-table-wrap">
           <table class="register-table">
@@ -1359,6 +1489,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
       <div class="register-card">
         <div class="register-toolbar">
           <input class="search-input" id="search-documents" placeholder="Search document number, customer, type, status">
+          <label class="firm-picker" for="firm-filter-documents" title="Which firm's records to show"><span>Show</span><select class="firm-filter-select" id="firm-filter-documents" aria-label="Show records for"></select></label>
         </div>
         <div class="register-table-wrap">
           <table class="register-table">
@@ -1627,9 +1758,12 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 
 <!-- â•â• TOP NAV â•â• -->
 <nav class="topnav" aria-label="Primary actions">
-  <div class="topnav-brand"><span id="topnav-firm-name"></span><span>Document Builder</span></div>
+  <div class="topnav-brand">
+    <div class="topnav-title" id="topnav-firm-name">Document Builder</div>
+    <div class="topnav-sub">Quotations and invoices</div>
+  </div>
   <div class="topnav-actions">
-    <button class="btn btn-outline btn-sm" id="btn-open-drive-root">Open Drive Root</button>
+    <button class="btn btn-outline btn-sm" id="btn-open-drive-root">Open Drive folder</button>
     <button class="btn btn-outline btn-sm" id="btn-reset-top">Reset</button>
     <button class="btn btn-gold btn-sm" data-save-btn="quotation" id="btn-save-quotation" title="Save the quotation and its PDF to Google Drive">Save Quotation</button>
     <button class="btn btn-outline btn-sm" id="btn-print-invoice" hidden title="Save the invoice, then print a copy showing the Manual No.">Print</button>
@@ -1801,7 +1935,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
   <!-- â•â• RIGHT PREVIEW â•â• -->
   <div class="preview-panel">
     <div class="preview-controls">
-      <span class="preview-label">Live document preview - click any text to edit inline</span>
+      <span class="preview-label">Live preview · click any text to edit it</span>
       <span class="record-status" id="builder-record-status" aria-live="polite"></span>
     </div>
 
@@ -2269,7 +2403,8 @@ function formatDateForTable(value) {
   if (!value) return '--';
   const d = new Date(value);
   if (isNaN(d)) return '--';
-  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  // Non-breaking spaces keep a date on one line when table columns wrap.
+  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, ' ');
 }
 
 function getDatePlusDays(dateStr, days) {
@@ -3111,7 +3246,14 @@ function switchView(viewKey) {
 
   document.querySelectorAll('.mgmt-nav-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.viewTarget === viewKey);
+    if (btn.dataset.viewTarget === viewKey) {
+      btn.setAttribute('aria-current', 'page');
+      setText('header-page-title', btn.textContent.trim()); // the header names the open screen
+    } else {
+      btn.removeAttribute('aria-current');
+    }
   });
+  closeRowMenus();
   renderView(viewKey); // draws the screen if its data changed while it was hidden
 }
 
@@ -3148,11 +3290,73 @@ function matchesSearch(inputId, values) {
   return !q || values.some(v => String(v || '').toLowerCase().includes(q));
 }
 
+// Row actions: the main ones stay as buttons, the rest go in a "⋯" menu. Menu items keep the
+// same data-*-action attributes, so each table's click handler treats them like the buttons.
+function rowMenuItem(kind, id, action, label, danger) {
+  return `<button type="button" class="row-menu-item${danger ? ' danger' : ''}" role="menuitem" data-${kind}-action="${action}" data-${kind}-id="${escapeHtml(id)}">${label}</button>`;
+}
+
+function rowMenu(label, items) {
+  const list = items.filter(Boolean);
+  if (!list.length) return '';
+  return `<span class="row-menu"><button type="button" class="btn btn-outline btn-sm row-menu-toggle" data-menu-toggle aria-haspopup="menu" aria-expanded="false" aria-label="More actions for ${escapeHtml(label)}">`
+    + '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>'
+    + `</button><span class="row-menu-list" role="menu" hidden>${list.join('')}</span></span>`;
+}
+
+function closeRowMenus(except) {
+  document.querySelectorAll('.row-menu-list:not([hidden])').forEach(list => {
+    if (list === except) return;
+    list.hidden = true;
+    list.parentElement.querySelector('[data-menu-toggle]')?.setAttribute('aria-expanded', 'false');
+  });
+}
+
+// Opens a row's menu below its button. It is placed on the page itself (fixed), so a table's
+// scroll box can't cut it off; it opens upwards when there is no room below.
+function toggleRowMenu(toggle) {
+  const list = toggle.parentElement.querySelector('.row-menu-list');
+  if (!list) return;
+  const opening = list.hidden;
+  closeRowMenus(list);
+  list.hidden = !opening;
+  toggle.setAttribute('aria-expanded', opening ? 'true' : 'false');
+  if (!opening) return;
+  const rect = toggle.getBoundingClientRect();
+  const width = list.offsetWidth;
+  const height = list.offsetHeight;
+  const below = rect.bottom + 4 + height <= window.innerHeight;
+  list.style.left = `${Math.max(8, rect.right - width)}px`;
+  list.style.top = `${below ? rect.bottom + 4 : Math.max(8, rect.top - 4 - height)}px`;
+  list.querySelector('.row-menu-item')?.focus();
+}
+
+function bindRowMenus() {
+  document.addEventListener('click', e => {
+    const toggle = e.target.closest('[data-menu-toggle]');
+    if (toggle) {
+      toggleRowMenu(toggle);
+      return;
+    }
+    closeRowMenus(); // any other click (including choosing an item) closes the menu
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const open = document.querySelector('.row-menu-list:not([hidden])');
+    if (!open) return;
+    closeRowMenus();
+    open.parentElement.querySelector('[data-menu-toggle]')?.focus();
+  });
+  // A fixed menu would drift away from its row while scrolling: close it instead.
+  window.addEventListener('scroll', () => closeRowMenus(), true);
+  window.addEventListener('resize', () => closeRowMenus());
+}
+
 // "View file" when the document's PDF is in Google Drive, otherwise "Upload PDF".
 function fileActionButton(kind, item) {
   const id = escapeHtml(item.id);
   if (item.driveFileUrl) {
-    return `<button class="btn btn-gold btn-sm" data-${kind}-action="view-file" data-${kind}-id="${id}" title="Open the PDF in Google Drive">View file</button>`;
+    return `<button class="btn btn-outline btn-sm" data-${kind}-action="view-file" data-${kind}-id="${id}" title="Open the PDF in Google Drive">View file</button>`;
   }
   const title = item.pdfPending ? 'The PDF has not been saved to Google Drive yet' : 'Save this document as a PDF in Google Drive';
   return `<button class="btn btn-outline btn-sm" data-${kind}-action="upload-pdf" data-${kind}-id="${id}" title="${title}">${item.pdfPending ? 'Upload PDF (pending)' : 'Upload PDF'}</button>`;
@@ -3214,8 +3418,10 @@ function renderCustomersView() {
       <td>${buildStatusBadge(c.status || 'Active')}</td>
       <td class="row-actions">
         <button class="btn btn-outline btn-sm" data-customer-action="edit" data-customer-id="${escapeHtml(c.id)}">Edit</button>
-        <button class="btn btn-outline btn-sm" data-customer-action="archive" data-customer-id="${escapeHtml(c.id)}">${c.status === 'Archived' ? 'Activate' : 'Archive'}</button>
-        <button class="btn btn-outline btn-sm btn-danger" data-customer-action="delete" data-customer-id="${escapeHtml(c.id)}">Delete</button>
+        ${rowMenu(c.customerName || c.id, [
+          rowMenuItem('customer', c.id, 'archive', c.status === 'Archived' ? 'Activate' : 'Archive'),
+          rowMenuItem('customer', c.id, 'delete', 'Delete customer', true)
+        ])}
       </td>
     </tr>`;
   }).join('') + more;
@@ -3247,10 +3453,13 @@ function renderQuotationsView() {
       <td>${escapeHtml(item.convertedInvoiceId || '--')}</td>
       <td class="row-actions">
         ${fileActionButton('quotation', item)}
-        <button class="btn btn-outline btn-sm" data-quotation-action="edit" data-quotation-id="${id}">Edit</button>
-        <button class="btn btn-outline btn-sm" data-quotation-action="duplicate" data-quotation-id="${id}">Duplicate</button>
-        <button class="btn btn-outline btn-sm" data-quotation-action="create-invoice" data-quotation-id="${id}">Create Invoice</button>
-        <button class="btn btn-outline btn-sm btn-danger" data-quotation-action="delete" data-quotation-id="${id}">Delete</button>
+        <button class="btn btn-outline btn-sm" data-quotation-action="create-invoice" data-quotation-id="${id}">Create invoice</button>
+        ${rowMenu(item.quotationNumber || item.id, [
+          rowMenuItem('quotation', item.id, 'edit', 'Edit'),
+          rowMenuItem('quotation', item.id, 'duplicate', 'Duplicate'),
+          item.driveFileUrl ? rowMenuItem('quotation', item.id, 'upload-pdf', 'Upload PDF again') : '',
+          rowMenuItem('quotation', item.id, 'delete', 'Delete quotation', true)
+        ])}
       </td>
     </tr>`;
   }).join('') + more;
@@ -3266,14 +3475,14 @@ function renderInvoicesView() {
   const rows = active(bizState.invoices)
     .filter(item => matchesFirmFilter(item) && matchesSearch('search-invoices', [item.invoiceNumber, item.manualInvoiceNumber, item.customerName, item.paymentStatus, item.quotationNumber]))
     .sort(newestFirst('invoiceDate'));
-  const { shown, more } = pageRows('invoices', rows, 10);
+  const { shown, more } = pageRows('invoices', rows, 9);
 
   body.innerHTML = shown.map(item => {
     const id = escapeHtml(item.id);
     const cancelled = item.status === 'Cancelled';
     return `
     <tr${cancelled ? ' class="row-cancelled"' : ''}>
-      <td>${escapeHtml(item.invoiceNumber || item.id)}${firmTag(item)}${manualNoTag(item)}</td>
+      <td>${escapeHtml(item.invoiceNumber || item.id)}${firmTag(item)}${manualNoTag(item)}${item.quotationNumber ? `<div class="sub-line">From ${escapeHtml(item.quotationNumber)}</div>` : ''}</td>
       <td>${formatDateForTable(item.invoiceDate)}</td>
       <td>${escapeHtml(item.customerName || '--')}</td>
       <td class="right-text">${formatMoney(item.grandTotal || 0)}</td>
@@ -3281,20 +3490,22 @@ function renderInvoicesView() {
       <td class="right-text">${balanceCell(item)}</td>
       <td>${formatDateForTable(item.dueDate)}</td>
       <td>${buildStatusBadge(item.paymentStatus || 'Unpaid')}</td>
-      <td>${escapeHtml(item.quotationNumber || '--')}</td>
       <td class="row-actions">
         ${fileActionButton('invoice', item)}
-        <button class="btn btn-outline btn-sm" data-invoice-action="edit" data-invoice-id="${id}">Edit</button>
-        <button class="btn btn-outline btn-sm" data-invoice-action="duplicate" data-invoice-id="${id}">Duplicate</button>
-        ${cancelled ? '' : `<button class="btn btn-outline btn-sm" data-invoice-action="record-payment" data-invoice-id="${id}">Record Payment</button>`}
-        ${cancelled
-          ? `<button class="btn btn-outline btn-sm" data-invoice-action="restore" data-invoice-id="${id}">Undo Cancel</button>`
-          : `<button class="btn btn-outline btn-sm btn-danger" data-invoice-action="cancel" data-invoice-id="${id}">Cancel</button>`}
+        ${cancelled ? '' : `<button class="btn btn-outline btn-sm" data-invoice-action="record-payment" data-invoice-id="${id}">Record payment</button>`}
+        ${rowMenu(item.invoiceNumber || item.id, [
+          rowMenuItem('invoice', item.id, 'edit', 'Edit'),
+          rowMenuItem('invoice', item.id, 'duplicate', 'Duplicate'),
+          item.driveFileUrl ? rowMenuItem('invoice', item.id, 'upload-pdf', 'Upload PDF again') : '',
+          cancelled
+            ? rowMenuItem('invoice', item.id, 'restore', 'Undo cancel')
+            : rowMenuItem('invoice', item.id, 'cancel', 'Cancel invoice', true)
+        ])}
       </td>
     </tr>`;
   }).join('') + more;
 
-  if (!rows.length) body.innerHTML = '<tr><td colspan="10">No invoices found.</td></tr>';
+  if (!rows.length) body.innerHTML = '<tr><td colspan="9">No invoices found.</td></tr>';
 }
 
 function renderPaymentsView() {
@@ -3319,7 +3530,7 @@ function renderPaymentsView() {
       <td>${escapeHtml(item.paymentDetails || item.transactionReference || '--')}</td>
       <td class="row-actions">
         <button class="btn btn-outline btn-sm" data-payment-action="edit" data-payment-id="${escapeHtml(item.id)}">Edit</button>
-        <button class="btn btn-outline btn-sm btn-danger" data-payment-action="delete" data-payment-id="${escapeHtml(item.id)}">Delete</button>
+        ${rowMenu(item.id, [rowMenuItem('payment', item.id, 'delete', 'Delete payment', true)])}
       </td>
     </tr>
   `).join('') + more;
@@ -3381,7 +3592,7 @@ function renderDashboardView() {
       <td>${formatDateForTable(inv.dueDate)}</td>
       <td class="row-actions">
         ${fileActionButton('invoice', inv)}
-        <button class="btn btn-outline btn-sm" data-invoice-action="record-payment" data-invoice-id="${escapeHtml(inv.id)}">Record Payment</button>
+        <button class="btn btn-outline btn-sm" data-invoice-action="record-payment" data-invoice-id="${escapeHtml(inv.id)}">Record payment</button>
       </td>
     </tr>
   `).join('');
@@ -3709,12 +3920,14 @@ function renderTemplatesView() {
       <td>${escapeHtml(String(item.gstPct ?? '--'))}</td>
       <td>${escapeHtml(item.paymentTerms || '--')}</td>
       <td>${buildStatusBadge(item.status || 'Active')}</td>
-      <td>
-        <button class="btn btn-outline btn-sm" data-template-action="edit" data-template-id="${escapeHtml(item.id)}">Edit</button>
-        <button class="btn btn-outline btn-sm" data-template-action="duplicate" data-template-id="${escapeHtml(item.id)}">Duplicate</button>
+      <td class="row-actions">
         <button class="btn btn-outline btn-sm" data-template-action="apply" data-template-id="${escapeHtml(item.id)}">Apply</button>
-        <button class="btn btn-outline btn-sm" data-template-action="archive" data-template-id="${escapeHtml(item.id)}">${item.status === 'Archived' ? 'Activate' : 'Archive'}</button>
-        <button class="btn btn-outline btn-sm btn-danger" data-template-action="delete" data-template-id="${escapeHtml(item.id)}">Delete</button>
+        ${rowMenu(item.templateName || item.id, [
+          rowMenuItem('template', item.id, 'edit', 'Edit'),
+          rowMenuItem('template', item.id, 'duplicate', 'Duplicate'),
+          rowMenuItem('template', item.id, 'archive', item.status === 'Archived' ? 'Activate' : 'Archive'),
+          rowMenuItem('template', item.id, 'delete', 'Delete template', true)
+        ])}
       </td>
     </tr>
   `).join('');
@@ -4136,24 +4349,27 @@ function initFirmSelection() {
 function renderFirmPickers() {
   const firms = firmsList();
   const activeSelect = document.getElementById('active-firm');
-  const filterSelect = document.getElementById('firm-filter');
   if (activeSelect) {
     activeSelect.innerHTML = firms.length
       ? firms.map(f => `<option value="${escapeHtml(f.id)}">${escapeHtml(f.name)} (${escapeHtml(f.id)})</option>`).join('')
       : '<option value="">No firm yet</option>';
     activeSelect.value = activeFirmId;
   }
-  if (filterSelect) {
-    filterSelect.innerHTML = ['<option value="all">All firms</option>']
-      .concat(firms.map(f => `<option value="${escapeHtml(f.id)}">${escapeHtml(f.name)}</option>`)).join('');
-    filterSelect.value = firmFilter;
-  }
+  // One "Show" filter on the dashboard and in each register toolbar, all kept in step.
+  const filterOptions = ['<option value="all">All firms</option>']
+    .concat(firms.map(f => `<option value="${escapeHtml(f.id)}">${escapeHtml(f.name)}</option>`)).join('');
+  document.querySelectorAll('.firm-filter-select').forEach(select => {
+    select.innerHTML = filterOptions;
+    select.value = firmFilter;
+    // With a single firm there is nothing to filter.
+    const picker = select.closest('.firm-picker');
+    if (picker) picker.hidden = firms.length < 2;
+  });
   const summary = document.getElementById('builder-firm-summary');
   const firm = getActiveFirm();
   // App branding shows the firm being worked as.
-  setText('brand-firm-name', firm ? firm.name.toUpperCase() : 'DOCUMENT MANAGER');
-  setText('header-firm-name', firm ? firm.name : 'Document Manager');
-  setText('topnav-firm-name', firm ? `${firm.name.toUpperCase()} — ` : '');
+  setText('brand-firm-name', firm ? firm.name : 'No firm yet');
+  setText('topnav-firm-name', firm ? firm.name : 'Document Builder');
   document.title = firm ? `${firm.name} - Document Manager` : 'Document Manager';
   if (summary) {
     summary.innerHTML = firm
@@ -4695,39 +4911,44 @@ function syncOnReturn() {
 function refreshSyncChip(phase) {
   const chip = document.getElementById('google-connection-chip');
   const message = document.getElementById('status-sync-message');
-  let text = googleIntegration.hasEndpoint() ? 'Google: Not signed in' : 'Google: Not connected';
+  let text = googleIntegration.hasEndpoint() ? 'Sign in to sync' : 'Not connected';
+  let state = 'off';
   let title = googleIntegration.hasEndpoint()
     ? 'Click to sign in with the business password and sync across devices.'
     : 'Add the Apps Script URL in Settings to sync across devices.';
+  let syncedTime = '';
 
   if (googleIntegration.canCallApi()) {
     if (phase === 'syncing') {
-      text = 'Google: Syncing...';
+      text = 'Syncing...';
+      state = 'busy';
       title = 'Syncing with Google Sheets';
     } else if (lastCloudSyncError) {
-      text = 'Google: Sync error';
-      title = lastCloudSyncError;
+      text = 'Sync error';
+      state = 'error';
+      title = `${lastCloudSyncError} Click to try again.`;
     } else if (lastCloudSyncAt) {
-      const time = new Date(lastCloudSyncAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-      text = `Google: Synced ${time}`;
-      title = 'All changes are saved to Google Sheets.';
+      syncedTime = new Date(lastCloudSyncAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      text = `Synced ${syncedTime}`;
+      state = 'ok';
+      title = 'All changes are saved to Google Sheets. Click to sync now.';
     } else {
-      text = 'Google: Connected';
-      title = 'Waiting for the first sync.';
+      text = 'Connected';
+      state = 'ok';
+      title = 'Waiting for the first sync. Click to sync now.';
     }
   }
 
+  // One button shows the sync state and syncs when clicked (or asks to sign in).
+  setText('sync-chip-text', text);
+  const dot = document.getElementById('sync-dot');
+  if (dot) dot.dataset.state = state;
   if (chip) {
-    chip.textContent = text;
     chip.title = title;
-  }
-  const syncBtn = document.getElementById('btn-sync-now');
-  if (syncBtn) {
-    syncBtn.disabled = phase === 'syncing';
-    syncBtn.innerHTML = phase === 'syncing' ? 'Syncing...' : '&#x21bb; Sync now';
+    chip.setAttribute('aria-busy', phase === 'syncing' ? 'true' : 'false');
   }
   if (message && phase !== 'syncing' && (lastCloudSyncError || lastCloudSyncAt)) {
-    message.textContent = lastCloudSyncError ? `Last sync failed: ${lastCloudSyncError}` : `Last synced at ${text.replace('Google: Synced ', '')}.`;
+    message.textContent = lastCloudSyncError ? `Last sync failed: ${lastCloudSyncError}` : `Last synced at ${syncedTime}.`;
   }
 }
 
@@ -6116,6 +6337,7 @@ async function uploadPdfForRecord(kind, recordId) {
 (function init() {
   bindStaticEvents();
   bindBusinessEvents();
+  bindRowMenus();
   improveFormAccessibility();
   installEditableGuards();
 
@@ -6138,11 +6360,11 @@ async function uploadPdfForRecord(kind, recordId) {
   window.addEventListener('focus', syncOnReturn);
   // Firms: switcher, filter, Firms screen, builder shortcut, customer pickers.
   document.getElementById('active-firm')?.addEventListener('change', e => setActiveFirm(e.target.value));
-  document.getElementById('firm-filter')?.addEventListener('change', e => {
+  document.querySelectorAll('.firm-filter-select').forEach(select => select.addEventListener('change', e => {
     firmFilter = e.target.value || 'all';
     saveUiPrefs();
-    renderBusinessViews();
-  });
+    renderBusinessViews(); // also sets every other "Show" filter to the same firm
+  }));
   document.getElementById('firm-entry-form')?.addEventListener('submit', saveFirmEntry);
   document.getElementById('btn-firm-reset')?.addEventListener('click', () => hydrateFirmForm(null));
   document.getElementById('firm-logo')?.addEventListener('change', e => handleFirmLogoUpload(e.target));
@@ -6185,14 +6407,9 @@ async function uploadPdfForRecord(kind, recordId) {
   document.getElementById('btn-signin-skip')?.addEventListener('click', skipSignIn);
   document.getElementById('btn-signout')?.addEventListener('click', () => signOutDevice(false));
   document.getElementById('btn-signout-clear')?.addEventListener('click', () => signOutDevice(true));
-  document.getElementById('btn-sync-now')?.addEventListener('click', () => {
-    if (googleIntegration.canCallApi()) syncNow({ silent: false });
-    else if (googleIntegration.hasEndpoint()) openSignIn('Sign in to sync with your other devices.');
-    else showToast('Add the Apps Script URL in Settings first.', 'error');
-  });
   document.getElementById('google-connection-chip')?.addEventListener('click', () => {
     if (googleIntegration.canCallApi()) syncNow({ silent: false });
-    else if (googleIntegration.hasEndpoint()) openSignIn();
+    else if (googleIntegration.hasEndpoint()) openSignIn('Sign in to sync with your other devices.');
     else switchView('settings');
   });
 
