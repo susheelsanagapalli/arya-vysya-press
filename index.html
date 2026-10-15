@@ -501,6 +501,14 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 }
 .modal-check input { width: auto; }
 .signin-error { color: var(--red); min-height: 1em; margin-top: 8px; }
+.row-actions { white-space: nowrap; }
+.row-actions .btn { margin: 1px 0; }
+.btn-danger { color: var(--red); border-color: #e7b3b3; }
+.btn-danger:hover { background: #ffecec; border-color: var(--red); color: var(--red); }
+.row-cancelled td { color: #999; text-decoration: line-through; }
+.row-cancelled td.row-actions { text-decoration: none; }
+.status-select { padding: 4px 6px; font-size: 0.72rem; border: 1px solid #ddd; border-radius: 3px; font-family: 'Inter', sans-serif; }
+.muted-text { color: #999; font-size: 0.72rem; }
 .record-status { font-size: 0.72rem; color: var(--muted); }
 .record-status strong { color: var(--ink); }
 .record-status button { background: none; border: none; color: var(--gold-dark); font-weight: 600; cursor: pointer; padding: 0; font-size: 0.72rem; text-decoration: underline; }
@@ -1120,6 +1128,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
                 <th>Customer</th>
                 <th>Date</th>
                 <th>Status</th>
+                <th>File</th>
               </tr>
             </thead>
             <tbody id="dashboard-recent-tbody"></tbody>
@@ -1322,6 +1331,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
                 <th>Credited To</th>
                 <th>Transferred To</th>
                 <th>Details</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody id="payments-tbody"></tbody>
@@ -2026,6 +2036,64 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
   </div>
 </div>
 
+<div class="modal-backdrop" id="customer-modal">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="customer-modal-title">
+    <form id="customer-form">
+      <div class="modal-title" id="customer-modal-title">New customer</div>
+      <div class="field">
+        <label for="cust-name">Customer / Company name</label>
+        <input id="cust-name" type="text" required>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="cust-contact">Contact person</label>
+          <input id="cust-contact" type="text">
+        </div>
+        <div class="field">
+          <label for="cust-gstin">GSTIN</label>
+          <input id="cust-gstin" type="text" maxlength="15" style="text-transform:uppercase;">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="cust-phone">Phone</label>
+          <input id="cust-phone" type="tel">
+        </div>
+        <div class="field">
+          <label for="cust-email">Email</label>
+          <input id="cust-email" type="email">
+        </div>
+      </div>
+      <div class="field">
+        <label for="cust-billing">Billing address</label>
+        <textarea id="cust-billing" rows="2"></textarea>
+      </div>
+      <div class="field">
+        <label for="cust-shipping">Shipping address (if different)</label>
+        <textarea id="cust-shipping" rows="2"></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="cust-state">State</label>
+          <input id="cust-state" type="text">
+        </div>
+        <div class="field">
+          <label for="cust-pincode">Pincode</label>
+          <input id="cust-pincode" type="text" inputmode="numeric">
+        </div>
+      </div>
+      <div class="field">
+        <label for="cust-notes">Notes</label>
+        <textarea id="cust-notes" rows="2"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="btn-customer-cancel">Cancel</button>
+        <button type="submit" class="btn btn-gold" id="btn-customer-save">Save customer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="signin-modal">
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="signin-title">
     <form id="signin-form">
@@ -2318,10 +2386,22 @@ function normalizePaymentStatus(invoice) {
   return 'Unpaid';
 }
 
+// Records not deleted. Deleted records stay in storage (and the sheet) so the deletion syncs.
+function active(list) {
+  return (list || []).filter(item => item && !item.deleted);
+}
+
+// Amount paid is always the sum of the invoice's payments, so editing or deleting a payment
+// can never leave the invoice out of step. Cancelled invoices owe nothing.
 function recalcInvoiceFinancials(invoice, touchTimestamp) {
   const total = Number(invoice.grandTotal || 0);
-  const paid = Number(invoice.amountPaid || 0);
-  invoice.balanceDue = Math.max(0, total - paid);
+  const linked = (bizState.payments || []).filter(payment => payment && payment.invoiceId === invoice.id);
+  // Invoices with payment records (including deleted ones) are always derived from them.
+  const paid = linked.length
+    ? active(linked).reduce((sum, payment) => sum + Number(payment.amountReceived || 0), 0)
+    : Number(invoice.amountPaid || 0);
+  invoice.amountPaid = Math.round(paid * 100) / 100;
+  invoice.balanceDue = invoice.status === 'Cancelled' ? 0 : Math.max(0, total - invoice.amountPaid);
   invoice.paymentStatus = normalizePaymentStatus(invoice);
   if (touchTimestamp) invoice.lastUpdated = businessNowIso();
 }
@@ -2518,8 +2598,12 @@ function refreshBuilderRecordStatus() {
   if (!el) return;
   const kind = mode === 'quotation' ? 'quotation' : 'invoice';
   const id = mode === 'quotation' ? currentQuotationEditId : currentInvoiceEditId;
+  const record = id ? (kind === 'quotation' ? bizState.quotations : bizState.invoices).find(item => item.id === id) : null;
+  const fileLink = record && record.driveFileUrl
+    ? ` &middot; <button type="button" data-view-file="${kind}">View file</button>`
+    : (record && record.pdfPending ? ' &middot; PDF not in Google Drive yet' : '');
   el.innerHTML = id
-    ? `Editing <strong>${escapeHtml(id)}</strong> &middot; saving updates it &middot; <button type="button" data-start-new="${kind}">Start a new ${kind}</button>`
+    ? `Editing <strong>${escapeHtml(id)}</strong> &middot; saving updates it${fileLink} &middot; <button type="button" data-start-new="${kind}">Start a new ${kind}</button>`
     : `New ${kind} &middot; gets its number when saved`;
 }
 
@@ -2540,17 +2624,18 @@ async function exportAndSaveActiveDocument(exportSettings) {
 
   savePDF(exportSettings || getExportSettings());
 
+  const kind = mode === 'quotation' ? 'quotation' : 'invoice';
   if (!googleIntegration.canCallApi()) {
-    showToast('Document saved on this device. Sign in (click the Google chip at the top) to sync across devices.', 'success');
+    markPdfPending(kind, savedRecord, true);
+    showToast('Document saved on this device. Sign in (click the Google chip at the top) to sync and save PDFs to Google Drive.', 'success');
     return;
   }
 
   const idLabel = savedRecord.quotationNumber || savedRecord.invoiceNumber || savedRecord.id;
+  const uploaded = await uploadRecordPdf(kind, savedRecord.id, { silent: true });
   const synced = await syncNow();
-  showToast(
-    synced ? `${idLabel} exported and synced to Google Sheets.` : `${idLabel} exported. Sync failed; it will retry automatically.`,
-    synced ? 'success' : 'error'
-  );
+  if (uploaded && synced) showToast(`${idLabel} saved to Google Drive and synced.`, 'success');
+  else if (!synced) showToast(`${idLabel} exported. Sync failed; it will retry automatically.`, 'error');
 }
 
 function loadQuotationIntoInvoiceBuilder(quotationId, forceDuplicate) {
@@ -2700,8 +2785,8 @@ function populatePaymentInvoiceOptions(preferredInvoiceId) {
   const currentValue = preferredInvoiceId || select.value;
   const options = ['<option value="">Select Invoice</option>'];
 
-  bizState.invoices
-    .slice()
+  active(bizState.invoices)
+    .filter(invoice => invoice.status !== 'Cancelled' || invoice.id === currentValue)
     .sort((a, b) => new Date(b.invoiceDate || b.createdDate) - new Date(a.invoiceDate || a.createdDate))
     .forEach(invoice => {
       const label = `${invoice.invoiceNumber || invoice.id} | ${invoice.customerName || '--'} | Due ${formatMoney(invoice.balanceDue || 0)}`;
@@ -2751,6 +2836,10 @@ function resetPaymentEntryForm(preferredInvoiceId) {
   const details = document.getElementById('p-payment-details');
   const notes = document.getElementById('p-payment-notes');
 
+  editingPaymentId = null;
+  const submitButton = form.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.textContent = 'Record Payment';
+
   if (paymentDate) paymentDate.value = todayIsoDate();
   if (amount) amount.value = '';
   if (mode) mode.value = 'UPI';
@@ -2789,19 +2878,65 @@ function appendPaymentForInvoice(invoice, payload) {
   });
 
   bizState = stateService.getState();
-  const invoiceRecord = bizState.invoices.find(item => item.id === invoice.id);
-  if (invoiceRecord) {
-    invoiceRecord.amountPaid = Number(invoiceRecord.amountPaid || 0) + amount;
-    recalcInvoiceFinancials(invoiceRecord, true);
-    upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Invoice', invoiceRecord));
-  }
+  refreshInvoiceAfterPaymentChange(invoice.id);
+  upsertPaymentHistoryEntry(payment);
+}
 
+// Re-derives the invoice's paid amount/status from its payments and records the change.
+function refreshInvoiceAfterPaymentChange(invoiceId) {
+  const invoiceRecord = bizState.invoices.find(item => item.id === invoiceId);
+  if (!invoiceRecord) return;
+  recalcInvoiceFinancials(invoiceRecord, true);
+  upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Invoice', invoiceRecord));
+}
+
+function upsertPaymentHistoryEntry(payment) {
   upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Payment', payment, {
     documentNumber: payment.id,
-    status: 'Recorded',
+    status: payment.deleted ? 'Deleted' : 'Recorded',
     sourceInvoiceId: payment.invoiceId || '',
     sourceQuotationId: payment.quotationId || ''
   }));
+}
+
+let editingPaymentId = null;
+
+function loadPaymentForEdit(paymentId) {
+  const payment = active(bizState.payments).find(item => item.id === paymentId);
+  if (!payment) {
+    showToast('Payment not found.', 'error');
+    return;
+  }
+  resetPaymentEntryForm(payment.invoiceId);
+  editingPaymentId = payment.id;
+  const set = (id, value) => { const el = document.getElementById(id); if (el) el.value = value ?? ''; };
+  set('p-payment-date', payment.paymentDate);
+  set('p-amount-received', payment.amountReceived);
+  set('p-payment-mode', payment.paymentMode || 'Other');
+  set('p-reference', payment.transactionReference);
+  set('p-bank-account', payment.bankAccount);
+  set('p-credited-to', payment.creditedTo);
+  set('p-transferred-to', payment.transferredTo);
+  set('p-payment-details', payment.paymentDetails);
+  set('p-payment-notes', payment.notes);
+  const submitButton = document.querySelector('#payment-entry-form button[type="submit"]');
+  if (submitButton) submitButton.textContent = `Update ${payment.id}`;
+  document.getElementById('p-amount-received')?.focus();
+  showToast(`Editing payment ${payment.id}. Click "Update ${payment.id}" to save, or Reset to cancel.`, 'success');
+}
+
+function deletePayment(paymentId) {
+  const payment = active(bizState.payments).find(item => item.id === paymentId);
+  if (!payment) return;
+  if (!confirm(`Delete payment ${payment.id} of ${formatMoney(payment.amountReceived)} for ${payment.invoiceNumber}? The invoice balance will be updated.`)) return;
+  paymentService.update(payment.id, { deleted: true });
+  bizState = stateService.getState();
+  refreshInvoiceAfterPaymentChange(payment.invoiceId);
+  upsertPaymentHistoryEntry({ ...payment, deleted: true });
+  if (editingPaymentId === payment.id) resetPaymentEntryForm(payment.invoiceId);
+  saveBusinessState();
+  renderBusinessViews();
+  showToast(`Payment ${payment.id} deleted.`, 'success');
 }
 
 async function submitStructuredPaymentForm(event) {
@@ -2817,9 +2952,13 @@ async function submitStructuredPaymentForm(event) {
     return;
   }
 
-  const invoice = bizState.invoices.find(item => item.id === invoiceId);
+  const invoice = active(bizState.invoices).find(item => item.id === invoiceId);
   if (!invoice) {
     showToast('Selected invoice was not found.', 'error');
+    return;
+  }
+  if (invoice.status === 'Cancelled') {
+    showToast(`${invoice.invoiceNumber} is cancelled; payments can't be recorded against it.`, 'error');
     return;
   }
 
@@ -2834,7 +2973,8 @@ async function submitStructuredPaymentForm(event) {
   }
 
   recalcInvoiceFinancials(invoice);
-  const projected = Number(invoice.amountPaid || 0) + amount;
+  const editedPayment = editingPaymentId ? active(bizState.payments).find(item => item.id === editingPaymentId) : null;
+  const projected = Number(invoice.amountPaid || 0) - Number(editedPayment && editedPayment.invoiceId === invoice.id ? editedPayment.amountReceived : 0) + amount;
   if (projected > Number(invoice.grandTotal || 0)) {
     const allowOverpay = confirm('Payment exceeds invoice grand total. Continue with overpayment?');
     if (!allowOverpay) return;
@@ -2851,6 +2991,29 @@ async function submitStructuredPaymentForm(event) {
     paymentDetails: (document.getElementById('p-payment-details')?.value || '').trim(),
     notes: (document.getElementById('p-payment-notes')?.value || '').trim()
   };
+
+  if (editedPayment) {
+    // Update an existing payment (it may also have been moved to another invoice).
+    const previousInvoiceId = editedPayment.invoiceId;
+    paymentService.update(editedPayment.id, {
+      ...paymentFields,
+      paymentMode: PAYMENT_MODES.includes(paymentFields.paymentMode) ? paymentFields.paymentMode : 'Other',
+      invoiceId: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      quotationId: invoice.quotationId || '',
+      customerId: invoice.customerId,
+      customerName: invoice.customerName
+    });
+    bizState = stateService.getState();
+    refreshInvoiceAfterPaymentChange(invoice.id);
+    if (previousInvoiceId !== invoice.id) refreshInvoiceAfterPaymentChange(previousInvoiceId);
+    upsertPaymentHistoryEntry(bizState.payments.find(item => item.id === editedPayment.id));
+    saveBusinessState();
+    renderBusinessViews();
+    resetPaymentEntryForm(invoice.id);
+    showToast(`Payment ${editedPayment.id} updated.`, 'success');
+    return;
+  }
 
   const recorded = await withServerIds({ payment: 1 }, () => {
     appendPaymentForInvoice(invoice, paymentFields);
@@ -2888,15 +3051,27 @@ function switchView(viewKey) {
   });
 }
 
+function matchesSearch(inputId, values) {
+  const q = (document.getElementById(inputId)?.value || '').toLowerCase().trim();
+  return !q || values.some(v => String(v || '').toLowerCase().includes(q));
+}
+
+// "View file" when the document's PDF is in Google Drive, otherwise "Upload PDF".
+function fileActionButton(kind, item) {
+  const id = escapeHtml(item.id);
+  if (item.driveFileUrl) {
+    return `<button class="btn btn-gold btn-sm" data-${kind}-action="view-file" data-${kind}-id="${id}" title="Open the PDF in Google Drive">View file</button>`;
+  }
+  const title = item.pdfPending ? 'The PDF has not been saved to Google Drive yet' : 'Save this document as a PDF in Google Drive';
+  return `<button class="btn btn-outline btn-sm" data-${kind}-action="upload-pdf" data-${kind}-id="${id}" title="${title}">${item.pdfPending ? 'Upload PDF (pending)' : 'Upload PDF'}</button>`;
+}
+
+const QUOTATION_STATUSES = ['Draft', 'Issued', 'Sent', 'Accepted', 'Rejected'];
+
 function renderCustomersView() {
   const body = document.getElementById('customers-tbody');
   if (!body) return;
-  const q = (document.getElementById('search-customers')?.value || '').toLowerCase().trim();
-  const rows = bizState.customers.filter(c => {
-    if (!q) return true;
-    return [c.id, c.customerName, c.companyName, c.phone, c.email, c.gstin]
-      .some(v => String(v || '').toLowerCase().includes(q));
-  });
+  const rows = active(bizState.customers).filter(c => matchesSearch('search-customers', [c.id, c.customerName, c.companyName, c.phone, c.email, c.gstin]));
 
   body.innerHTML = rows.map(c => `
     <tr>
@@ -2907,9 +3082,10 @@ function renderCustomersView() {
       <td>${escapeHtml(c.email || '--')}</td>
       <td>${escapeHtml(c.gstin || '--')}</td>
       <td>${buildStatusBadge(c.status || 'Active')}</td>
-      <td>
+      <td class="row-actions">
         <button class="btn btn-outline btn-sm" data-customer-action="edit" data-customer-id="${escapeHtml(c.id)}">Edit</button>
-        <button class="btn btn-outline btn-sm" data-customer-action="archive" data-customer-id="${escapeHtml(c.id)}">Archive</button>
+        <button class="btn btn-outline btn-sm" data-customer-action="archive" data-customer-id="${escapeHtml(c.id)}">${c.status === 'Archived' ? 'Activate' : 'Archive'}</button>
+        <button class="btn btn-outline btn-sm btn-danger" data-customer-action="delete" data-customer-id="${escapeHtml(c.id)}">Delete</button>
       </td>
     </tr>
   `).join('');
@@ -2920,29 +3096,31 @@ function renderCustomersView() {
 function renderQuotationsView() {
   const body = document.getElementById('quotations-tbody');
   if (!body) return;
-  const q = (document.getElementById('search-quotations')?.value || '').toLowerCase().trim();
-  const rows = bizState.quotations.filter(item => {
-    if (!q) return true;
-    return [item.quotationNumber, item.customerName, item.companyName, item.status]
-      .some(v => String(v || '').toLowerCase().includes(q));
-  });
+  const rows = active(bizState.quotations).filter(item => matchesSearch('search-quotations', [item.quotationNumber, item.customerName, item.companyName, item.status]));
 
-  body.innerHTML = rows.map(item => `
+  body.innerHTML = rows.map(item => {
+    const id = escapeHtml(item.id);
+    const status = item.status || 'Draft';
+    const statusCell = status === 'Converted'
+      ? buildStatusBadge(status)
+      : `<select class="status-select" data-quotation-status="${id}" aria-label="Status of ${id}">${QUOTATION_STATUSES.map(s => `<option value="${s}"${s === status ? ' selected' : ''}>${s}</option>`).join('')}</select>`;
+    return `
     <tr>
       <td>${escapeHtml(item.quotationNumber || item.id)}</td>
       <td>${formatDateForTable(item.quotationDate)}</td>
       <td>${escapeHtml(item.customerName || '--')}</td>
       <td class="right-text">${formatMoney(item.grandTotal || 0)}</td>
-      <td>${buildStatusBadge(item.status || 'Draft')}</td>
+      <td>${statusCell}</td>
       <td>${escapeHtml(item.convertedInvoiceId || '--')}</td>
-      <td>
-        <button class="btn btn-outline btn-sm" data-quotation-action="edit" data-quotation-id="${escapeHtml(item.id)}">Edit</button>
-        <button class="btn btn-outline btn-sm" data-quotation-action="duplicate" data-quotation-id="${escapeHtml(item.id)}">Duplicate</button>
-        <button class="btn btn-outline btn-sm" data-quotation-action="create-invoice" data-quotation-id="${escapeHtml(item.id)}">Create Invoice</button>
-        <button class="btn btn-outline btn-sm" data-quotation-action="view-drive" data-quotation-id="${escapeHtml(item.id)}">View Drive</button>
+      <td class="row-actions">
+        ${fileActionButton('quotation', item)}
+        <button class="btn btn-outline btn-sm" data-quotation-action="edit" data-quotation-id="${id}">Edit</button>
+        <button class="btn btn-outline btn-sm" data-quotation-action="duplicate" data-quotation-id="${id}">Duplicate</button>
+        <button class="btn btn-outline btn-sm" data-quotation-action="create-invoice" data-quotation-id="${id}">Create Invoice</button>
+        <button class="btn btn-outline btn-sm btn-danger" data-quotation-action="delete" data-quotation-id="${id}">Delete</button>
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 
   if (!rows.length) body.innerHTML = '<tr><td colspan="7">No quotations found.</td></tr>';
 }
@@ -2950,18 +3128,15 @@ function renderQuotationsView() {
 function renderInvoicesView() {
   const body = document.getElementById('invoices-tbody');
   if (!body) return;
-  const q = (document.getElementById('search-invoices')?.value || '').toLowerCase().trim();
 
-  bizState.invoices.forEach(recalcInvoiceFinancials);
+  active(bizState.invoices).forEach(invoice => recalcInvoiceFinancials(invoice));
+  const rows = active(bizState.invoices).filter(item => matchesSearch('search-invoices', [item.invoiceNumber, item.customerName, item.paymentStatus, item.quotationNumber]));
 
-  const rows = bizState.invoices.filter(item => {
-    if (!q) return true;
-    return [item.invoiceNumber, item.customerName, item.paymentStatus, item.quotationNumber]
-      .some(v => String(v || '').toLowerCase().includes(q));
-  });
-
-  body.innerHTML = rows.map(item => `
-    <tr>
+  body.innerHTML = rows.map(item => {
+    const id = escapeHtml(item.id);
+    const cancelled = item.status === 'Cancelled';
+    return `
+    <tr${cancelled ? ' class="row-cancelled"' : ''}>
       <td>${escapeHtml(item.invoiceNumber || item.id)}</td>
       <td>${formatDateForTable(item.invoiceDate)}</td>
       <td>${escapeHtml(item.customerName || '--')}</td>
@@ -2971,14 +3146,17 @@ function renderInvoicesView() {
       <td>${formatDateForTable(item.dueDate)}</td>
       <td>${buildStatusBadge(item.paymentStatus || 'Unpaid')}</td>
       <td>${escapeHtml(item.quotationNumber || '--')}</td>
-      <td>
-        <button class="btn btn-outline btn-sm" data-invoice-action="edit" data-invoice-id="${escapeHtml(item.id)}">Edit</button>
-        <button class="btn btn-outline btn-sm" data-invoice-action="duplicate" data-invoice-id="${escapeHtml(item.id)}">Duplicate</button>
-        <button class="btn btn-outline btn-sm" data-invoice-action="record-payment" data-invoice-id="${escapeHtml(item.id)}">Record Payment</button>
-        <button class="btn btn-outline btn-sm" data-invoice-action="view-drive" data-invoice-id="${escapeHtml(item.id)}">View Drive</button>
+      <td class="row-actions">
+        ${fileActionButton('invoice', item)}
+        <button class="btn btn-outline btn-sm" data-invoice-action="edit" data-invoice-id="${id}">Edit</button>
+        <button class="btn btn-outline btn-sm" data-invoice-action="duplicate" data-invoice-id="${id}">Duplicate</button>
+        ${cancelled ? '' : `<button class="btn btn-outline btn-sm" data-invoice-action="record-payment" data-invoice-id="${id}">Record Payment</button>`}
+        ${cancelled
+          ? `<button class="btn btn-outline btn-sm" data-invoice-action="restore" data-invoice-id="${id}">Undo Cancel</button>`
+          : `<button class="btn btn-outline btn-sm btn-danger" data-invoice-action="cancel" data-invoice-id="${id}">Cancel</button>`}
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 
   if (!rows.length) body.innerHTML = '<tr><td colspan="10">No invoices found.</td></tr>';
 }
@@ -2986,13 +3164,8 @@ function renderInvoicesView() {
 function renderPaymentsView() {
   const body = document.getElementById('payments-tbody');
   if (!body) return;
-  const q = (document.getElementById('search-payments')?.value || '').toLowerCase().trim();
   const selectedInvoiceId = document.getElementById('p-invoice-id')?.value || '';
-  const rows = bizState.payments.filter(item => {
-    if (!q) return true;
-    return [item.id, item.invoiceNumber, item.customerName, item.transactionReference, item.creditedTo, item.transferredTo, item.paymentDetails]
-      .some(v => String(v || '').toLowerCase().includes(q));
-  });
+  const rows = active(bizState.payments).filter(item => matchesSearch('search-payments', [item.id, item.invoiceNumber, item.customerName, item.transactionReference, item.creditedTo, item.transferredTo, item.paymentDetails]));
 
   body.innerHTML = rows.map(item => `
     <tr>
@@ -3005,22 +3178,30 @@ function renderPaymentsView() {
       <td>${escapeHtml(item.creditedTo || '--')}</td>
       <td>${escapeHtml(item.transferredTo || '--')}</td>
       <td>${escapeHtml(item.paymentDetails || item.transactionReference || '--')}</td>
+      <td class="row-actions">
+        <button class="btn btn-outline btn-sm" data-payment-action="edit" data-payment-id="${escapeHtml(item.id)}">Edit</button>
+        <button class="btn btn-outline btn-sm btn-danger" data-payment-action="delete" data-payment-id="${escapeHtml(item.id)}">Delete</button>
+      </td>
     </tr>
   `).join('');
 
-  if (!rows.length) body.innerHTML = '<tr><td colspan="9">No payments found.</td></tr>';
+  if (!rows.length) body.innerHTML = '<tr><td colspan="10">No payments found.</td></tr>';
 
   populatePaymentInvoiceOptions(selectedInvoiceId);
   applyPaymentInvoiceSummary(document.getElementById('p-invoice-id')?.value || '');
 }
 
 function renderDashboardView() {
-  const customerCount = bizState.customers.length;
-  const quotationCount = bizState.quotations.length;
-  const invoiceCount = bizState.invoices.length;
+  const invoices = active(bizState.invoices);
+  const liveInvoices = invoices.filter(inv => inv.status !== 'Cancelled');
+  const quotations = active(bizState.quotations);
+  const customerCount = active(bizState.customers).length;
+  const quotationCount = quotations.length;
+  const invoiceCount = liveInvoices.length;
 
-  const totals = bizState.invoices.reduce((acc, inv) => {
+  const totals = invoices.reduce((acc, inv) => {
     recalcInvoiceFinancials(inv);
+    if (inv.status === 'Cancelled') return acc;
     acc.outstanding += Number(inv.balanceDue || 0);
     if (inv.paymentStatus === 'Unpaid' || inv.paymentStatus === 'Partially Paid' || inv.paymentStatus === 'Overdue') {
       acc.pending += Number(inv.balanceDue || 0);
@@ -3030,15 +3211,15 @@ function renderDashboardView() {
   }, { outstanding: 0, pending: 0, overdue: 0 });
 
   const now = new Date();
-  const paidThisMonth = bizState.payments.reduce((acc, pay) => {
-    const d = new Date(pay.paymentDate || pay.createdDate);
+  const paidThisMonth = active(bizState.payments).reduce((acc, pay) => {
+    const d = parseLocalIsoDate(pay.paymentDate) || new Date(pay.createdDate);
     if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) {
       acc += Number(pay.amountReceived || 0);
     }
     return acc;
   }, 0);
 
-  const converted = bizState.quotations.filter(q => q.status === 'Converted').length;
+  const converted = quotations.filter(q => q.status === 'Converted').length;
   const conversionRate = quotationCount ? Math.round((converted / quotationCount) * 100) : 0;
 
   setText('kpi-customers', String(customerCount));
@@ -3054,20 +3235,24 @@ function renderDashboardView() {
   const recentBody = document.getElementById('dashboard-recent-tbody');
   if (!overdueBody || !recentBody) return;
 
-  const overdueRows = bizState.invoices.filter(inv => inv.paymentStatus === 'Overdue');
+  const overdueRows = liveInvoices.filter(inv => inv.paymentStatus === 'Overdue');
   overdueBody.innerHTML = overdueRows.map(inv => `
     <tr>
       <td>${escapeHtml(inv.invoiceNumber || inv.id)}</td>
       <td>${escapeHtml(inv.customerName || '--')}</td>
       <td class="right-text">${formatMoney(inv.balanceDue || 0)}</td>
       <td>${formatDateForTable(inv.dueDate)}</td>
-      <td><button class="btn btn-outline btn-sm" data-invoice-action="record-payment" data-invoice-id="${escapeHtml(inv.id)}">Record Payment</button></td>
+      <td class="row-actions">
+        ${fileActionButton('invoice', inv)}
+        <button class="btn btn-outline btn-sm" data-invoice-action="record-payment" data-invoice-id="${escapeHtml(inv.id)}">Record Payment</button>
+      </td>
     </tr>
   `).join('');
 
   if (!overdueRows.length) overdueBody.innerHTML = '<tr><td colspan="5">No overdue invoices.</td></tr>';
 
   const recentRows = [...bizState.documentHistory]
+    .filter(item => item.status !== 'Deleted')
     .sort((a, b) => new Date(b.lastUpdated || b.createdDate) - new Date(a.lastUpdated || a.createdDate))
     .slice(0, 8);
 
@@ -3078,10 +3263,23 @@ function renderDashboardView() {
       <td>${escapeHtml(item.customerName || '--')}</td>
       <td>${formatDateForTable(item.documentDate)}</td>
       <td>${buildStatusBadge(item.status || 'Draft')}</td>
+      <td>${documentFileLink(item)}</td>
     </tr>
   `).join('');
 
-  if (!recentRows.length) recentBody.innerHTML = '<tr><td colspan="5">No recent activity.</td></tr>';
+  if (!recentRows.length) recentBody.innerHTML = '<tr><td colspan="6">No recent activity.</td></tr>';
+}
+
+// "View file" link for a Document Register entry, using the record's current Drive file.
+function documentFileLink(entry) {
+  const kind = entry.documentType === 'Invoice' ? 'invoice' : entry.documentType === 'Quotation' ? 'quotation' : '';
+  if (!kind) return '--';
+  const collection = kind === 'invoice' ? bizState.invoices : bizState.quotations;
+  const record = (collection || []).find(item => item.id === entry.documentNumber || item.invoiceNumber === entry.documentNumber || item.quotationNumber === entry.documentNumber);
+  const url = (record && record.driveFileUrl) || entry.driveFileUrl;
+  return url
+    ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">View file</a>`
+    : '<span class="muted-text">Not in Drive</span>';
 }
 
 function renderBusinessViews() {
@@ -3093,42 +3291,6 @@ function renderBusinessViews() {
   renderLetterheadsView();
   renderTemplatesView();
   renderDocumentHistoryView();
-}
-
-function buildDriveUrlForDocument(record, documentType) {
-  if (record?.driveFileUrl) return record.driveFileUrl;
-  if (record?.driveFileId) return `https://drive.google.com/file/d/${encodeURIComponent(record.driveFileId)}/view`;
-
-  const cfg = googleIntegration.getConfig();
-  const docNumber = record?.invoiceNumber || record?.quotationNumber || record?.id || '';
-  if (cfg?.driveRootId) {
-    const searchHint = documentType === 'Invoice' ? 'Invoice' : 'Quotation';
-    return `https://drive.google.com/drive/search?q=${encodeURIComponent(`${searchHint} ${docNumber}`)}`;
-  }
-
-  if (cfg?.appsScriptUrl) {
-    const searchHint = documentType === 'Invoice' ? 'Invoice' : 'Quotation';
-    return `https://drive.google.com/drive/search?q=${encodeURIComponent(`${searchHint} ${docNumber}`)}`;
-  }
-
-  return '';
-}
-
-function openDriveForDocument(documentType, recordId) {
-  const collection = documentType === 'Invoice' ? (bizState.invoices || []) : (bizState.quotations || []);
-  const record = collection.find(item => item.id === recordId);
-  if (!record) {
-    showToast(`${documentType} not found.`, 'error');
-    return;
-  }
-
-  const url = buildDriveUrlForDocument(record, documentType);
-  if (!url) {
-    showToast('Google Drive is not configured. Add Drive settings first.', 'error');
-    return;
-  }
-
-  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 async function openDriveRootFolder() {
@@ -3246,7 +3408,7 @@ function renderDocumentHistoryView() {
       <td>${formatDateForTable(item.documentDate)}</td>
       <td class="right-text">${formatMoney(item.amount || 0)}</td>
       <td>${buildStatusBadge(item.status || 'Draft')}</td>
-      <td>${item.driveFileUrl ? `<a href="${escapeHtml(item.driveFileUrl)}" target="_blank" rel="noreferrer">Open</a>` : '--'}</td>
+      <td>${documentFileLink(item)}</td>
     </tr>
   `).join('');
 
@@ -3382,7 +3544,7 @@ function renderLetterheadsView() {
   const body = document.getElementById('letterheads-tbody');
   if (!body) return;
   const q = (document.getElementById('search-letterheads')?.value || '').toLowerCase().trim();
-  const rows = (bizState.letterheads || []).filter(item => {
+  const rows = active(bizState.letterheads).filter(item => {
     if (!q) return true;
     return [item.id, item.letterheadName, item.companyName, item.gstin, item.phone, item.email, item.status]
       .some(value => String(value || '').toLowerCase().includes(q));
@@ -3403,13 +3565,14 @@ function renderLetterheadsView() {
         <button class="btn btn-outline btn-sm" data-letterhead-action="default" data-letterhead-id="${escapeHtml(item.id)}">Set Default</button>
         <button class="btn btn-outline btn-sm" data-letterhead-action="apply" data-letterhead-id="${escapeHtml(item.id)}">Apply</button>
         <button class="btn btn-outline btn-sm" data-letterhead-action="archive" data-letterhead-id="${escapeHtml(item.id)}">${item.status === 'Archived' ? 'Activate' : 'Archive'}</button>
+        <button class="btn btn-outline btn-sm btn-danger" data-letterhead-action="delete" data-letterhead-id="${escapeHtml(item.id)}">Delete</button>
       </td>
     </tr>
   `).join('');
 
   if (!rows.length) body.innerHTML = '<tr><td colspan="8">No letterheads found.</td></tr>';
 
-  const selected = (bizState.letterheads || []).find(item => item.id === activeLetterheadId)
+  const selected = active(bizState.letterheads).find(item => item.id === activeLetterheadId)
     || (bizState.letterheads || []).find(item => item.isDefault)
     || null;
   if (selected) activeLetterheadId = selected.id;
@@ -3495,7 +3658,7 @@ function populateTemplateLetterheadOptions(selectedId) {
   const select = document.getElementById('tpl-letterhead');
   if (!select) return;
 
-  const options = (bizState.letterheads || []).map(item => {
+  const options = active(bizState.letterheads).map(item => {
     const label = `${item.id} - ${item.letterheadName || item.companyName || 'Letterhead'}`;
     return `<option value="${escapeHtml(item.id)}">${escapeHtml(label)}</option>`;
   });
@@ -3580,7 +3743,7 @@ function renderTemplatesView() {
   const body = document.getElementById('templates-tbody');
   if (!body) return;
   const q = (document.getElementById('search-templates')?.value || '').toLowerCase().trim();
-  const rows = (bizState.templates || []).filter(item => {
+  const rows = active(bizState.templates).filter(item => {
     if (!q) return true;
     return [item.id, item.templateName, item.notes, item.paymentTerms, item.status]
       .some(value => String(value || '').toLowerCase().includes(q));
@@ -3599,6 +3762,7 @@ function renderTemplatesView() {
         <button class="btn btn-outline btn-sm" data-template-action="duplicate" data-template-id="${escapeHtml(item.id)}">Duplicate</button>
         <button class="btn btn-outline btn-sm" data-template-action="apply" data-template-id="${escapeHtml(item.id)}">Apply</button>
         <button class="btn btn-outline btn-sm" data-template-action="archive" data-template-id="${escapeHtml(item.id)}">${item.status === 'Archived' ? 'Activate' : 'Archive'}</button>
+        <button class="btn btn-outline btn-sm btn-danger" data-template-action="delete" data-template-id="${escapeHtml(item.id)}">Delete</button>
       </td>
     </tr>
   `).join('');
@@ -3674,65 +3838,183 @@ function applyTemplateToBuilder(templateId) {
   showToast(`Template ${item.templateName} applied.`, 'success');
 }
 
-async function addCustomerFromPrompt() {
-  const customerName = (prompt('Customer name:') || '').trim();
-  if (!customerName) return;
-  const companyName = (prompt('Company name:', customerName) || customerName).trim();
-  const phone = (prompt('Phone:') || '').trim();
-  const email = (prompt('Email:') || '').trim();
-  const gstin = (prompt('GSTIN:') || '').trim();
+// ── Customers: create / edit form ──
+let editingCustomerId = null;
 
+function openCustomerForm(customerId) {
+  const customer = customerId ? active(bizState.customers).find(item => item.id === customerId) : null;
+  if (customerId && !customer) {
+    showToast('Customer not found.', 'error');
+    return;
+  }
+  editingCustomerId = customer ? customer.id : null;
+  const set = (id, value) => { const el = document.getElementById(id); if (el) el.value = value || ''; };
+  set('cust-name', customer ? (customer.companyName || customer.customerName) : '');
+  set('cust-contact', customer && customer.contactPerson !== (customer.companyName || customer.customerName) ? customer.contactPerson : '');
+  set('cust-gstin', customer?.gstin);
+  set('cust-phone', customer?.phone);
+  set('cust-email', customer?.email);
+  set('cust-billing', customer?.billingAddress);
+  set('cust-shipping', customer && customer.shippingAddress !== customer.billingAddress ? customer.shippingAddress : '');
+  set('cust-state', customer?.state);
+  set('cust-pincode', customer?.pincode);
+  set('cust-notes', customer?.notes);
+  setText('customer-modal-title', customer ? `Edit customer ${customer.id}` : 'New customer');
+  document.getElementById('customer-modal')?.classList.add('open');
+  setTimeout(() => document.getElementById('cust-name')?.focus(), 50);
+}
+
+function closeCustomerForm() {
+  document.getElementById('customer-modal')?.classList.remove('open');
+  editingCustomerId = null;
+}
+
+async function saveCustomerForm(event) {
+  if (event) event.preventDefault();
+  const value = id => (document.getElementById(id)?.value || '').trim();
+  const name = value('cust-name');
+  if (!name) return;
+  const billing = value('cust-billing');
   const input = {
-    customerName,
-    companyName,
-    contactPerson: customerName,
-    phone,
-    email,
-    billingAddress: '',
-    shippingAddress: '',
-    gstin,
+    customerName: name,
+    companyName: name,
+    contactPerson: value('cust-contact') || name,
+    gstin: value('cust-gstin').toUpperCase(),
+    phone: value('cust-phone'),
+    email: value('cust-email'),
+    billingAddress: billing,
+    shippingAddress: value('cust-shipping') || billing,
+    state: value('cust-state'),
+    pincode: value('cust-pincode'),
+    notes: value('cust-notes'),
     status: 'Active'
   };
-  const customer = await withServerIds(
-    { customer: customerService.findMatch(input) ? 0 : 1 },
-    () => customerService.upsertFromBuilder(input)
-  );
-  if (!customer) return;
 
+  if (editingCustomerId) {
+    const existing = active(bizState.customers).find(item => item.id === editingCustomerId);
+    customerService.update(editingCustomerId, { ...input, status: existing?.status || 'Active' });
+    bizState = stateService.getState();
+    const id = editingCustomerId;
+    closeCustomerForm();
+    saveBusinessState();
+    renderBusinessViews();
+    showToast(`Customer ${id} updated.`, 'success');
+    return;
+  }
+
+  const duplicate = customerService.findMatch(input);
+  if (duplicate) {
+    showToast(`This customer already exists as ${duplicate.id} (${duplicate.companyName || duplicate.customerName}). Opening it for editing.`, 'error', 6000);
+    openCustomerForm(duplicate.id);
+    return;
+  }
+
+  const customer = await withServerIds({ customer: 1 }, () => customerService.upsertFromBuilder(input));
+  if (!customer) return;
+  closeCustomerForm();
   saveBusinessState();
   renderBusinessViews();
   showToast(`Customer ${customer.id} created.`, 'success');
 }
 
-function editCustomerFromPrompt(customerId) {
-  const customer = customerService.getById(customerId);
-  if (!customer) {
-    showToast('Customer not found.', 'error');
+function deleteCustomer(customerId) {
+  const customer = active(bizState.customers).find(item => item.id === customerId);
+  if (!customer) return;
+  const documents = active(bizState.quotations).filter(q => q.customerId === customerId).length
+    + active(bizState.invoices).filter(i => i.customerId === customerId).length;
+  if (documents) {
+    showToast(`${customer.companyName || customer.customerName} has ${documents} quotation(s)/invoice(s), so it can't be deleted. Use Archive to hide it instead.`, 'error', 7000);
     return;
   }
-
-  const customerName = (prompt('Customer name:', customer.customerName || '') || '').trim();
-  if (!customerName) return;
-  const companyName = (prompt('Company name:', customer.companyName || customerName) || customer.companyName || customerName).trim();
-  const phone = (prompt('Phone:', customer.phone || '') || '').trim();
-  const email = (prompt('Email:', customer.email || '') || '').trim();
-  const gstin = (prompt('GSTIN:', customer.gstin || '') || '').trim();
-  const notes = (prompt('Notes:', customer.notes || '') || '').trim();
-
-  customerService.update(customerId, {
-    customerName,
-    companyName,
-    contactPerson: customer.contactPerson || customerName,
-    phone,
-    email,
-    gstin,
-    notes
-  });
-
+  if (!confirm(`Delete customer ${customer.id} (${customer.companyName || customer.customerName})?`)) return;
+  customerService.update(customerId, { deleted: true, status: 'Deleted' });
   bizState = stateService.getState();
   saveBusinessState();
   renderBusinessViews();
-  showToast(`Customer ${customerId} updated.`, 'success');
+  showToast(`Customer ${customer.id} deleted.`, 'success');
+}
+
+// ── Quotations: delete, status ──
+function deleteQuotation(quotationId) {
+  const quotation = active(bizState.quotations).find(item => item.id === quotationId);
+  if (!quotation) return;
+  if (quotation.status === 'Converted' && quotation.convertedInvoiceId) {
+    showToast(`${quotation.quotationNumber} was converted to invoice ${quotation.convertedInvoiceId}, so it is kept for the record and can't be deleted.`, 'error', 7000);
+    return;
+  }
+  const fileNote = quotation.driveFileUrl ? ' Its PDF stays in Google Drive.' : '';
+  if (!confirm(`Delete quotation ${quotation.quotationNumber} for ${quotation.customerName}?${fileNote}`)) return;
+  quotationService.update(quotationId, { deleted: true, status: 'Deleted' });
+  bizState = stateService.getState();
+  upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Quotation', bizState.quotations.find(item => item.id === quotationId), { status: 'Deleted' }));
+  if (currentQuotationEditId === quotationId) {
+    currentQuotationEditId = null;
+    refreshBuilderRecordStatus();
+    queuePersist();
+  }
+  saveBusinessState();
+  renderBusinessViews();
+  showToast(`Quotation ${quotation.quotationNumber} deleted.`, 'success');
+}
+
+function setQuotationStatus(quotationId, status) {
+  const quotation = active(bizState.quotations).find(item => item.id === quotationId);
+  if (!quotation || !QUOTATION_STATUSES.includes(status) || quotation.status === status) return;
+  quotationService.update(quotationId, { status });
+  bizState = stateService.getState();
+  upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Quotation', bizState.quotations.find(item => item.id === quotationId)));
+  saveBusinessState();
+  renderBusinessViews();
+  showToast(`${quotation.quotationNumber} marked as ${status}.`, 'success');
+}
+
+// ── Invoices: cancel / undo cancel (invoices are never deleted: GST needs an unbroken series) ──
+function setInvoiceCancelled(invoiceId, cancel) {
+  const invoice = active(bizState.invoices).find(item => item.id === invoiceId);
+  if (!invoice) return;
+  const payments = active(bizState.payments).filter(payment => payment.invoiceId === invoiceId);
+  if (cancel) {
+    const paymentNote = payments.length ? `\n\nIt has ${payments.length} payment(s) recorded; they stay recorded until you delete them.` : '';
+    if (!confirm(`Cancel invoice ${invoice.invoiceNumber} for ${invoice.customerName}?\n\nIt stays in the register as Cancelled (the number is not reused) and no longer counts towards outstanding amounts.${paymentNote}`)) return;
+  }
+  invoiceService.update(invoiceId, { status: cancel ? 'Cancelled' : 'Issued' });
+  bizState = stateService.getState();
+  const updated = bizState.invoices.find(item => item.id === invoiceId);
+  recalcInvoiceFinancials(updated, true);
+  upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Invoice', updated, { status: cancel ? 'Cancelled' : updated.paymentStatus }));
+  saveBusinessState();
+  renderBusinessViews();
+  showToast(cancel ? `Invoice ${invoice.invoiceNumber} cancelled.` : `Invoice ${invoice.invoiceNumber} restored.`, 'success');
+}
+
+// ── Letterheads / templates: delete ──
+function deleteLetterhead(letterheadId) {
+  const letterhead = active(bizState.letterheads).find(item => item.id === letterheadId);
+  if (!letterhead) return;
+  if (letterhead.isDefault) {
+    showToast('This is the default letterhead. Set another letterhead as default before deleting it.', 'error', 6000);
+    return;
+  }
+  if (!confirm(`Delete letterhead "${letterhead.letterheadName}"?`)) return;
+  letterheadService.update(letterheadId, { deleted: true, status: 'Deleted', isDefault: false });
+  bizState = stateService.getState();
+  if (activeLetterheadId === letterheadId) {
+    activeLetterheadId = active(bizState.letterheads).find(item => item.isDefault)?.id || active(bizState.letterheads)[0]?.id || 'LH-DEFAULT';
+  }
+  saveBusinessState();
+  renderBusinessViews();
+  showToast(`Letterhead "${letterhead.letterheadName}" deleted.`, 'success');
+}
+
+function deleteTemplate(templateId) {
+  const template = active(bizState.templates).find(item => item.id === templateId);
+  if (!template) return;
+  if (!confirm(`Delete template "${template.templateName}"?`)) return;
+  templateService.update(templateId, { deleted: true, status: 'Deleted' });
+  bizState = stateService.getState();
+  saveBusinessState();
+  renderBusinessViews();
+  showToast(`Template "${template.templateName}" deleted.`, 'success');
 }
 
 function toggleCustomerArchive(customerId) {
@@ -4210,7 +4492,9 @@ function bindBusinessEvents() {
   }
 
   const addCustomer = document.getElementById('btn-add-customer');
-  if (addCustomer) addCustomer.addEventListener('click', addCustomerFromPrompt);
+  if (addCustomer) addCustomer.addEventListener('click', () => openCustomerForm(null));
+  document.getElementById('customer-form')?.addEventListener('submit', saveCustomerForm);
+  document.getElementById('btn-customer-cancel')?.addEventListener('click', closeCustomerForm);
 
   const saveGoogleConfigBtn = document.getElementById('btn-save-google-config');
   if (saveGoogleConfigBtn) {
@@ -4284,8 +4568,19 @@ function bindBusinessEvents() {
       if (!btn) return;
       const customerId = btn.dataset.customerId;
       if (!customerId) return;
-      if (btn.dataset.customerAction === 'edit') editCustomerFromPrompt(customerId);
+      if (btn.dataset.customerAction === 'edit') openCustomerForm(customerId);
       if (btn.dataset.customerAction === 'archive') toggleCustomerArchive(customerId);
+      if (btn.dataset.customerAction === 'delete') deleteCustomer(customerId);
+    });
+  }
+
+  const paymentsBody = document.getElementById('payments-tbody');
+  if (paymentsBody) {
+    paymentsBody.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-payment-action]');
+      if (!btn) return;
+      if (btn.dataset.paymentAction === 'edit') loadPaymentForEdit(btn.dataset.paymentId);
+      if (btn.dataset.paymentAction === 'delete') deletePayment(btn.dataset.paymentId);
     });
   }
 
@@ -4304,13 +4599,25 @@ function bindBusinessEvents() {
         duplicateQuotationRecord(quotationId);
         return;
       }
-      if (btn.dataset.quotationAction === 'view-drive') {
-        openDriveForDocument('Quotation', quotationId);
+      if (btn.dataset.quotationAction === 'view-file') {
+        openRecordFile('quotation', quotationId);
+        return;
+      }
+      if (btn.dataset.quotationAction === 'upload-pdf') {
+        uploadPdfForRecord('quotation', quotationId);
+        return;
+      }
+      if (btn.dataset.quotationAction === 'delete') {
+        deleteQuotation(quotationId);
         return;
       }
       if (btn.dataset.quotationAction === 'create-invoice') {
         loadQuotationIntoInvoiceBuilder(quotationId);
       }
+    });
+    quotationsBody.addEventListener('change', e => {
+      const select = e.target.closest('select[data-quotation-status]');
+      if (select) setQuotationStatus(select.dataset.quotationStatus, select.value);
     });
   }
 
@@ -4330,8 +4637,20 @@ function bindBusinessEvents() {
         duplicateInvoiceRecord(invoiceId);
         return;
       }
-      if (btn.dataset.invoiceAction === 'view-drive') {
-        openDriveForDocument('Invoice', invoiceId);
+      if (btn.dataset.invoiceAction === 'view-file') {
+        openRecordFile('invoice', invoiceId);
+        return;
+      }
+      if (btn.dataset.invoiceAction === 'upload-pdf') {
+        uploadPdfForRecord('invoice', invoiceId);
+        return;
+      }
+      if (btn.dataset.invoiceAction === 'cancel') {
+        setInvoiceCancelled(invoiceId, true);
+        return;
+      }
+      if (btn.dataset.invoiceAction === 'restore') {
+        setInvoiceCancelled(invoiceId, false);
         return;
       }
       if (btn.dataset.invoiceAction === 'record-payment') {
@@ -4353,6 +4672,7 @@ function bindBusinessEvents() {
       if (btn.dataset.letterheadAction === 'default') setDefaultLetterhead(letterheadId);
       if (btn.dataset.letterheadAction === 'apply') applyLetterheadToBuilder(letterheadId);
       if (btn.dataset.letterheadAction === 'archive') toggleLetterheadArchive(letterheadId);
+      if (btn.dataset.letterheadAction === 'delete') deleteLetterhead(letterheadId);
     });
   }
 
@@ -4368,6 +4688,7 @@ function bindBusinessEvents() {
       if (btn.dataset.templateAction === 'duplicate') duplicateTemplateEntry(templateId);
       if (btn.dataset.templateAction === 'apply') applyTemplateToBuilder(templateId);
       if (btn.dataset.templateAction === 'archive') toggleTemplateArchive(templateId);
+      if (btn.dataset.templateAction === 'delete') deleteTemplate(templateId);
     });
   }
 
@@ -4809,7 +5130,10 @@ function bindStaticEvents() {
   if (saveQuotationBtn) {
     saveQuotationBtn.addEventListener('click', async () => {
       setMode('quotation');
-      if (await saveQuotationRecord()) switchView('quotations');
+      const quotation = await saveQuotationRecord();
+      if (!quotation) return;
+      await uploadRecordPdf('quotation', quotation.id); // renders from the builder, so before leaving it
+      switchView('quotations');
     });
   }
 
@@ -4817,7 +5141,10 @@ function bindStaticEvents() {
   if (saveInvoiceBtn) {
     saveInvoiceBtn.addEventListener('click', async () => {
       setMode('invoice');
-      if (await saveInvoiceRecord()) switchView('invoices');
+      const invoice = await saveInvoiceRecord();
+      if (!invoice) return;
+      await uploadRecordPdf('invoice', invoice.id); // renders from the builder, so before leaving it
+      switchView('invoices');
     });
   }
 
@@ -5134,6 +5461,176 @@ function toWords(n) {
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // PDF SAVE â€” exports ONLY the active tab section
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// A clean copy of the active document (letterhead + quotation or invoice) for printing and PDFs:
+// editing controls removed, table inputs turned into text, the remove-button column dropped.
+function buildExportSheet() {
+  const activeContent = document.querySelector('.doc-content.mode-section.visible');
+  const letterhead = document.querySelector('#doc-sheet .lh');
+  if (!activeContent || !letterhead) return null;
+
+  const exportSheet = document.createElement('div');
+  exportSheet.className = 'doc-sheet';
+
+  const exportInner = document.createElement('div');
+  exportInner.className = 'doc-inner';
+  exportInner.appendChild(letterhead.cloneNode(true));
+
+  const activeClone = activeContent.cloneNode(true);
+  activeClone.removeAttribute('id');
+  activeClone.classList.remove('mode-section');
+  activeClone.classList.add('visible');
+  exportInner.appendChild(activeClone);
+  exportSheet.appendChild(exportInner);
+
+  exportSheet.querySelectorAll('.add-row-btn, .rm-btn, .add-row-area, .edit-hint').forEach(el => el.remove());
+  exportSheet.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+  exportSheet.querySelectorAll('td input').forEach(inp => {
+    const span = document.createElement('span');
+    span.textContent = inp.dataset.field === 'gstPct' ? `${inp.value}%` : inp.value;
+    inp.replaceWith(span);
+  });
+  exportSheet.querySelectorAll('.items-tbl tr').forEach(tr => {
+    if (tr.lastElementChild) tr.lastElementChild.remove();
+  });
+  // Hidden or empty images (e.g. no logo uploaded) would fail to load when rendered to PDF.
+  exportSheet.querySelectorAll('img').forEach(img => {
+    if (!img.getAttribute('src') || img.style.display === 'none') img.remove();
+  });
+  // Cloned IDs would clash with the live document.
+  exportSheet.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+  return exportSheet;
+}
+
+// ═════════════════════════════════════════════
+// PDF FILE → GOOGLE DRIVE
+// ═════════════════════════════════════════════
+const HTML2PDF_URL = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+let html2pdfLoading = null;
+
+function loadHtml2Pdf() {
+  if (window.html2pdf) return Promise.resolve(window.html2pdf);
+  if (!html2pdfLoading) {
+    html2pdfLoading = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = HTML2PDF_URL;
+      script.onload = () => (window.html2pdf ? resolve(window.html2pdf) : reject(new Error('PDF library failed to load.')));
+      script.onerror = () => { html2pdfLoading = null; reject(new Error('Could not load the PDF library. Check the internet connection.')); };
+      document.head.appendChild(script);
+    });
+  }
+  return html2pdfLoading;
+}
+
+// Renders the active document to an A4 PDF that looks exactly like the preview. Returns base64.
+async function renderActiveDocumentPdf() {
+  const html2pdf = await loadHtml2Pdf();
+  const sheet = buildExportSheet();
+  if (!sheet) throw new Error('Nothing to save: the document is not ready.');
+
+  // Render a copy at the print width (780px) so the layout matches the printed copy. It sits at the
+  // top-left corner behind the app: placing it off-screen makes the renderer crop the page.
+  const host = document.createElement('div');
+  host.style.cssText = 'position:fixed;left:0;top:0;width:780px;background:#fff;z-index:-100;pointer-events:none;';
+  sheet.style.boxShadow = 'none';
+  sheet.style.width = '780px';
+  sheet.style.minHeight = '1103px'; // A4 proportions, so the gold side bar runs the full page
+  host.appendChild(sheet);
+  document.body.appendChild(host);
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    const dataUri = await html2pdf().set({
+      margin: 0,
+      image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0 },
+      jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['css', 'legacy'] }
+    }).from(sheet).outputPdf('datauristring');
+    return dataUri.split(',')[1];
+  } finally {
+    host.remove();
+  }
+}
+
+function pdfFileName(kind, record) {
+  const number = record.quotationNumber || record.invoiceNumber || record.id;
+  const customer = String(record.customerName || '').replace(/[\\/:*?"<>|]+/g, ' ').trim().slice(0, 60);
+  return `${number}${customer ? ` - ${customer}` : ''}.pdf`;
+}
+
+// Saves the PDF of the record currently open in the builder to Google Drive (updating its existing
+// file if it has one) and stores the file link on the record. Returns true when uploaded.
+async function uploadRecordPdf(kind, recordId, { silent = false } = {}) {
+  const collection = kind === 'invoice' ? bizState.invoices : bizState.quotations;
+  const record = (collection || []).find(item => item.id === recordId);
+  if (!record) return false;
+
+  if (!googleIntegration.canCallApi()) {
+    markPdfPending(kind, record, true);
+    return false;
+  }
+
+  try {
+    if (!silent) showToast(`Saving ${record.quotationNumber || record.invoiceNumber} PDF to Google Drive...`, 'success', 6000);
+    const base64 = await renderActiveDocumentPdf();
+    const result = await googleIntegration.savePdf({
+      kind,
+      fileName: pdfFileName(kind, record),
+      base64,
+      fileId: record.driveFileId || '',
+      year: String((record.quotationDate || record.invoiceDate || todayIsoDate()).slice(0, 4))
+    });
+    const update = { driveFileId: result.fileId, driveFileUrl: result.fileUrl, pdfSavedAt: result.savedAt, pdfPending: false };
+    if (kind === 'invoice') invoiceService.update(record.id, update);
+    else quotationService.update(record.id, update);
+    bizState = stateService.getState();
+    const saved = (kind === 'invoice' ? bizState.invoices : bizState.quotations).find(item => item.id === record.id);
+    upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord(kind === 'invoice' ? 'Invoice' : 'Quotation', saved));
+    renderBusinessViews();
+    refreshBuilderRecordStatus();
+    if (!silent) showToast(`${saved.quotationNumber || saved.invoiceNumber} saved to Google Drive.`, 'success');
+    return true;
+  } catch (error) {
+    markPdfPending(kind, record, true);
+    showToast(`The PDF could not be saved to Google Drive (${error.message || error}). Use "Upload PDF" on the record to try again.`, 'error', 8000);
+    return false;
+  }
+}
+
+function markPdfPending(kind, record, pending) {
+  if (!!record.pdfPending === pending) return;
+  if (kind === 'invoice') invoiceService.update(record.id, { pdfPending: pending });
+  else quotationService.update(record.id, { pdfPending: pending });
+  bizState = stateService.getState();
+  renderBusinessViews();
+  refreshBuilderRecordStatus();
+}
+
+function openRecordFile(kind, recordId) {
+  const collection = kind === 'invoice' ? bizState.invoices : bizState.quotations;
+  const record = (collection || []).find(item => item.id === recordId);
+  if (!record) {
+    showToast('Record not found.', 'error');
+    return;
+  }
+  if (!record.driveFileUrl) {
+    showToast(`${record.quotationNumber || record.invoiceNumber} has no file in Google Drive yet. Open it and click Save, or use "Upload PDF".`, 'error', 6000);
+    return;
+  }
+  window.open(record.driveFileUrl, '_blank', 'noopener,noreferrer');
+}
+
+// Opens the record in the builder (so the PDF is rendered from it) and uploads its PDF.
+async function uploadPdfForRecord(kind, recordId) {
+  if (!googleIntegration.canCallApi()) {
+    openSignIn('Sign in to save PDFs to Google Drive.');
+    return;
+  }
+  if (kind === 'invoice') loadInvoiceIntoBuilder(recordId);
+  else loadQuotationIntoQuotationBuilder(recordId);
+  await new Promise(resolve => setTimeout(resolve, 300)); // let the preview render
+  await uploadRecordPdf(kind, recordId);
+}
+
 function savePDF(options) {
   const exportStartedAt = Date.now();
   const finishExportBusy = () => {
@@ -5159,30 +5656,7 @@ function savePDF(options) {
     const docLabel = isQuote ? 'Quotation' : 'Invoice';
     const pageSpec = `${settings.paper} ${settings.orientation}`;
 
-    const exportSheet = document.createElement('div');
-    exportSheet.className = 'doc-sheet';
-
-    const exportInner = document.createElement('div');
-    exportInner.className = 'doc-inner';
-    exportInner.appendChild(letterhead.cloneNode(true));
-
-    const activeClone = activeContent.cloneNode(true);
-    activeClone.classList.remove('mode-section');
-    activeClone.classList.add('visible');
-    exportInner.appendChild(activeClone);
-    exportSheet.appendChild(exportInner);
-
-    exportSheet.querySelectorAll('.add-row-btn, .rm-btn, .add-row-area, .edit-hint').forEach(el => el.remove());
-    exportSheet.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
-    exportSheet.querySelectorAll('td input').forEach(inp => {
-      const span = document.createElement('span');
-      span.textContent = inp.dataset.field === 'gstPct' ? `${inp.value}%` : inp.value;
-      inp.replaceWith(span);
-    });
-    // The last column of the items table only holds the remove buttons; drop it from the PDF.
-    exportSheet.querySelectorAll('.items-tbl tr').forEach(tr => {
-      if (tr.lastElementChild) tr.lastElementChild.remove();
-    });
+    const exportSheet = buildExportSheet();
 
     // Non-GST mode hides GST columns/GSTINs via a class on <body>; the export document needs it too.
     const bodyClass = document.body.classList.contains('gst-disabled') ? ' class="gst-disabled"' : '';
@@ -5435,6 +5909,8 @@ function savePDF(options) {
   document.getElementById('builder-record-status')?.addEventListener('click', e => {
     const button = e.target.closest('[data-start-new]');
     if (button) startNewDocument(button.dataset.startNew);
+    const viewFile = e.target.closest('[data-view-file]');
+    if (viewFile) openRecordFile(viewFile.dataset.viewFile, viewFile.dataset.viewFile === 'quotation' ? currentQuotationEditId : currentInvoiceEditId);
   });
   document.getElementById('signin-form')?.addEventListener('submit', submitSignIn);
   document.getElementById('btn-signin-skip')?.addEventListener('click', skipSignIn);

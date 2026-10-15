@@ -7,11 +7,9 @@ export class GoogleDriveService {
     return this.postFn('initializeDriveStructure', payload);
   }
 
-  async uploadDocument(payload) {
-    return this.postFn('uploadDocument', payload);
-  }
-
-  async uploadLogo(payload) {
-    return this.postFn('uploadLogo', payload);
+  // Saves a quotation/invoice PDF to Drive; with fileId the same file is updated in place.
+  // payload: { kind, fileName, base64, fileId?, year? } -> data: { fileId, fileUrl, savedAt }
+  async savePdf(payload) {
+    return this.postFn('savePdf', payload);
   }
 }

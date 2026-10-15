@@ -115,6 +115,9 @@ Fixes go to `beta-enhanced` only, in small commits, highest severity first.
 | H5 | **Fixed** (Batch 2): after a save the builder keeps editing that record (also across reloads), so saving or exporting again updates it; "Start a new ..." begins the next document; re-saves keep the original date and quotation link |
 | H12 | **Fixed** (Batch 2): logos are shrunk to at most 600x240 on upload; full or blocked storage shows a warning instead of failing silently |
 | Business-password sign-in (new) | **Done**: once per device, with "remember on this device" and sign-out options |
+| M6 | **Fixed**: Save uploads the PDF to Google Drive (exact copy of the preview), re-saving updates the same file, and View file opens it from every register |
+| Create / edit / delete (new) | **Done**: customer form (replaces pop-ups, fixes L2), delete for customers/quotations/payments/letterheads/templates, payment edit, quotation status, invoice Cancel / Undo Cancel; deletions sync to all devices |
+| M13 | **Partly fixed**: invoice paid amount is always derived from its payments (edits/deletes can't drift); overpayment is still not recorded as credit |
 | Cross-device sync (new) | **Done**: the Google Sheet is the shared copy; two-way `syncAll` on start, after every save and on return to the app; full records kept in a hidden Record JSON column |
 | H1 | **Fixed**: requests sent as `text/plain` (no CORS preflight) |
 | H2 | **Fixed**: API key required on every request (Script Properties); spreadsheet ID fixed on the server |

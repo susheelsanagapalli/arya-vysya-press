@@ -18,7 +18,7 @@ export class CustomerService {
   // Checked in order across all customers: GSTIN, then phone/email, then name. A customer with a
   // different GSTIN is never matched by name, since it is a different business.
   findMatch(input) {
-    const customers = this.getState().customers || [];
+    const customers = (this.getState().customers || []).filter(c => !c.deleted);
     const norm = value => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
     const gstin = norm(input.gstin);
     const phone = norm(input.phone).replace(/[^\d+]/g, '');

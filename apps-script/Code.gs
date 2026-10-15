@@ -153,6 +153,9 @@ function doPost(e) {
       case 'allocateIds':
         data = withLock(() => allocateIds(payload.kinds || {}));
         break;
+      case 'savePdf':
+        data = savePdf(payload);
+        break;
       default:
         throw new Error('Unsupported action: ' + action);
     }
@@ -364,6 +367,59 @@ function allocateIds(kinds) {
   });
 
   return out;
+}
+
+// Saves a quotation/invoice PDF to Drive: <root>/Quotations|Invoices/<year>/<fileName>.
+// With an existing fileId the same file is updated in place (same link; Drive keeps old versions).
+// payload: { kind: 'quotation'|'invoice', fileName, base64, fileId?, year? }
+function savePdf(payload) {
+  const kindFolder = payload.kind === 'invoice' ? 'Invoices' : 'Quotations';
+  const fileName = String(payload.fileName || 'document.pdf').replace(/[\\/:*?"<>|]+/g, '-').slice(0, 150);
+  if (!payload.base64) throw new Error('No PDF data received.');
+  const blob = Utilities.newBlob(Utilities.base64Decode(payload.base64), 'application/pdf', fileName);
+
+  if (payload.fileId) {
+    try {
+      if (typeof Drive !== 'undefined' && Drive.Files && Drive.Files.update) {
+        Drive.Files.update({ name: fileName }, payload.fileId, blob);
+        return pdfResult(payload.fileId);
+      }
+      // Drive API not switched on: replace the old file instead (link changes).
+      DriveApp.getFileById(payload.fileId).setTrashed(true);
+    } catch (error) {
+      // The old file is gone or inaccessible: fall through and create a new one.
+    }
+  }
+
+  const year = String(payload.year || new Date().getFullYear());
+  const folder = getOrCreateChild(getOrCreateChild(getDriveRoot(), kindFolder), year);
+  const file = folder.createFile(blob);
+  return pdfResult(file.getId());
+}
+
+function pdfResult(fileId) {
+  return {
+    fileId: fileId,
+    fileUrl: 'https://drive.google.com/file/d/' + fileId + '/view',
+    savedAt: new Date().toISOString()
+  };
+}
+
+function getDriveRoot() {
+  const props = PropertiesService.getScriptProperties();
+  const storedId = props.getProperty(PROP_DRIVE_ROOT_ID);
+  if (storedId) {
+    try { return DriveApp.getFolderById(storedId); } catch (error) { /* recreate below */ }
+  }
+  const iter = DriveApp.getFoldersByName('Arya Vysya Press');
+  const root = iter.hasNext() ? iter.next() : DriveApp.createFolder('Arya Vysya Press');
+  props.setProperty(PROP_DRIVE_ROOT_ID, root.getId());
+  return root;
+}
+
+function getOrCreateChild(parent, name) {
+  const iter = parent.getFoldersByName(name);
+  return iter.hasNext() ? iter.next() : parent.createFolder(name);
 }
 
 // ---------------------------------------------------------------------------

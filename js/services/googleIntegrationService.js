@@ -149,6 +149,11 @@ export class GoogleIntegrationService {
     return response.data || {};
   }
 
+  async savePdf(payload) {
+    const response = await this.drive.savePdf(payload);
+    return response.data || {};
+  }
+
   // Server-issued record numbers, e.g. { invoice: 1 } -> { invoice: ['INV-00012'] }.
   async allocateIds(kinds) {
     const response = await this.sheets.allocateIds(kinds || {});

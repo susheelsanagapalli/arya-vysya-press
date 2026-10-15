@@ -43,4 +43,14 @@ export class PaymentService {
     this.saveState();
     return payment;
   }
+
+  // Edits a payment (or marks it deleted with { deleted: true }). Payments gain lastUpdated
+  // on change so the newer version wins when devices sync.
+  update(paymentId, patch) {
+    const payment = (this.getState().payments || []).find(item => item.id === paymentId);
+    if (!payment) return null;
+    Object.assign(payment, patch || {}, { lastUpdated: this.nowFn() });
+    this.saveState();
+    return payment;
+  }
 }
