@@ -111,7 +111,10 @@ Fixes go to `beta-enhanced` only, in small commits, highest severity first.
 | --- | --- |
 | H7, H8, H10, M1, M2, L13 | **Fixed** (Batch 1) |
 | M3 (letterhead address), M8 (cursor jump), M11 (per-line GST %), L5 (signature) | **Fixed** (UI round, pulled forward from Batch 3) |
-| H5 | **Partly fixed**: duplicate Export buttons removed and all export buttons disabled while exporting; repeated exports still create new records |
+| H4 | **Fixed** (Batch 2): customer details come only from the document being saved; matching by GSTIN, then phone/email, then name; different GSTINs are never merged; matched customers get updated details |
+| H5 | **Fixed** (Batch 2): after a save the builder keeps editing that record (also across reloads), so saving or exporting again updates it; "Start a new ..." begins the next document; re-saves keep the original date and quotation link |
+| H12 | **Fixed** (Batch 2): logos are shrunk to at most 600x240 on upload; full or blocked storage shows a warning instead of failing silently |
+| Business-password sign-in (new) | **Done**: once per device, with "remember on this device" and sign-out options |
 | Cross-device sync (new) | **Done**: the Google Sheet is the shared copy; two-way `syncAll` on start, after every save and on return to the app; full records kept in a hidden Record JSON column |
 | H1 | **Fixed**: requests sent as `text/plain` (no CORS preflight) |
 | H2 | **Fixed**: API key required on every request (Script Properties); spreadsheet ID fixed on the server |

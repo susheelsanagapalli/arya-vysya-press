@@ -13,6 +13,8 @@ export function writeJson(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
     return true;
   } catch (error) {
+    // Storage full or blocked: let the app warn the user instead of failing silently.
+    window.dispatchEvent(new CustomEvent('avp-storage-error', { detail: { key } }));
     return false;
   }
 }

@@ -501,6 +501,9 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 }
 .modal-check input { width: auto; }
 .signin-error { color: var(--red); min-height: 1em; margin-top: 8px; }
+.record-status { font-size: 0.72rem; color: var(--muted); }
+.record-status strong { color: var(--ink); }
+.record-status button { background: none; border: none; color: var(--gold-dark); font-weight: 600; cursor: pointer; padding: 0; font-size: 0.72rem; text-decoration: underline; }
 #google-connection-chip { cursor: pointer; }
 
 /* TOAST + SPINNER FEEDBACK */
@@ -1649,7 +1652,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
       <div class="field">
         <label>Logo Upload</label>
         <input type="file" id="f-logo" accept="image/*">
-        <div class="field-help">Accepted: JPG, JPEG, PNG, WEBP, SVG, GIF, BMP and other browser-supported image files.</div>
+        <div class="field-help">Accepted: JPG, JPEG, PNG, WEBP, SVG, GIF, BMP and other browser-supported image files. Large images are shrunk automatically.</div>
         <button type="button" class="btn btn-outline btn-sm" style="margin-top:6px;" id="btn-clear-logo">Remove Logo</button>
       </div>
     </div>
@@ -1775,6 +1778,7 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
   <div class="preview-panel">
     <div class="preview-controls">
       <span class="preview-label">Live document preview - click any text to edit inline</span>
+      <span class="record-status" id="builder-record-status" aria-live="polite"></span>
       <button class="btn btn-gold btn-sm" data-export-btn="true" id="btn-export-preview" aria-label="Export and save from preview">Export &amp; Save</button>
     </div>
 
@@ -2334,28 +2338,38 @@ function ensureCustomerFromCurrentBuilder() {
   return customerService.upsertFromBuilder(collectCustomerInputFromBuilder());
 }
 
+// The customer of the document being saved, taken only from that document's own fields.
+// (The letterhead phone/email belong to the press, and the other tab's fields may hold another
+// customer, so neither is used.) GSTINs are ignored on Non-GST bills, where they are hidden.
 function collectCustomerInputFromBuilder() {
-  const qNameRaw = (document.getElementById('f-q-to')?.value || '').trim();
-  const qGstin = (document.getElementById('f-q-cgst')?.value || '').trim();
-  const invCompany = (document.getElementById('f-inv-cname')?.value || '').trim();
-  const invGstin = (document.getElementById('f-inv-cgst')?.value || '').trim();
+  const value = id => (document.getElementById(id)?.value || '').trim();
+  const gstEnabled = isGstEnabled();
 
-  const fallbackName = invCompany || qNameRaw || 'Unnamed Customer';
-  const customerName = qNameRaw || invCompany || 'Unnamed Customer';
-  const companyName = invCompany || qNameRaw || fallbackName;
-  const gstin = qGstin || invGstin;
-  const phone = (document.getElementById('f-cell')?.value || '').trim();
-  const email = (document.getElementById('f-email')?.value || '').trim();
+  if (mode === 'quotation') {
+    const name = value('f-q-to') || 'Unnamed Customer';
+    return {
+      customerName: name,
+      companyName: name,
+      contactPerson: name,
+      phone: '',
+      email: '',
+      billingAddress: '',
+      shippingAddress: '',
+      gstin: gstEnabled ? value('f-q-cgst') : '',
+      status: 'Active'
+    };
+  }
 
+  const buyer = value('f-inv-bname') || value('f-inv-cname') || 'Unnamed Customer';
   return {
-    customerName,
-    companyName,
-    contactPerson: customerName,
-    phone,
-    email,
-    billingAddress: document.getElementById('f-inv-baddr')?.value || '',
-    shippingAddress: document.getElementById('f-inv-caddr')?.value || '',
-    gstin,
+    customerName: buyer,
+    companyName: buyer,
+    contactPerson: buyer,
+    phone: '',
+    email: '',
+    billingAddress: value('f-inv-baddr'),
+    shippingAddress: value('f-inv-caddr') || value('f-inv-baddr'),
+    gstin: gstEnabled ? (value('f-inv-bgst') || value('f-inv-cgst')) : '',
     status: 'Active'
   };
 }
@@ -2372,11 +2386,13 @@ async function saveQuotationRecord() {
 function saveQuotationRecordNow() {
   const customer = ensureCustomerFromCurrentBuilder();
   const gstEnabled = isGstEnabled();
+  const existingQuotation = currentQuotationEditId ? bizState.quotations.find(item => item.id === currentQuotationEditId) : null;
   const quotationPayload = {
     customerId: customer.id,
     customerName: customer.customerName,
     companyName: customer.companyName,
-    quotationDate: todayIsoDate(),
+    // Re-saving keeps the original quotation date.
+    quotationDate: existingQuotation?.quotationDate || todayIsoDate(),
     letterheadId: activeLetterheadId || 'LH-DEFAULT',
     gstEnabled,
     paymentTerms: document.getElementById('f-inv-terms')?.value || '30 Days',
@@ -2405,10 +2421,13 @@ function saveQuotationRecordNow() {
   }
 
   bizState = stateService.getState();
-  currentQuotationEditId = null;
+  // Keep this quotation open: saving or exporting again updates it instead of creating a new one.
+  currentQuotationEditId = quotation.id;
   upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Quotation', quotation));
   saveBusinessState();
   renderBusinessViews();
+  refreshBuilderRecordStatus();
+  queuePersist();
   showToast(`Quotation ${quotation.quotationNumber} saved.`, 'success');
   return quotation;
 }
@@ -2427,12 +2446,14 @@ function saveInvoiceRecordNow() {
   const invoiceDate = document.getElementById('f-inv-date')?.value || todayIsoDate();
   const dueDate = getDatePlusDays(invoiceDate, 30);
 
+  // Source quotation: from "Create Invoice" on a quotation, or kept from the invoice being re-saved.
+  const existingInvoice = currentInvoiceEditId ? bizState.invoices.find(item => item.id === currentInvoiceEditId) : null;
   const source = currentInvoiceSource ? {
     quotationId: currentInvoiceSource.quotationId,
     quotationNumber: currentInvoiceSource.quotationNumber
   } : {
-    quotationId: '',
-    quotationNumber: ''
+    quotationId: existingInvoice?.quotationId || '',
+    quotationNumber: existingInvoice?.quotationNumber || ''
   };
 
   const invoicePayload = {
@@ -2479,13 +2500,38 @@ function saveInvoiceRecordNow() {
     quotationService.markConverted(source.quotationId, invoice.id);
   }
 
+  // Keep this invoice open: saving or exporting again updates it instead of creating a new one.
   currentInvoiceSource = null;
-  currentInvoiceEditId = null;
+  currentInvoiceEditId = invoice.id;
   upsertDocumentHistoryEntry(buildDocumentHistoryEntryFromRecord('Invoice', invoice));
   saveBusinessState();
   renderBusinessViews();
+  refreshBuilderRecordStatus();
+  queuePersist();
   showToast(`Invoice ${invoice.invoiceNumber} saved.`, 'success');
   return invoice;
+}
+
+// Shows which record the builder is editing, so it's clear whether saving creates or updates.
+function refreshBuilderRecordStatus() {
+  const el = document.getElementById('builder-record-status');
+  if (!el) return;
+  const kind = mode === 'quotation' ? 'quotation' : 'invoice';
+  const id = mode === 'quotation' ? currentQuotationEditId : currentInvoiceEditId;
+  el.innerHTML = id
+    ? `Editing <strong>${escapeHtml(id)}</strong> &middot; saving updates it &middot; <button type="button" data-start-new="${kind}">Start a new ${kind}</button>`
+    : `New ${kind} &middot; gets its number when saved`;
+}
+
+function startNewDocument(kind) {
+  if (kind === 'quotation') currentQuotationEditId = null;
+  else {
+    currentInvoiceEditId = null;
+    currentInvoiceSource = null;
+  }
+  refreshBuilderRecordStatus();
+  queuePersist();
+  showToast(`The next save creates a new ${kind}.`, 'success');
 }
 
 async function exportAndSaveActiveDocument(exportSettings) {
@@ -2554,6 +2600,8 @@ function loadQuotationIntoInvoiceBuilder(quotationId, forceDuplicate) {
 
   setMode('invoice');
   switchView('builder');
+  refreshBuilderRecordStatus();
+  queuePersist();
   showToast(`Invoice draft loaded from ${quote.quotationNumber}.`, 'success');
 }
 
@@ -2587,6 +2635,8 @@ function loadQuotationIntoQuotationBuilder(quotationId) {
   setInputValue('f-gst-enabled', quote.gstApplicable === false ? 'false' : 'true');
   applyGstMode();
   renderRows('q');
+  refreshBuilderRecordStatus();
+  queuePersist();
   showToast(`Quotation ${quote.quotationNumber} loaded for editing.`, 'success');
 }
 
@@ -2638,6 +2688,8 @@ function loadInvoiceIntoBuilder(invoiceId) {
     quotationNumber: invoice.quotationNumber || '',
     customerId: invoice.customerId || ''
   };
+  refreshBuilderRecordStatus();
+  queuePersist();
   showToast(`Invoice ${invoice.invoiceNumber} loaded for editing.`, 'success');
 }
 
@@ -4364,7 +4416,13 @@ function persistAppState() {
     qRows,
     iRows,
     formValues: {},
-    logoSrc: document.getElementById('d-logo-img')?.getAttribute('src') || ''
+    logoSrc: document.getElementById('d-logo-img')?.getAttribute('src') || '',
+    // Which records the builder has open, so a reload keeps updating them instead of creating new ones.
+    openRecords: {
+      quotationId: currentQuotationEditId || '',
+      invoiceId: currentInvoiceEditId || '',
+      invoiceSource: currentInvoiceSource || null
+    }
   };
 
   document.querySelectorAll('.form-panel input, .form-panel textarea, .form-panel select').forEach(el => {
@@ -4375,9 +4433,24 @@ function persistAppState() {
   try {
     localStorage.setItem(APP_CONFIG.stateKey, JSON.stringify(state));
   } catch (e) {
-    // Ignore storage failures.
+    notifyStorageFailure();
   }
 }
+
+// Browser storage is full or blocked. Warn (at most once a minute) instead of failing silently.
+let lastStorageWarningAt = 0;
+function notifyStorageFailure() {
+  if (Date.now() - lastStorageWarningAt < 60000) return;
+  lastStorageWarningAt = Date.now();
+  showToast(
+    googleIntegration.canCallApi()
+      ? 'This browser\'s storage is full, so changes are not being saved on this device. Synced records are safe in Google Sheets. Try removing the logo or clearing old site data.'
+      : 'This browser\'s storage is full, so changes are NOT being saved. Remove the logo or clear old site data, and sign in to keep a copy in Google Sheets.',
+    'error',
+    9000
+  );
+}
+window.addEventListener('avp-storage-error', notifyStorageFailure);
 
 function restoreAppState() {
   try {
@@ -4388,6 +4461,11 @@ function restoreAppState() {
     qRows = Array.isArray(state.qRows) ? state.qRows.map(normalizeRow) : [];
     iRows = Array.isArray(state.iRows) ? state.iRows.map(normalizeRow) : [];
     mode = state.mode === 'invoice' ? 'invoice' : 'quotation';
+
+    const open = state.openRecords || {};
+    currentQuotationEditId = bizState.quotations.some(item => item.id === open.quotationId) ? open.quotationId : null;
+    currentInvoiceEditId = bizState.invoices.some(item => item.id === open.invoiceId) ? open.invoiceId : null;
+    currentInvoiceSource = open.invoiceSource && open.invoiceSource.quotationId ? open.invoiceSource : null;
 
     if (state.formValues && typeof state.formValues === 'object') {
       Object.keys(state.formValues).forEach(id => {
@@ -4565,6 +4643,8 @@ function setMode(m, tabEl) {
     document.getElementById('d-invoice').classList.add('visible');
   }
 
+  refreshBuilderRecordStatus();
+
   // Only offer the save action that matches the active document.
   const saveQuotationBtn = document.getElementById('btn-save-quotation');
   const saveInvoiceBtn = document.getElementById('btn-save-invoice');
@@ -4684,6 +4764,7 @@ function resetToDefaults() {
   }
 
   queuePersist();
+  refreshBuilderRecordStatus();
   showToast('Defaults restored.', 'success');
 }
 
@@ -4828,11 +4909,17 @@ function uploadLogo(fileInput) {
   }
 
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = async function(e) {
     const img = document.getElementById('d-logo-img');
     const placeholder = document.querySelector('.lh-logo-placeholder');
     if (!img || !placeholder) return;
-    img.src = e.target.result;
+    const logo = await shrinkLogo(e.target.result, file.type);
+    if (logo.length > LOGO_MAX_STORED_CHARS) {
+      showToast('This logo is too large to keep even after shrinking. Please use a smaller image (under 300 KB).', 'error');
+      fileInput.value = '';
+      return;
+    }
+    img.src = logo;
     img.style.display = 'block';
     placeholder.style.display = 'none';
     queuePersist();
@@ -4841,6 +4928,32 @@ function uploadLogo(fileInput) {
     showToast('Unable to load the selected image. Please try another file.', 'error');
   };
   reader.readAsDataURL(file);
+}
+
+// The logo prints about 64px tall, so it is scaled down to at most 600x240 (sharp in print) before
+// being stored. A full-size photo would otherwise fill the browser's storage and stop all saving.
+const LOGO_MAX_WIDTH = 600;
+const LOGO_MAX_HEIGHT = 240;
+const LOGO_MAX_STORED_CHARS = 400000; // ~300 KB image
+
+function shrinkLogo(dataUrl, type) {
+  return new Promise(resolve => {
+    if (type === 'image/svg+xml' && dataUrl.length <= LOGO_MAX_STORED_CHARS) return resolve(dataUrl);
+    const image = new Image();
+    image.onload = () => {
+      const scale = Math.min(1, LOGO_MAX_WIDTH / image.naturalWidth, LOGO_MAX_HEIGHT / image.naturalHeight);
+      const width = Math.max(1, Math.round(image.naturalWidth * scale));
+      const height = Math.max(1, Math.round(image.naturalHeight * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(image, 0, 0, width, height);
+      const png = canvas.toDataURL('image/png'); // PNG keeps transparent backgrounds
+      resolve(png.length < dataUrl.length ? png : dataUrl);
+    };
+    image.onerror = () => resolve(dataUrl);
+    image.src = dataUrl;
+  });
 }
 
 function clearLogo() {
@@ -5319,6 +5432,10 @@ function savePDF(options) {
   stateService.onSave = () => scheduleCloudSync();
   document.addEventListener('visibilitychange', syncOnReturn);
   window.addEventListener('focus', syncOnReturn);
+  document.getElementById('builder-record-status')?.addEventListener('click', e => {
+    const button = e.target.closest('[data-start-new]');
+    if (button) startNewDocument(button.dataset.startNew);
+  });
   document.getElementById('signin-form')?.addEventListener('submit', submitSignIn);
   document.getElementById('btn-signin-skip')?.addEventListener('click', skipSignIn);
   document.getElementById('btn-signout')?.addEventListener('click', () => signOutDevice(false));
