@@ -943,6 +943,11 @@ body { background: var(--app-bg); color: var(--ink); }
 .mgmt-nav-btn { border: 0; border-radius: 6px; padding: 9px 14px; font-size: 0.875rem; color: #3D3933; letter-spacing: 0; }
 .mgmt-nav-btn:hover { background: #F3EFE6; color: var(--ink); }
 .mgmt-nav-btn.active { background: #F3ECDA; color: #5E4300; font-weight: 600; border: 0; box-shadow: inset 3px 0 0 var(--gold); }
+.mgmt-nav-btn[hidden] { display: none; }
+.nav-builder { display: flex; flex-direction: column; gap: 1px; margin-top: 10px; position: relative; }
+.nav-builder::before { content: ''; position: absolute; left: 8px; right: 8px; top: -6px; border-top: 1px solid var(--line-soft); }
+.nav-builder-doc { font-size: 0.75rem; color: var(--muted); font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-builder.active .nav-builder-doc { color: #7A5600; }
 .mgmt-nav-btn[data-view-target="firms"] { margin-top: 10px; position: relative; }
 .mgmt-nav-btn[data-view-target="firms"]::before { content: ''; position: absolute; left: 8px; right: 8px; top: -6px; border-top: 1px solid var(--line-soft); }
 
@@ -1186,7 +1191,10 @@ body { background: var(--app-bg); color: var(--ink); }
       <button class="mgmt-nav-btn" data-view-target="firms">Firms</button>
       <button class="mgmt-nav-btn" data-view-target="templates">Templates</button>
       <button class="mgmt-nav-btn" data-view-target="settings">Settings</button>
-      <button class="mgmt-nav-btn" data-view-target="builder">Document Builder</button>
+      <button class="mgmt-nav-btn nav-builder" data-view-target="builder" data-title="Document Builder" hidden>
+        <span class="nav-builder-label">Continue editing</span>
+        <span class="nav-builder-doc" id="nav-builder-doc"></span>
+      </button>
     </div>
   </aside>
 
@@ -2796,6 +2804,35 @@ function refreshBuilderRecordStatus() {
   el.innerHTML = id
     ? `Editing <strong>${escapeHtml(record ? (kind === 'invoice' ? invoiceLabel(record) : id) : id)}</strong> &middot; saving updates it${fileLink} &middot; <button type="button" data-start-new="${kind}">Start a new ${kind}</button>`
     : `New ${kind} &middot; gets its number when saved`;
+  updateBuilderNav();
+}
+
+// Something has been typed into the unsaved document of this kind (so it is worth returning to).
+function builderDraftHasContent(kind) {
+  const value = id => (document.getElementById(id)?.value || '').trim();
+  const rows = kind === 'quotation' ? qRows : iRows;
+  const fields = kind === 'quotation'
+    ? ['f-q-to', 'f-q-subject', 'f-inv-ref']
+    : ['f-inv-bname', 'f-inv-cname', 'f-inv-manual-no', 'f-inv-ref', 'f-inv-bon'];
+  return fields.some(id => value(id)) || (rows || []).some(row => String(row.desc || '').trim() || Number(row.price || 0) > 0);
+}
+
+// The sidebar's Builder entry: "Continue editing <document>" while a document is open (saved, or a
+// draft with something in it), hidden otherwise. New, Edit, Create invoice and Apply open the
+// Builder directly, so an entry pointing at an empty page is not needed.
+function updateBuilderNav() {
+  const btn = document.querySelector('.mgmt-nav-btn[data-view-target="builder"]');
+  if (!btn) return;
+  const kind = mode === 'quotation' ? 'quotation' : 'invoice';
+  const id = kind === 'quotation' ? currentQuotationEditId : currentInvoiceEditId;
+  const record = id ? (kind === 'quotation' ? bizState.quotations : bizState.invoices).find(item => item.id === id) : null;
+  const draft = !id && builderDraftHasContent(kind);
+  const label = record
+    ? (kind === 'invoice' ? (record.invoiceNumber || id) : (record.quotationNumber || id))
+    : `New ${kind}${draft ? ' (not saved)' : ''}`;
+  setText('nav-builder-doc', label);
+  btn.hidden = !(record || draft || activeView === 'builder');
+  btn.title = record ? `Back to ${label} in the Document Builder` : 'Back to the Document Builder';
 }
 
 function startNewDocument(kind) {
@@ -3248,12 +3285,13 @@ function switchView(viewKey) {
     btn.classList.toggle('active', btn.dataset.viewTarget === viewKey);
     if (btn.dataset.viewTarget === viewKey) {
       btn.setAttribute('aria-current', 'page');
-      setText('header-page-title', btn.textContent.trim()); // the header names the open screen
+      setText('header-page-title', btn.dataset.title || btn.textContent.trim()); // the header names the open screen
     } else {
       btn.removeAttribute('aria-current');
     }
   });
   closeRowMenus();
+  updateBuilderNav();
   renderView(viewKey); // draws the screen if its data changed while it was hidden
 }
 
@@ -5473,6 +5511,7 @@ function persistAppState() {
   } catch (e) {
     notifyStorageFailure();
   }
+  updateBuilderNav(); // a draft that now has content gets its "Continue editing" entry
 }
 
 // Browser storage is full or blocked. Warn (at most once a minute) instead of failing silently.
