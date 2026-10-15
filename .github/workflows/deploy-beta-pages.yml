@@ -1,11 +1,10 @@
-name: Deploy Main, Beta and Beta-Enhanced to GitHub Pages
+name: Deploy Main and Beta to GitHub Pages
 
 on:
   push:
     branches:
       - main
       - beta
-      - beta-enhanced
   workflow_dispatch:
 
 permissions:
@@ -29,16 +28,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Build Pages artifact (main at /, beta at /beta, beta-enhanced at /beta-enhanced)
+      - name: Build Pages artifact (main at /, beta at /beta)
         run: |
           rm -rf _site
-          mkdir -p _site _site/beta _site/beta-enhanced
+          mkdir -p _site _site/beta
 
-          git fetch origin main beta beta-enhanced
+          git fetch origin main beta
 
           git archive origin/main | tar -x -C _site
           git archive origin/beta | tar -x -C _site/beta
-          git archive origin/beta-enhanced | tar -x -C _site/beta-enhanced
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
