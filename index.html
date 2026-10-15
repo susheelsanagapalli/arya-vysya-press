@@ -500,6 +500,8 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
   color: #333;
 }
 .modal-check input { width: auto; }
+.signin-error { color: var(--red); min-height: 1em; margin-top: 8px; }
+#google-connection-chip { cursor: pointer; }
 
 /* TOAST + SPINNER FEEDBACK */
 .toast {
@@ -1530,9 +1532,13 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
             <input id="s-google-apps-script-url" type="text" placeholder="https://script.google.com/macros/s/.../exec">
           </div>
           <div class="field">
-            <label for="s-api-key">API Key</label>
-            <input id="s-api-key" type="password" autocomplete="off" spellcheck="false" placeholder="avp_...">
-            <div class="field-help">Required for syncing across devices. Get it by running <code>setupApiKey</code> in the Apps Script editor, then enter it here on every device. It is stored only in this browser.</div>
+            <label for="s-api-key">Business Password</label>
+            <input id="s-api-key" type="password" autocomplete="current-password" spellcheck="false" placeholder="Business password">
+            <div class="field-help">Needed once per device to sync. It is the <code>AVP_API_KEY</code> value in the Apps Script project settings, and is stored only in this browser.</div>
+            <div class="settings-actions" style="margin-top:6px;">
+              <button type="button" class="btn btn-outline btn-sm" id="btn-signout">Sign out on this device</button>
+              <button type="button" class="btn btn-outline btn-sm" id="btn-signout-clear">Sign out &amp; remove data from this device</button>
+            </div>
           </div>
           <div class="field">
             <label for="s-business-sheet-id">Business Register Spreadsheet ID</label>
@@ -2016,6 +2022,28 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
   </div>
 </div>
 
+<div class="modal-backdrop" id="signin-modal">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="signin-title">
+    <form id="signin-form">
+      <div class="modal-title" id="signin-title">Sign in to sync</div>
+      <div class="modal-sub">Enter the business password to see and save records from all your devices. You only need to do this once on each device.</div>
+      <div class="field">
+        <label for="signin-password">Business password</label>
+        <input id="signin-password" type="password" autocomplete="current-password" required>
+      </div>
+      <label class="modal-check" for="signin-remember">
+        <input type="checkbox" id="signin-remember" checked>
+        Remember on this device (untick on shared computers)
+      </label>
+      <div class="field-help signin-error" id="signin-error" role="alert"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="btn-signin-skip">Use without sync</button>
+        <button type="submit" class="btn btn-gold" id="btn-signin-submit">Sign in</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="export-spinner" id="export-spinner" aria-hidden="true">
   <div class="export-spinner-box" role="status" aria-live="polite" aria-atomic="true">
     <div class="export-spinner-icon" aria-hidden="true"></div>
@@ -2467,7 +2495,7 @@ async function exportAndSaveActiveDocument(exportSettings) {
   savePDF(exportSettings || getExportSettings());
 
   if (!googleIntegration.canCallApi()) {
-    showToast('Document saved on this device. Add your API key in Settings to sync across devices.', 'success');
+    showToast('Document saved on this device. Sign in (click the Google chip at the top) to sync across devices.', 'success');
     return;
   }
 
@@ -3795,6 +3823,11 @@ function syncNow({ silent = true } = {}) {
     } catch (error) {
       lastCloudSyncError = error.message || String(error);
       refreshSyncChip();
+      if (isSignInError(lastCloudSyncError)) {
+        // Password changed on the server (or was wrong): ask again instead of retrying.
+        openSignIn('The business password was not accepted. Please sign in again.');
+        return false;
+      }
       if (!silent) showToast(`Sync failed: ${lastCloudSyncError}`, 'error');
       scheduleCloudSync(SYNC_RETRY_MS);
       return false;
@@ -3818,8 +3851,10 @@ function syncOnReturn() {
 function refreshSyncChip(phase) {
   const chip = document.getElementById('google-connection-chip');
   const message = document.getElementById('status-sync-message');
-  let text = 'Google: Not connected';
-  let title = 'Add the Apps Script URL and API key in Settings to sync across devices.';
+  let text = googleIntegration.hasEndpoint() ? 'Google: Not signed in' : 'Google: Not connected';
+  let title = googleIntegration.hasEndpoint()
+    ? 'Click to sign in with the business password and sync across devices.'
+    : 'Add the Apps Script URL in Settings to sync across devices.';
 
   if (googleIntegration.canCallApi()) {
     if (phase === 'syncing') {
@@ -3864,6 +3899,77 @@ async function reserveServerIds(kinds) {
     showToast(`Couldn't get a new number from Google Sheets (${error.message || error}). Check the connection and try again.`, 'error');
     return false;
   }
+}
+
+function isSignInError(message) {
+  return /business password|Not signed in|Invalid API key/i.test(String(message || ''));
+}
+
+// ── Sign-in (business password, once per device) ──
+function openSignIn(message) {
+  const modal = document.getElementById('signin-modal');
+  if (!modal) return;
+  setText('signin-error', message || '');
+  const input = document.getElementById('signin-password');
+  if (input) input.value = '';
+  modal.classList.add('open');
+  setTimeout(() => input && input.focus(), 50);
+}
+
+function closeSignIn() {
+  document.getElementById('signin-modal')?.classList.remove('open');
+}
+
+async function submitSignIn(event) {
+  if (event) event.preventDefault();
+  const password = (document.getElementById('signin-password')?.value || '').trim();
+  const remember = !!document.getElementById('signin-remember')?.checked;
+  if (!password) return;
+
+  const button = document.getElementById('btn-signin-submit');
+  if (button) { button.disabled = true; button.textContent = 'Checking...'; }
+  try {
+    await googleIntegration.verifyPassword(password);
+    googleIntegration.setPassword(password, remember);
+    lastCloudSyncError = '';
+    closeSignIn();
+    hydrateGoogleConfigToUi();
+    showToast('Signed in. Syncing your records...', 'success');
+    await syncNow();
+  } catch (error) {
+    setText('signin-error', error.message || 'Sign-in failed. Check the connection and try again.');
+  } finally {
+    if (button) { button.disabled = false; button.textContent = 'Sign in'; }
+  }
+}
+
+function skipSignIn() {
+  try { sessionStorage.setItem('avp_signin_skipped', '1'); } catch (e) { /* ignore */ }
+  closeSignIn();
+  refreshSyncChip();
+}
+
+function signOutDevice(removeData) {
+  if (removeData && !confirm('Sign out and remove all business records and drafts from this device? Everything already synced stays safe in Google Sheets.')) return;
+
+  googleIntegration.setPassword('', true);
+  lastCloudSyncError = '';
+  lastCloudSyncAt = 0;
+  if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
+
+  if (removeData) {
+    window.removeEventListener('beforeunload', persistAppState); // don't write the drafts back
+    try {
+      localStorage.removeItem(BIZ_CONFIG.stateKey);
+      localStorage.removeItem(APP_CONFIG.stateKey);
+    } catch (e) { /* ignore */ }
+    location.reload();
+    return;
+  }
+
+  hydrateGoogleConfigToUi();
+  updateGoogleStatusUi({ message: 'Signed out on this device. Records already on this device stay here.' });
+  showToast('Signed out on this device.', 'success');
 }
 
 async function withServerIds(kinds, fn) {
@@ -3938,7 +4044,7 @@ function updateGoogleStatusUi(payload) {
   }
   if (sync) sync.textContent = payload?.message || 'Configuration saved locally.';
   if (chip) refreshSyncChip();
-  if (!hasApi && sync && !payload?.message) sync.textContent = 'Add the Apps Script URL and API key to sync across devices.';
+  if (!hasApi && sync && !payload?.message) sync.textContent = 'Sign in with the business password to sync across devices.';
 }
 
 async function handleGoogleTestConnection() {
@@ -3997,8 +4103,9 @@ async function handleGoogleInitializeWorkspace() {
 // Full two-way sync on demand: sends this device's records and pulls everyone else's.
 async function handleGoogleSyncRegister() {
   if (!googleIntegration.canCallApi()) {
-    updateGoogleStatusUi({ message: 'Add the Apps Script URL and API key, then click Save Config.' });
-    showToast('Add the Apps Script URL and API key in Settings first.', 'error');
+    updateGoogleStatusUi({ message: 'Sign in with the business password first.' });
+    if (googleIntegration.hasEndpoint()) openSignIn();
+    else showToast('Add the Apps Script URL in Settings first.', 'error');
     return;
   }
   updateGoogleStatusUi({ message: 'Syncing with Google Sheets...' });
@@ -4057,6 +4164,10 @@ function bindBusinessEvents() {
   if (saveGoogleConfigBtn) {
     saveGoogleConfigBtn.addEventListener('click', () => {
       const nextCfg = collectGoogleConfigFromUi();
+      // Signed in without "remember": keep the password for this session only.
+      if (googleIntegration.passwordSessionOnly && nextCfg.apiKey === googleIntegration.getConfig().apiKey) {
+        delete nextCfg.apiKey;
+      }
       googleIntegration.setConfig(nextCfg);
       lastCloudSyncError = '';
       updateGoogleStatusUi({ message: 'Google configuration saved on this device.' });
@@ -5208,7 +5319,20 @@ function savePDF(options) {
   stateService.onSave = () => scheduleCloudSync();
   document.addEventListener('visibilitychange', syncOnReturn);
   window.addEventListener('focus', syncOnReturn);
-  syncNow();
+  document.getElementById('signin-form')?.addEventListener('submit', submitSignIn);
+  document.getElementById('btn-signin-skip')?.addEventListener('click', skipSignIn);
+  document.getElementById('btn-signout')?.addEventListener('click', () => signOutDevice(false));
+  document.getElementById('btn-signout-clear')?.addEventListener('click', () => signOutDevice(true));
+  document.getElementById('google-connection-chip')?.addEventListener('click', () => {
+    if (googleIntegration.canCallApi()) syncNow({ silent: false });
+    else if (googleIntegration.hasEndpoint()) openSignIn();
+    else switchView('settings');
+  });
+
+  let signInSkipped = false;
+  try { signInSkipped = sessionStorage.getItem('avp_signin_skipped') === '1'; } catch (e) { /* ignore */ }
+  if (googleIntegration.canCallApi()) syncNow();
+  else if (googleIntegration.hasEndpoint() && !signInSkipped) openSignIn();
 
   // Snapshot initial defaults for reset operation.
   document.querySelectorAll('.form-panel input, .form-panel textarea, .form-panel select').forEach(el => {

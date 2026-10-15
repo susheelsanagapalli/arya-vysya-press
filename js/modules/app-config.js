@@ -16,8 +16,8 @@ export const DEFAULT_GOOGLE_CONFIG = {
   invoicesFolderId: '',
   invoicesFolderUrl: '',
   autoCreateRoot: true,
-  // Shared secret checked by the Apps Script backend. Entered per device in Settings and kept
-  // only in that browser's storage; it never ships in the code. Sync stays off until it is set.
+  // Business password checked by the Apps Script backend. Entered once per device on the sign-in
+  // screen and kept only in that browser; it never ships in the code. Sync stays off until set.
   apiKey: ''
 };
 

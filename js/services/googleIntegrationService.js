@@ -28,8 +28,36 @@ export class GoogleIntegrationService {
 
   setConfig(patch) {
     this.config = { ...this.config, ...(patch || {}) };
-    writeJson(APP_KEYS.googleConfig, this.config);
+    if (patch && 'apiKey' in patch) this.passwordSessionOnly = false;
+    this.persistConfig();
     return this.getConfig();
+  }
+
+  // The business password is kept in browser storage only when "remember on this device" is on.
+  persistConfig() {
+    const stored = this.passwordSessionOnly ? { ...this.config, apiKey: '' } : this.config;
+    writeJson(APP_KEYS.googleConfig, stored);
+  }
+
+  setPassword(password, remember) {
+    this.config = { ...this.config, apiKey: String(password || '').trim() };
+    this.passwordSessionOnly = !remember;
+    this.persistConfig();
+  }
+
+  hasEndpoint() {
+    return !!this.config.appsScriptUrl;
+  }
+
+  // Confirms a password with the server without changing the saved configuration.
+  async verifyPassword(password) {
+    const previous = this.config.apiKey;
+    this.config.apiKey = String(password || '').trim();
+    try {
+      return await this.sheets.health();
+    } finally {
+      this.config.apiKey = previous;
+    }
   }
 
   // Sync runs only when both the endpoint and the API key are configured.
@@ -42,7 +70,7 @@ export class GoogleIntegrationService {
       throw new Error('Apps Script URL is missing. Configure it in Settings.');
     }
     if (!String(this.config.apiKey || '').trim()) {
-      throw new Error('API key is missing. Enter it in Settings.');
+      throw new Error('Not signed in. Enter the business password.');
     }
 
     // text/plain keeps this a "simple" CORS request: Apps Script web apps don't answer the

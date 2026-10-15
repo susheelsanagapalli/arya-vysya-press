@@ -1,7 +1,7 @@
 // Arya Vysya Press - Business Register backend (Google Apps Script web app).
 //
 // The Google Sheet is the shared copy of the business register; every device syncs with it.
-// Every request must carry the API key stored in Script Properties (run setupApiKey once).
+// Every request must carry the business password stored in Script Properties as AVP_API_KEY.
 
 // Column layout per tab: [header, record field, optional toCell(record), optional fromCell(value)].
 // The last column of every tab is 'Record JSON', which holds the full record so it round-trips exactly.
@@ -107,8 +107,8 @@ function setupApiKey() {
   }
   key = 'avp_' + Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '').slice(0, 8);
   props.setProperty(PROP_API_KEY, key);
-  Logger.log('Your API key is: ' + key);
-  Logger.log('Enter it in the app under Settings > API key on every device.');
+  Logger.log('Your business password is: ' + key);
+  Logger.log('To use a memorable one instead, edit AVP_API_KEY in Project Settings > Script Properties.');
   return key;
 }
 
@@ -163,10 +163,25 @@ function doPost(e) {
   }
 }
 
+// The API key doubles as the business password: the value of the AVP_API_KEY script property
+// (set it to anything memorable in Project Settings > Script Properties).
+// Repeated wrong attempts lock sign-in for 10 minutes to stop password guessing.
+const MAX_FAILED_SIGNINS = 25;
+const SIGNIN_LOCK_SECONDS = 600;
+
 function requireApiKey(provided) {
   const expected = PropertiesService.getScriptProperties().getProperty(PROP_API_KEY);
-  if (!expected) throw new Error('Server has no API key yet. Run setupApiKey in the Apps Script editor.');
-  if (!provided || String(provided) !== expected) throw new Error('Invalid API key. Check Settings > API key.');
+  if (!expected) throw new Error('Server has no business password yet. Set AVP_API_KEY in the Apps Script project settings.');
+
+  const cache = CacheService.getScriptCache();
+  const failures = Number(cache.get('avp_failed_signins') || 0);
+  if (failures >= MAX_FAILED_SIGNINS) {
+    throw new Error('Too many wrong passwords. Try again in 10 minutes.');
+  }
+  if (!provided || String(provided) !== expected) {
+    cache.put('avp_failed_signins', String(failures + 1), SIGNIN_LOCK_SECONDS);
+    throw new Error('Wrong business password.');
+  }
 }
 
 function withLock(fn) {

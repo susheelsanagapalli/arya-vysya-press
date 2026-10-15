@@ -10,20 +10,19 @@ The Google Sheet "Arya Vysya Press - Business Register" is the shared copy of al
 1. Open https://script.google.com with the Google account that should own the register, and open the existing project (or create one with **New project**).
 2. Replace the contents of `Code.gs` with this folder's `Code.gs`, then click **Save**.
 3. (New project only) In **Project Settings**, enable **Show "appsscript.json" manifest file in editor** and replace the manifest with this folder's `appsscript.json`.
-4. In the function dropdown at the top of the editor, select `setupApiKey` and click **Run**. Approve the permission prompt the first time. The **Execution log** shows the API key (`avp_...`). Keep it private.
+4. Set the **business password**: **Project Settings** (gear icon) > **Script Properties** > **Add script property**. Property `AVP_API_KEY`, value: your password (long and hard to guess). Click **Save script properties**. (Alternatively run `setupApiKey` to generate a random one and read it from the Execution log.)
 5. **Deploy > New deployment**, type **Web app**:
    - Execute as: **Me**
-   - Who has access: **Anyone** (the website must be able to reach it; the API key keeps everyone else out)
-   - Click **Deploy** and copy the **Web app URL**.
-   Creating a *new* deployment leaves older deployments (and the sites that use them) unchanged.
-6. In the app, open **Settings** on every device and enter:
-   - **Apps Script Web App URL**: the URL from step 5
-   - **API Key**: the key from step 4
-   Then click **Save Config**. On the first device, also click **Initialize Workspace** once.
+   - Who has access: **Anyone** (the website must be able to reach it; the password keeps everyone else out)
+   - Click **Deploy** and copy the **Web app URL**. Set it as `appsScriptUrl` in `js/modules/app-config.js`.
+   To update the code later without changing the URL: **Deploy > Manage deployments > Edit (pencil) > Version: New version > Deploy**.
+6. Open the app on any device. A **Sign in to sync** box asks for the business password once; with **Remember on this device** ticked it is not asked again. On the first device, also click **Settings > Initialize Workspace** once.
 
-To use an existing register spreadsheet, put its ID in **Business Register Spreadsheet ID** before clicking **Initialize Workspace** the first time. After that the spreadsheet is fixed on the server.
+To use an existing register spreadsheet, put its ID in **Settings > Business Register Spreadsheet ID** before clicking **Initialize Workspace** the first time. After that the spreadsheet is fixed on the server.
 
-To change the key, run `rotateApiKey` and enter the new key on every device.
+To change the password, edit `AVP_API_KEY` in Script Properties. Every device then asks for the new password once. After 25 wrong attempts, sign-in is locked for 10 minutes.
+
+On a shared computer, untick **Remember on this device**, or use **Settings > Sign out & remove data from this device** when done.
 
 ## How sync works
 - On start, after every change, and when the app comes back into view, the app sends its records and receives the full register (`syncAll`). For each record, the most recently changed version wins.
