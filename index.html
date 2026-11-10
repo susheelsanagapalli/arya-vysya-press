@@ -1424,9 +1424,6 @@ body { background: var(--app-bg); color: var(--ink); }
           <label class="btn btn-outline btn-sm" style="cursor:pointer;" title="Upload an Excel file to create a new quotation">
             Import Excel <input type="file" id="file-import-quotation" accept=".xlsx,.xls,.csv" hidden>
           </label>
-          <label class="btn btn-outline btn-sm" style="cursor:pointer;" title="Upload Excel to append items to the current quotation in builder">
-            Append Items <input type="file" id="file-append-quotation" accept=".xlsx,.xls,.csv" hidden>
-          </label>
           <button class="btn btn-outline btn-sm" id="btn-export-all-quotations" title="Export all quotations to one Excel file">Export All</button>
         </div>
       </div>
@@ -1464,9 +1461,6 @@ body { background: var(--app-bg); color: var(--ink); }
           <button class="btn btn-outline btn-sm" id="btn-download-i-template" title="Download a blank Excel template for invoice data">Download Template</button>
           <label class="btn btn-outline btn-sm" style="cursor:pointer;" title="Upload an Excel file to create a new invoice">
             Import Excel <input type="file" id="file-import-invoice" accept=".xlsx,.xls,.csv" hidden>
-          </label>
-          <label class="btn btn-outline btn-sm" style="cursor:pointer;" title="Upload Excel to append items to the current invoice in builder">
-            Append Items <input type="file" id="file-append-invoice" accept=".xlsx,.xls,.csv" hidden>
           </label>
           <button class="btn btn-outline btn-sm" id="btn-export-all-invoices" title="Export all invoices to one Excel file">Export All</button>
         </div>
@@ -2541,6 +2535,12 @@ body { background: var(--app-bg); color: var(--ink); }
         <label>Opening Body Text</label>
         <textarea id="f-q-body" placeholder="Opening paragraph (defaults from the firm)"></textarea>
       </div>
+      <div class="field" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-outline btn-sm" id="btn-download-append-q-template" title="Download a blank Excel template with item columns only">Download Append Items Template</button>
+        <label class="btn btn-outline btn-sm" style="cursor:pointer;" title="Upload Excel to append line items to the current document">
+          Upload Append Items <input type="file" id="file-append-quotation" accept=".xlsx,.xls,.csv" hidden>
+        </label>
+      </div>
       <div class="field">
         <label>Closing Paragraph</label>
         <textarea id="f-q-closing" placeholder="Closing paragraph (defaults from the firm)"></textarea>
@@ -2623,6 +2623,12 @@ body { background: var(--app-bg); color: var(--ink); }
       <div class="field">
         <label>Buyer GSTIN</label>
         <input type="text" id="f-inv-bgst" placeholder="Bill-to GSTIN">
+      </div>
+      <div class="field" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-outline btn-sm" id="btn-download-append-i-template" title="Download a blank Excel template with item columns only">Download Append Items Template</button>
+        <label class="btn btn-outline btn-sm" style="cursor:pointer;" title="Upload Excel to append line items to the current document">
+          Upload Append Items <input type="file" id="file-append-invoice" accept=".xlsx,.xls,.csv" hidden>
+        </label>
       </div>
     </div>
 
@@ -6897,6 +6903,14 @@ function bindStaticEvents() {
     const file = e.target.files[0];
     if (file) handleExcelImportInvoice(file);
     e.target.value = '';
+  });
+  document.getElementById('btn-download-append-q-template')?.addEventListener('click', async () => {
+    try { await loadXlsx(); excelService.downloadAppendItemsTemplate(); showToast('Template downloaded.', 'success'); }
+    catch (e) { showToast(e.message, 'error'); }
+  });
+  document.getElementById('btn-download-append-i-template')?.addEventListener('click', async () => {
+    try { await loadXlsx(); excelService.downloadAppendItemsTemplate(); showToast('Template downloaded.', 'success'); }
+    catch (e) { showToast(e.message, 'error'); }
   });
   document.getElementById('file-append-quotation')?.addEventListener('change', e => {
     const file = e.target.files[0];

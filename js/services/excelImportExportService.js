@@ -98,6 +98,18 @@ export class ExcelImportExportService {
     XLSX.writeFile(wb, 'Invoice_Template.xlsx');
   }
 
+  downloadAppendItemsTemplate() {
+    const XLSX = window.XLSX;
+    if (!XLSX) throw new Error('Excel library not loaded.');
+    const wb = XLSX.utils.book_new();
+    const headers = ['Item Description', 'HSN', 'Unit Price', 'Qty', 'GST %'];
+    const sample = ['Visiting Cards (300 GSM)', '4820', 500, 1000, 18];
+    const ws = XLSX.utils.aoa_to_sheet([headers, sample]);
+    ws['!cols'] = [{ wch: 35 }, { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 10 }];
+    XLSX.utils.book_append_sheet(wb, ws, 'Items');
+    XLSX.writeFile(wb, 'Append_Items_Template.xlsx');
+  }
+
   // ── Excel Parsing ──
 
   async parseQuotationExcel(file) {
