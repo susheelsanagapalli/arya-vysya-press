@@ -30,7 +30,12 @@ export const SYNC_COLLECTIONS = [
   'documentHistory',
   'letterheads',
   'templates',
-  'firms'
+  'firms',
+  'receivables',
+  'purchases',
+  'vendors',
+  'products',
+  'productCustomFields'
 ];
 
 // Records created before firms existed have no firmId; they belong to this firm, which also

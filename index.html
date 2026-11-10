@@ -155,13 +155,13 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
   font-family: 'Inter', sans-serif;
 }
 
-/* Gold left bar */
+/* Gold left bar — uses per-firm primary color when set */
 .doc-sheet::before {
   content: '';
   position: absolute;
   left: 0; top: 0; bottom: 0;
   width: 22px;
-  background: var(--gold);
+  background: var(--firm-primary, var(--gold));
   z-index: 1;
 }
 
@@ -298,29 +298,25 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 .items-tbl {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.76rem;
+  font-size: 0.7rem;
+  table-layout: auto;
 }
 .items-tbl th {
   background: #f5f5f5;
   font-weight: 700;
-  padding: 7px 8px;
+  padding: 4px 3px;
   border: 1px solid #bbb;
   text-align: left;
-  font-size: 0.73rem;
+  font-size: 0.64rem;
   white-space: nowrap;
-  word-break: normal;
-  overflow-wrap: normal;
 }
 .items-tbl td {
-  padding: 6px 8px;
+  padding: 3px 3px;
   border: 1px solid #bbb;
   vertical-align: middle;
-  white-space: nowrap;
-  word-break: normal;
-  overflow-wrap: normal;
 }
 .items-tbl .center { text-align: center; }
-.items-tbl .right { text-align: right; }
+.items-tbl .right { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 0.68rem; }
 .items-tbl .bold { font-weight: 700; }
 
 /* Allow long descriptions to wrap, but keep numbers/headers on one line. */
@@ -334,13 +330,38 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
   border: none;
   background: transparent;
   font-family: 'Inter', sans-serif;
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   color: var(--ink);
   width: 100%;
   outline: none;
   padding: 1px 2px;
+  box-sizing: border-box;
+  -moz-appearance: textfield;
 }
-.items-tbl td input:focus { background: #fffbe6; border-radius: 2px; }
+.items-tbl td input[type="number"]::-webkit-inner-spin-button,
+.items-tbl td input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.items-tbl td textarea.desc-textarea {
+  border: none;
+  background: transparent;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  color: var(--ink);
+  width: 100%;
+  outline: none;
+  padding: 1px 2px;
+  resize: none;
+  overflow: hidden;
+  min-height: 1.6em;
+  line-height: 1.4;
+  display: block;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.items-tbl td input:focus,
+.items-tbl td textarea.desc-textarea:focus { background: #fffbe6; border-radius: 2px; }
 
 /* â•â• ADD ROW BUTTON (inside table area) â•â• */
 .add-row-area { padding: 6px 0; border-bottom: 1px solid #bbb; }
@@ -636,6 +657,50 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
   color: #fff;
 }
 
+/* Sidebar collapse toggle */
+.sidebar-collapse-btn {
+  position: absolute; right: 8px; top: 18px;
+  background: none; border: 1px solid rgba(255,255,255,.2); color: #ccc;
+  width: 26px; height: 26px; border-radius: 6px; cursor: pointer;
+  font-size: 0.85rem; display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.sidebar-collapse-btn:hover { background: rgba(255,255,255,.1); }
+.mgmt-brand { position: relative; }
+
+/* Collapsed sidebar (desktop only) */
+.mgmt-shell.sidebar-collapsed { grid-template-columns: 56px 1fr; }
+.mgmt-shell.sidebar-collapsed .mgmt-sidebar { width: 56px; overflow: hidden; }
+.mgmt-shell.sidebar-collapsed .mgmt-brand-title,
+.mgmt-shell.sidebar-collapsed .mgmt-brand-sub { display: none; }
+.mgmt-shell.sidebar-collapsed .sidebar-collapse-btn { position: static; margin: 0 auto; }
+.mgmt-shell.sidebar-collapsed .mgmt-brand { padding: 12px 8px; text-align: center; }
+.mgmt-shell.sidebar-collapsed .mgmt-nav { padding: 8px 4px; }
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn {
+  padding: 10px 0; text-align: center; font-size: 0;
+  min-height: 38px; display: flex; align-items: center; justify-content: center;
+}
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn::before {
+  font-size: 1.1rem; letter-spacing: 0; line-height: 1;
+}
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn[data-view-target="dashboard"]::before { content: "\25A3"; }
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn[data-view-target="customers"]::before { content: "\263A"; }
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn[data-view-target="quotations"]::before { content: "\270E"; }
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn[data-view-target="invoices"]::before { content: "\2709"; }
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn[data-view-target="payments"]::before { content: "\20B9"; }
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn[data-view-target="documents"]::before { content: "\2630"; }
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn[data-view-target="firms"]::before { content: "\2302"; }
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn[data-view-target="templates"]::before { content: "\2B1A"; }
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn[data-view-target="products"]::before { content: "\2615"; }
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn[data-view-target="receivables"]::before { content: "\2690"; }
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn[data-view-target="purchases"]::before { content: "\2637"; }
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn[data-view-target="analytics"]::before { content: "\2191"; }
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn[data-view-target="gstreturns"]::before { content: "\2696"; }
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn[data-view-target="settings"]::before { content: "\2699"; }
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn[data-view-target="builder"]::before { content: "\270D"; }
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn .nav-builder-label,
+.mgmt-shell.sidebar-collapsed .mgmt-nav-btn .nav-builder-doc { display: none; }
+
 .mgmt-main {
   min-width: 0;
   display: flex;
@@ -886,6 +951,24 @@ body { font-family: 'Inter', sans-serif; background: var(--app-bg); color: var(-
 
 .builder-shell .form-panel { top: 98px; }
 
+
+/* MODAL (products, custom fields) */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:500; display:flex; align-items:center; justify-content:center; }
+.modal { background:#fff; border-radius:10px; padding:24px; width:90%; box-shadow:0 8px 32px rgba(0,0,0,.2); max-height:90vh; overflow-y:auto; }
+.modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.modal-header h2 { font-size:1.1rem; font-weight:700; }
+.modal-close { background:none; border:none; font-size:1.4rem; cursor:pointer; color:var(--muted); }
+
+/* PRODUCT AUTOCOMPLETE */
+.product-autocomplete { position:absolute; z-index:400; background:#fff; border:1px solid var(--border); border-radius:6px; box-shadow:0 4px 16px rgba(0,0,0,.12); max-height:220px; overflow-y:auto; width:320px; max-width:calc(100vw - 16px); }
+.product-autocomplete-item { padding:8px 12px; cursor:pointer; font-size:0.82rem; border-bottom:1px solid #f0f0f0; }
+.product-autocomplete-item:hover, .product-autocomplete-item.active { background:#fffbe6; }
+.product-autocomplete-item .pac-name { font-weight:600; }
+.product-autocomplete-item .pac-detail { color:var(--muted); font-size:0.75rem; }
+
+/* ANALYTICS */
+.analytics-period.active { background:var(--gold); color:#fff; border-color:var(--gold); }
+
 /* â•â• PRINT â•â• */
 @media print {
   .topnav, .tab-bar, .form-panel, .preview-controls, .add-row-btn, .rm-btn, .add-row-area, .edit-hint { display: none !important; }
@@ -1009,7 +1092,7 @@ body { background: var(--app-bg); color: var(--ink); }
 .register-table th:first-child, .register-table td:first-child { padding-left: 16px; }
 .register-table th:last-child, .register-table td:last-child { padding-right: 16px; }
 .register-table tbody tr:hover td { background: #FBF8F1; }
-.register-table td.right-text { font-variant-numeric: tabular-nums; }
+.register-table td.right-text { font-variant-numeric: tabular-nums; min-width: 110px; white-space: nowrap; }
 .register-table td.row-actions { min-width: 0; white-space: nowrap; text-align: right; }
 .row-actions .btn { padding: 5px 8px; font-size: 0.75rem; }
 .row-cancelled td { color: #9A948A; }
@@ -1092,6 +1175,10 @@ body { background: var(--app-bg); color: var(--ink); }
     justify-content: center;
     padding: 6px 10px;
   }
+
+  .sidebar-collapse-btn { display: none !important; }
+  .mgmt-shell.sidebar-collapsed { grid-template-columns: 1fr; }
+  .mgmt-shell.sidebar-collapsed .mgmt-sidebar { width: min(84vw, 280px); }
 
   .mgmt-actions {
     width: 100%;
@@ -1180,6 +1267,7 @@ body { background: var(--app-bg); color: var(--ink); }
     <div class="mgmt-brand">
       <div class="mgmt-brand-title" id="brand-firm-name">Document Manager</div>
       <div class="mgmt-brand-sub">Document Manager</div>
+      <button class="sidebar-collapse-btn" id="btn-collapse-sidebar" aria-label="Collapse sidebar" title="Collapse sidebar">&laquo;</button>
     </div>
     <div class="mgmt-nav" role="tablist" aria-label="Application sections">
       <button class="mgmt-nav-btn active" data-view-target="dashboard">Dashboard</button>
@@ -1187,9 +1275,14 @@ body { background: var(--app-bg); color: var(--ink); }
       <button class="mgmt-nav-btn" data-view-target="quotations">Quotations</button>
       <button class="mgmt-nav-btn" data-view-target="invoices">Invoices</button>
       <button class="mgmt-nav-btn" data-view-target="payments">Payments</button>
+      <button class="mgmt-nav-btn" data-view-target="receivables">Receivables</button>
+      <button class="mgmt-nav-btn" data-view-target="purchases">Purchases</button>
       <button class="mgmt-nav-btn" data-view-target="documents">Document Register</button>
       <button class="mgmt-nav-btn" data-view-target="firms">Firms</button>
       <button class="mgmt-nav-btn" data-view-target="templates">Templates</button>
+      <button class="mgmt-nav-btn" data-view-target="products">Products</button>
+      <button class="mgmt-nav-btn" data-view-target="analytics">Analytics</button>
+      <button class="mgmt-nav-btn" data-view-target="gstreturns" data-title="GST Returns">GST Returns</button>
       <button class="mgmt-nav-btn" data-view-target="settings">Settings</button>
       <button class="mgmt-nav-btn nav-builder" data-view-target="builder" data-title="Document Builder" hidden>
         <span class="nav-builder-label">Continue editing</span>
@@ -1205,6 +1298,12 @@ body { background: var(--app-bg); color: var(--ink); }
         <h1 class="mgmt-header-title" id="header-page-title">Dashboard</h1>
       </div>
       <div class="mgmt-actions">
+        <label class="firm-picker" for="fy-selector" title="Filter all views by Financial Year">
+          <span>FY</span>
+          <select id="fy-selector" aria-label="Financial Year filter">
+            <option value="all">All Years</option>
+          </select>
+        </label>
         <label class="firm-picker" for="active-firm" title="The firm new quotations, invoices and payments are created for">
           <span>Working as</span>
           <select id="active-firm" aria-label="Working as firm"></select>
@@ -1320,6 +1419,16 @@ body { background: var(--app-bg); color: var(--ink); }
           <div class="view-title">Quotations Register</div>
           <div class="view-sub">Manage quotation lifecycle and conversion</div>
         </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-outline btn-sm" id="btn-download-q-template" title="Download a blank Excel template for quotation data">Download Template</button>
+          <label class="btn btn-outline btn-sm" style="cursor:pointer;" title="Upload an Excel file to create a new quotation">
+            Import Excel <input type="file" id="file-import-quotation" accept=".xlsx,.xls,.csv" hidden>
+          </label>
+          <label class="btn btn-outline btn-sm" style="cursor:pointer;" title="Upload Excel to append items to the current quotation in builder">
+            Append Items <input type="file" id="file-append-quotation" accept=".xlsx,.xls,.csv" hidden>
+          </label>
+          <button class="btn btn-outline btn-sm" id="btn-export-all-quotations" title="Export all quotations to one Excel file">Export All</button>
+        </div>
       </div>
       <div class="register-card">
         <div class="register-toolbar">
@@ -1350,6 +1459,16 @@ body { background: var(--app-bg); color: var(--ink); }
         <div>
           <div class="view-title">Invoices Register</div>
           <div class="view-sub">Track balance due and payment status</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-outline btn-sm" id="btn-download-i-template" title="Download a blank Excel template for invoice data">Download Template</button>
+          <label class="btn btn-outline btn-sm" style="cursor:pointer;" title="Upload an Excel file to create a new invoice">
+            Import Excel <input type="file" id="file-import-invoice" accept=".xlsx,.xls,.csv" hidden>
+          </label>
+          <label class="btn btn-outline btn-sm" style="cursor:pointer;" title="Upload Excel to append items to the current invoice in builder">
+            Append Items <input type="file" id="file-append-invoice" accept=".xlsx,.xls,.csv" hidden>
+          </label>
+          <button class="btn btn-outline btn-sm" id="btn-export-all-invoices" title="Export all invoices to one Excel file">Export All</button>
         </div>
       </div>
       <div class="register-card">
@@ -1610,6 +1729,57 @@ body { background: var(--app-bg); color: var(--ink); }
               <button type="button" class="btn btn-outline btn-sm" id="btn-firm-logo-remove" hidden>Remove logo</button>
               <div class="field-help">Shrunk automatically so it syncs to every device.</div>
             </div>
+            <!-- Document Style Customization -->
+            <div class="field" style="grid-column:1/-1;"><strong style="font-size:0.85rem;">Document Style</strong></div>
+            <div class="field">
+              <label for="firm-doc-primary-color">Primary Color</label>
+              <input id="firm-doc-primary-color" type="color" value="#F5A800" style="width:60px;height:34px;padding:2px;cursor:pointer;">
+            </div>
+            <div class="field">
+              <label for="firm-doc-accent-color">Accent Color</label>
+              <input id="firm-doc-accent-color" type="color" value="#0a2d6e" style="width:60px;height:34px;padding:2px;cursor:pointer;">
+            </div>
+            <div class="field">
+              <label for="firm-doc-font">Font Family</label>
+              <select id="firm-doc-font">
+                <option value="Inter">Inter (Default)</option>
+                <option value="Arial">Arial</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Playfair Display">Playfair Display</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="firm-doc-header-style">Header Layout</label>
+              <select id="firm-doc-header-style">
+                <option value="default">Default (Logo left, text right)</option>
+                <option value="centered">Centered</option>
+                <option value="minimal">Minimal (text only)</option>
+              </select>
+            </div>
+
+            <!-- Letterhead PDF Upload -->
+            <div class="field" style="grid-column:1/-1;"><strong style="font-size:0.85rem;">Letterhead PDFs (optional)</strong>
+              <div class="field-help">Upload letterhead PDFs for different page sizes. The document content will be printed on top of the letterhead background.</div>
+            </div>
+            <div class="field">
+              <label for="firm-lh-a4">A4 Letterhead</label>
+              <input id="firm-lh-a4" type="file" accept="application/pdf,image/*">
+              <div id="firm-lh-a4-status" style="font-size:0.75rem;color:var(--muted);margin-top:4px;"></div>
+            </div>
+            <div class="field">
+              <label for="firm-lh-a3">A3 Letterhead</label>
+              <input id="firm-lh-a3" type="file" accept="application/pdf,image/*">
+              <div id="firm-lh-a3-status" style="font-size:0.75rem;color:var(--muted);margin-top:4px;"></div>
+            </div>
+            <div class="field">
+              <label for="firm-lh-legal">Legal Letterhead</label>
+              <input id="firm-lh-legal" type="file" accept="application/pdf,image/*">
+              <div id="firm-lh-legal-status" style="font-size:0.75rem;color:var(--muted);margin-top:4px;"></div>
+            </div>
+
             <div class="field">
               <label class="modal-check" for="firm-default"><input type="checkbox" id="firm-default"> Default firm on every device</label>
             </div>
@@ -1699,6 +1869,514 @@ body { background: var(--app-bg); color: var(--ink); }
       </div>
     </section>
 
+    <!-- ═══ PRODUCTS CATALOG ═══ -->
+    <section class="mgmt-view" id="view-products">
+      <div class="view-head">
+        <div>
+          <div class="view-title">Product Catalog</div>
+          <div class="view-sub">Reusable inventory items for quotations and invoices</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-gold btn-sm" id="btn-add-product">Add Product</button>
+          <button class="btn btn-outline btn-sm" id="btn-manage-custom-fields">Custom Fields</button>
+        </div>
+      </div>
+      <div class="register-card">
+        <div class="register-toolbar">
+          <input class="search-input" id="search-products" placeholder="Search by name, spec, HSN, category">
+          <select class="firm-filter-select" id="filter-product-category" aria-label="Filter by category">
+            <option value="">All categories</option>
+          </select>
+        </div>
+        <div class="register-table-wrap" style="max-height:500px;">
+          <table class="register-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Specification</th>
+                <th>HSN</th>
+                <th>Price</th>
+                <th>GST %</th>
+                <th>Unit</th>
+                <th>Category</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="products-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PRODUCT FORM MODAL ═══ -->
+    <div class="modal-overlay" id="product-modal" style="display:none;">
+      <div class="modal" style="max-width:580px;">
+        <div class="modal-header">
+          <h2 id="product-modal-title">Add Product</h2>
+          <button class="modal-close" id="btn-close-product-modal" aria-label="Close">&times;</button>
+        </div>
+        <form id="product-form" autocomplete="off">
+          <div class="field"><label>Name *</label><input type="text" id="pf-name" required placeholder="Product or service name"></div>
+          <div class="field"><label>Specification</label><textarea id="pf-spec" rows="2" placeholder="Detailed specification"></textarea></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="field"><label>Unit Price</label><input type="number" id="pf-price" step="0.01" placeholder="0.00"></div>
+            <div class="field"><label>HSN/SAC</label><input type="text" id="pf-hsn" placeholder="HSN code"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="field"><label>GST %</label><input type="number" id="pf-gst" step="0.01" value="18"></div>
+            <div class="field"><label>Unit</label>
+              <select id="pf-unit">
+                <option>pcs</option><option>kg</option><option>m</option><option>sqft</option>
+                <option>set</option><option>box</option><option>roll</option><option>sheet</option>
+                <option>lot</option><option>job</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+            <div class="field"><label>Size</label><input type="text" id="pf-size" placeholder="e.g. A4, 12x18"></div>
+            <div class="field"><label>Color</label><input type="text" id="pf-color" placeholder="e.g. White"></div>
+            <div class="field"><label>Material</label><input type="text" id="pf-material" placeholder="e.g. Art paper"></div>
+          </div>
+          <div class="field"><label>Category</label><input type="text" id="pf-category" list="pf-category-list" placeholder="e.g. Printing, Stationery"><datalist id="pf-category-list"></datalist></div>
+          <div id="pf-custom-fields"></div>
+          <input type="hidden" id="pf-edit-id">
+          <div style="display:flex;gap:10px;margin-top:16px;">
+            <button type="submit" class="btn btn-gold btn-sm">Save Product</button>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-cancel-product">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ═══ CUSTOM FIELDS MODAL ═══ -->
+    <div class="modal-overlay" id="custom-fields-modal" style="display:none;">
+      <div class="modal" style="max-width:440px;">
+        <div class="modal-header">
+          <h2>Custom Fields</h2>
+          <button class="modal-close" id="btn-close-cf-modal" aria-label="Close">&times;</button>
+        </div>
+        <div id="cf-list" style="margin-bottom:12px;"></div>
+        <form id="cf-add-form" style="display:flex;gap:8px;align-items:flex-end;">
+          <div class="field" style="flex:1;margin:0;"><label>Field Name</label><input type="text" id="cf-new-name" required placeholder="e.g. Finish, Weight"></div>
+          <button type="submit" class="btn btn-gold btn-sm" style="height:36px;">Add</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ═══ RECEIVABLES ═══ -->
+    <section class="mgmt-view" id="view-receivables">
+      <div class="view-head">
+        <div>
+          <div class="view-title">Receivables</div>
+          <div class="view-sub">Track outstanding payments from customers</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-outline btn-sm" id="btn-download-receivables-template">Download Template</button>
+          <label class="btn btn-outline btn-sm" style="cursor:pointer;">
+            Import Excel <input type="file" id="file-import-receivables" accept=".xlsx,.xls,.csv" hidden>
+          </label>
+          <button class="btn btn-outline btn-sm" id="btn-export-receivables">Export All</button>
+          <button class="btn btn-gold btn-sm" id="btn-add-receivable">+ Add Entry</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid" id="receivables-kpis" style="margin-bottom:16px;">
+        <div class="kpi-card"><div class="kpi-label">Total Receivable</div><div class="kpi-value" id="kpi-total-receivable">Rs 0</div></div>
+        <div class="kpi-card"><div class="kpi-label">Received</div><div class="kpi-value" id="kpi-total-received">Rs 0</div></div>
+        <div class="kpi-card"><div class="kpi-label">Outstanding</div><div class="kpi-value" id="kpi-receivable-outstanding">Rs 0</div></div>
+        <div class="kpi-card"><div class="kpi-label">Overdue</div><div class="kpi-value" id="kpi-receivable-overdue">Rs 0</div></div>
+      </div>
+
+      <div class="register-card" style="padding:12px;margin-bottom:12px;display:none;" id="receivable-form-card">
+        <h3 style="font-size:0.9rem;margin-bottom:10px;" id="receivable-form-title">Add Receivable Entry</h3>
+        <form id="receivable-entry-form">
+          <div class="settings-grid">
+            <div class="field">
+              <label for="r-customer-name">Customer Name *</label>
+              <input id="r-customer-name" type="text" required placeholder="Customer or company name">
+            </div>
+            <div class="field">
+              <label for="r-customer-gstin">Customer GSTIN</label>
+              <input id="r-customer-gstin" type="text" maxlength="15" placeholder="15-char GST number">
+            </div>
+            <div class="field">
+              <label for="r-invoice-ref">Invoice Number *</label>
+              <input id="r-invoice-ref" type="text" required placeholder="Original invoice reference">
+            </div>
+            <div class="field">
+              <label for="r-invoice-date">Invoice Date *</label>
+              <input id="r-invoice-date" type="date" required>
+            </div>
+            <div class="field">
+              <label for="r-due-date">Due Date</label>
+              <input id="r-due-date" type="date">
+            </div>
+            <div class="field">
+              <label for="r-amount">Amount (Before GST) *</label>
+              <input id="r-amount" type="number" step="0.01" min="0" required placeholder="0.00">
+            </div>
+            <div class="field">
+              <label for="r-gst-amount">GST Amount</label>
+              <input id="r-gst-amount" type="number" step="0.01" min="0" placeholder="0.00">
+            </div>
+            <div class="field">
+              <label for="r-amount-received">Amount Received</label>
+              <input id="r-amount-received" type="number" step="0.01" min="0" placeholder="0.00" value="0">
+            </div>
+            <div class="field">
+              <label for="r-status">Status</label>
+              <select id="r-status">
+                <option value="Unpaid">Unpaid</option>
+                <option value="Partially Paid">Partially Paid</option>
+                <option value="Paid">Paid</option>
+                <option value="Overdue">Overdue</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="r-firm-id">Firm</label>
+              <select id="r-firm-id" class="firm-entry-select"></select>
+            </div>
+            <div class="field" style="grid-column:1/-1;">
+              <label for="r-notes">Notes</label>
+              <textarea id="r-notes" rows="2" placeholder="Optional notes"></textarea>
+            </div>
+          </div>
+          <div class="settings-actions">
+            <button class="btn btn-gold btn-sm" type="submit">Save Entry</button>
+            <button class="btn btn-outline btn-sm" type="button" id="btn-cancel-receivable">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="register-card">
+        <div class="register-toolbar">
+          <input class="search-input" id="search-receivables" placeholder="Search customer, invoice ref, status">
+          <label class="firm-picker" for="firm-filter-receivables"><span>Show</span><select class="firm-filter-select" id="firm-filter-receivables"></select></label>
+        </div>
+        <div class="register-table-wrap">
+          <table class="register-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Invoice Ref</th>
+                <th>Invoice Date</th>
+                <th>Due Date</th>
+                <th>Amount</th>
+                <th>GST</th>
+                <th>Total</th>
+                <th>Received</th>
+                <th>Balance</th>
+                <th>Status</th>
+                <th>Aging</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="receivables-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PURCHASES ═══ -->
+    <section class="mgmt-view" id="view-purchases">
+      <div class="view-head">
+        <div>
+          <div class="view-title">Purchases</div>
+          <div class="view-sub">Track inward bills, expenses, and vendor payments</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-outline btn-sm" id="btn-download-purchases-template">Download Template</button>
+          <label class="btn btn-outline btn-sm" style="cursor:pointer;">
+            Import Excel <input type="file" id="file-import-purchases" accept=".xlsx,.xls,.csv" hidden>
+          </label>
+          <button class="btn btn-outline btn-sm" id="btn-export-purchases">Export All</button>
+          <button class="btn btn-gold btn-sm" id="btn-add-purchase">+ Add Entry</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid" id="purchases-kpis" style="margin-bottom:16px;">
+        <div class="kpi-card"><div class="kpi-label">Total Purchases</div><div class="kpi-value" id="kpi-total-purchases">Rs 0</div></div>
+        <div class="kpi-card"><div class="kpi-label">GST Input Credit</div><div class="kpi-value" id="kpi-gst-input">Rs 0</div></div>
+        <div class="kpi-card"><div class="kpi-label">Paid</div><div class="kpi-value" id="kpi-purchases-paid">Rs 0</div></div>
+        <div class="kpi-card"><div class="kpi-label">Payable</div><div class="kpi-value" id="kpi-purchases-payable">Rs 0</div></div>
+      </div>
+
+      <div class="register-card" style="padding:12px;margin-bottom:12px;display:none;" id="purchase-form-card">
+        <h3 style="font-size:0.9rem;margin-bottom:10px;" id="purchase-form-title">Add Purchase Entry</h3>
+        <form id="purchase-entry-form">
+          <div class="settings-grid">
+            <div class="field">
+              <label for="pu-vendor-name">Vendor Name *</label>
+              <input id="pu-vendor-name" type="text" required placeholder="Supplier / vendor name">
+            </div>
+            <div class="field">
+              <label for="pu-vendor-gstin">Vendor GSTIN</label>
+              <input id="pu-vendor-gstin" type="text" maxlength="15" placeholder="15-char GST number">
+            </div>
+            <div class="field">
+              <label for="pu-bill-number">Bill / Invoice Number *</label>
+              <input id="pu-bill-number" type="text" required placeholder="Bill reference number">
+            </div>
+            <div class="field">
+              <label for="pu-bill-date">Bill Date *</label>
+              <input id="pu-bill-date" type="date" required>
+            </div>
+            <div class="field">
+              <label for="pu-amount">Amount (Before GST) *</label>
+              <input id="pu-amount" type="number" step="0.01" min="0" required placeholder="0.00">
+            </div>
+            <div class="field">
+              <label for="pu-cgst">CGST</label>
+              <input id="pu-cgst" type="number" step="0.01" min="0" placeholder="0.00" value="0">
+            </div>
+            <div class="field">
+              <label for="pu-sgst">SGST</label>
+              <input id="pu-sgst" type="number" step="0.01" min="0" placeholder="0.00" value="0">
+            </div>
+            <div class="field">
+              <label for="pu-igst">IGST</label>
+              <input id="pu-igst" type="number" step="0.01" min="0" placeholder="0.00" value="0">
+            </div>
+            <div class="field">
+              <label for="pu-category">Category</label>
+              <select id="pu-category">
+                <option value="">Select category</option>
+                <option value="Raw Materials">Raw Materials</option>
+                <option value="Services">Services</option>
+                <option value="Rent">Rent</option>
+                <option value="Utilities">Utilities</option>
+                <option value="Equipment">Equipment</option>
+                <option value="Transport">Transport</option>
+                <option value="Office Supplies">Office Supplies</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="pu-bill-type">Bill Type</label>
+              <select id="pu-bill-type">
+                <option value="GST Invoice">GST Invoice</option>
+                <option value="Non-GST Bill">Non-GST Bill</option>
+                <option value="Expense">Expense (No Invoice)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="pu-payment-status">Payment Status</label>
+              <select id="pu-payment-status">
+                <option value="Unpaid">Unpaid</option>
+                <option value="Partially Paid">Partially Paid</option>
+                <option value="Paid">Paid</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="pu-payment-date">Payment Date</label>
+              <input id="pu-payment-date" type="date">
+            </div>
+            <div class="field">
+              <label for="pu-payment-mode">Payment Mode</label>
+              <select id="pu-payment-mode">
+                <option value="">Select</option>
+                <option value="Cash">Cash</option>
+                <option value="UPI">UPI</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Cheque">Cheque</option>
+                <option value="Card">Card</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="pu-firm-id">Firm</label>
+              <select id="pu-firm-id" class="firm-entry-select"></select>
+            </div>
+            <div class="field" style="grid-column:1/-1;">
+              <label for="pu-notes">Notes</label>
+              <textarea id="pu-notes" rows="2" placeholder="Optional notes"></textarea>
+            </div>
+          </div>
+          <div class="settings-actions">
+            <button class="btn btn-gold btn-sm" type="submit">Save Entry</button>
+            <button class="btn btn-outline btn-sm" type="button" id="btn-cancel-purchase">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="register-card">
+        <div class="register-toolbar">
+          <input class="search-input" id="search-purchases" placeholder="Search vendor, bill number, category">
+          <label class="firm-picker" for="firm-filter-purchases"><span>Show</span><select class="firm-filter-select" id="firm-filter-purchases"></select></label>
+        </div>
+        <div class="register-table-wrap">
+          <table class="register-table">
+            <thead>
+              <tr>
+                <th>Vendor</th>
+                <th>Bill No</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>GST</th>
+                <th>Total</th>
+                <th>Category</th>
+                <th>Type</th>
+                <th>Payment</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="purchases-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ GST RETURNS ═══ -->
+    <section class="mgmt-view" id="view-gstreturns">
+      <div class="view-head">
+        <div>
+          <div class="view-title">GST Returns</div>
+          <div class="view-sub">Monthly and annual GST summary for tax filing</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select id="gst-returns-period" class="search-input" style="width:auto;padding:6px 8px;font-size:0.8rem;">
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="annual">Annual</option>
+          </select>
+          <button class="btn btn-outline btn-sm" id="btn-export-gst-returns">Export to Excel</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid" id="gst-returns-kpis" style="margin-bottom:16px;">
+        <div class="kpi-card"><div class="kpi-label">Total Output Tax</div><div class="kpi-value" id="kpi-gst-output-tax">Rs 0</div></div>
+        <div class="kpi-card"><div class="kpi-label">Total Input Tax (ITC)</div><div class="kpi-value" id="kpi-gst-input-tax">Rs 0</div></div>
+        <div class="kpi-card"><div class="kpi-label">Net GST Payable</div><div class="kpi-value" id="kpi-gst-net-payable">Rs 0</div></div>
+        <div class="kpi-card"><div class="kpi-label">Total Taxable Sales</div><div class="kpi-value" id="kpi-gst-taxable-sales">Rs 0</div></div>
+        <div class="kpi-card"><div class="kpi-label">Total Taxable Purchases</div><div class="kpi-value" id="kpi-gst-taxable-purchases">Rs 0</div></div>
+      </div>
+
+      <div class="register-card" style="margin-bottom:16px;">
+        <div class="register-toolbar">
+          <strong>GST Summary</strong>
+        </div>
+        <div class="register-table-wrap">
+          <table class="register-table" id="gst-summary-table">
+            <thead>
+              <tr>
+                <th>Period</th>
+                <th>Taxable Sales</th>
+                <th>Output CGST</th>
+                <th>Output SGST</th>
+                <th>Output IGST</th>
+                <th>Total Output</th>
+                <th>Taxable Purchases</th>
+                <th>Input CGST</th>
+                <th>Input SGST</th>
+                <th>Input IGST</th>
+                <th>Total Input</th>
+                <th>Net Payable</th>
+              </tr>
+            </thead>
+            <tbody id="gst-summary-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="register-card">
+          <div class="register-toolbar">
+            <strong>Sales (Output Tax)</strong>
+          </div>
+          <div class="register-table-wrap">
+            <table class="register-table">
+              <thead>
+                <tr>
+                  <th>Invoice</th>
+                  <th>Date</th>
+                  <th>Customer</th>
+                  <th>GSTIN</th>
+                  <th>Taxable</th>
+                  <th>GST</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="gst-sales-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="register-card">
+          <div class="register-toolbar">
+            <strong>Purchases (Input Tax)</strong>
+          </div>
+          <div class="register-table-wrap">
+            <table class="register-table">
+              <thead>
+                <tr>
+                  <th>Bill No</th>
+                  <th>Date</th>
+                  <th>Vendor</th>
+                  <th>GSTIN</th>
+                  <th>Taxable</th>
+                  <th>GST</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="gst-purchases-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ ANALYTICS ═══ -->
+    <section class="mgmt-view" id="view-analytics">
+      <div class="view-head">
+        <div>
+          <div class="view-title">Analytics</div>
+          <div class="view-sub">Revenue, customer, and document insights</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="btn btn-outline btn-sm analytics-period active" data-period="30">30 Days</button>
+          <button class="btn btn-outline btn-sm analytics-period" data-period="90">90 Days</button>
+          <button class="btn btn-outline btn-sm analytics-period" data-period="365">1 Year</button>
+          <input type="date" id="analytics-from" class="search-input" style="width:140px;padding:6px 8px;font-size:0.8rem;">
+          <span style="color:var(--muted);">to</span>
+          <input type="date" id="analytics-to" class="search-input" style="width:140px;padding:6px 8px;font-size:0.8rem;">
+          <button class="btn btn-outline btn-sm" id="btn-analytics-apply">Apply</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid" id="analytics-kpis" style="margin-bottom:20px;"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;" id="analytics-charts">
+        <div class="register-card" style="padding:16px;">
+          <h3 style="font-size:0.95rem;margin-bottom:10px;">Monthly Revenue</h3>
+          <canvas id="chart-monthly-revenue" height="220"></canvas>
+        </div>
+        <div class="register-card" style="padding:16px;">
+          <h3 style="font-size:0.95rem;margin-bottom:10px;">Revenue by Customer (Top 10)</h3>
+          <canvas id="chart-revenue-by-customer" height="220"></canvas>
+        </div>
+        <div class="register-card" style="padding:16px;">
+          <h3 style="font-size:0.95rem;margin-bottom:10px;">Revenue by Firm</h3>
+          <canvas id="chart-revenue-by-firm" height="220"></canvas>
+        </div>
+        <div class="register-card" style="padding:16px;">
+          <h3 style="font-size:0.95rem;margin-bottom:10px;">Invoice Payment Status</h3>
+          <canvas id="chart-payment-status" height="220"></canvas>
+        </div>
+        <div class="register-card" style="padding:16px;">
+          <h3 style="font-size:0.95rem;margin-bottom:10px;">Quotation Conversion Rate</h3>
+          <canvas id="chart-conversion-rate" height="220"></canvas>
+        </div>
+        <div class="register-card" style="padding:16px;">
+          <h3 style="font-size:0.95rem;margin-bottom:10px;">Overdue Aging</h3>
+          <canvas id="chart-overdue-aging" height="220"></canvas>
+        </div>
+        <div class="register-card" style="padding:16px;grid-column:1/-1;">
+          <h3 style="font-size:0.95rem;margin-bottom:10px;">Top Customers by Spend</h3>
+          <div id="analytics-top-customers"></div>
+        </div>
+      </div>
+    </section>
+
     <section class="mgmt-view" id="view-settings">
       <div class="view-head">
         <div>
@@ -1776,6 +2454,24 @@ body { background: var(--app-bg); color: var(--ink); }
     <button class="btn btn-gold btn-sm" data-save-btn="quotation" id="btn-save-quotation" title="Save the quotation and its PDF to Google Drive">Save Quotation</button>
     <button class="btn btn-outline btn-sm" id="btn-print-invoice" hidden title="Save the invoice, then print a copy showing the Manual No.">Print</button>
     <button class="btn btn-gold btn-sm" data-save-btn="invoice" id="btn-save-invoice" title="Save the invoice and its PDF to Google Drive">Save Invoice</button>
+    <span class="export-dropdown" style="position:relative;display:inline-block;">
+      <button class="btn btn-outline btn-sm" id="btn-export-dropdown" title="Export current document">Export &#9662;</button>
+      <div class="export-dropdown-menu" id="export-dropdown-menu" style="display:none;position:absolute;right:0;top:100%;background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.12);z-index:300;min-width:160px;padding:4px 0;">
+        <div style="padding:8px 16px;border-bottom:1px solid #eee;">
+          <label style="font-size:0.75rem;color:var(--muted);">Page Size</label>
+          <select id="export-page-size" style="width:100%;padding:4px 6px;font-size:0.8rem;border:1px solid var(--border);border-radius:4px;margin-top:2px;">
+            <option value="a4">A4</option>
+            <option value="a3">A3</option>
+            <option value="legal">Legal</option>
+          </select>
+        </div>
+        <button class="btn btn-sm" style="width:100%;text-align:left;border:none;padding:8px 16px;" id="btn-export-pdf">Export as PDF</button>
+        <button class="btn btn-sm" style="width:100%;text-align:left;border:none;padding:8px 16px;" id="btn-export-excel">Export as Excel</button>
+        <button class="btn btn-sm" style="width:100%;text-align:left;border:none;padding:8px 16px;" id="btn-export-word">Export as Word</button>
+        <div style="border-top:1px solid #eee;"></div>
+        <button class="btn btn-sm" style="width:100%;text-align:left;border:none;padding:8px 16px;" id="btn-share-doc">Share Document</button>
+      </div>
+    </span>
   </div>
 </nav>
 
@@ -1999,16 +2695,16 @@ body { background: var(--app-bg); color: var(--ink); }
             <table class="items-tbl" id="q-table">
               <thead>
                 <tr>
-                  <th style="width:38px">S.No</th>
+                  <th style="width:4%">S.No</th>
                   <th>Description</th>
-                  <th style="width:56px">HSN</th>
-                  <th style="width:80px">UnitPrice</th>
-                  <th style="width:48px">Qty</th>
-                  <th style="width:72px">Sub Total</th>
-                  <th style="width:50px" class="gst-only">GST %</th>
-                  <th style="width:60px" id="q-gst-head" class="gst-only">Gst</th>
-                  <th style="width:72px">Total</th>
-                  <th style="width:24px"></th>
+                  <th style="width:7%">HSN</th>
+                  <th style="width:9%">Price</th>
+                  <th style="width:7%">Qty</th>
+                  <th style="width:11%">Sub Total</th>
+                  <th style="width:6%" class="gst-only">GST%</th>
+                  <th style="width:10%" id="q-gst-head" class="gst-only">GST</th>
+                  <th style="width:13%">Total</th>
+                  <th style="width:3%"></th>
                 </tr>
               </thead>
               <tbody id="q-tbody"></tbody>
@@ -2083,16 +2779,16 @@ body { background: var(--app-bg); color: var(--ink); }
             <table class="items-tbl" id="i-table">
               <thead>
                 <tr>
-                  <th style="width:38px">S.No</th>
-                  <th>Item Description</th>
-                  <th style="width:56px">HSN</th>
-                  <th style="width:80px">Unit Price</th>
-                  <th style="width:54px">Qty</th>
-                  <th style="width:72px">Sub Total</th>
-                  <th style="width:50px" class="gst-only">GST %</th>
-                  <th style="width:60px" id="i-gst-head" class="gst-only">GST</th>
-                  <th style="width:72px">Total</th>
-                  <th style="width:24px"></th>
+                  <th style="width:4%">S.No</th>
+                  <th>Description</th>
+                  <th style="width:7%">HSN</th>
+                  <th style="width:9%">Price</th>
+                  <th style="width:7%">Qty</th>
+                  <th style="width:11%">Sub Total</th>
+                  <th style="width:6%" class="gst-only">GST%</th>
+                  <th style="width:10%" id="i-gst-head" class="gst-only">GST</th>
+                  <th style="width:13%">Total</th>
+                  <th style="width:3%"></th>
                 </tr>
               </thead>
               <tbody id="i-tbody"></tbody>
@@ -2249,6 +2945,8 @@ import { QuotationService } from './js/services/quotationService.js';
 import { InvoiceService } from './js/services/invoiceService.js';
 import { PaymentService } from './js/services/paymentService.js';
 import { TemplateService } from './js/services/templateService.js';
+import { ExcelImportExportService } from './js/services/excelImportExportService.js';
+import { ProductCatalogService } from './js/services/productCatalogService.js';
 import { SYNC_COLLECTIONS, LEGACY_FIRM_ID } from './js/modules/app-config.js';
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -2324,7 +3022,15 @@ let bizState = {
   quotations: [],
   invoices: [],
   payments: [],
-  documentHistory: []
+  documentHistory: [],
+  letterheads: [],
+  templates: [],
+  firms: [],
+  products: [],
+  productCustomFields: [],
+  receivables: [],
+  purchases: [],
+  vendors: [],
 };
 
 let activeView = 'dashboard';
@@ -2373,6 +3079,20 @@ const templateService = new TemplateService(
   () => businessNowIso()
 );
 
+const productCatalog = new ProductCatalogService(
+  () => stateService.getState(),
+  () => stateService.saveState(),
+  () => businessNowIso()
+);
+
+const excelService = new ExcelImportExportService({
+  getState: () => stateService.getState(),
+  getFirm: id => getFirm(id),
+  computeTotals: (rows, gst) => computeTotals(rows, gst),
+  toWords: n => toWords(n),
+  fmtIN: n => fmtIN(n),
+});
+
 function businessNowIso() {
   return new Date().toISOString();
 }
@@ -2409,9 +3129,8 @@ function applyGstMode() {
 
 function formatDateForTable(value) {
   if (!value) return '--';
-  const d = new Date(value);
-  if (isNaN(d)) return '--';
-  // Non-breaking spaces keep a date on one line when table columns wrap.
+  const d = parseLocalIsoDate(value);
+  if (!d || isNaN(d)) return '--';
   return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, ' ');
 }
 
@@ -2447,7 +3166,13 @@ function loadBusinessState() {
     payments: Array.isArray(state.payments) ? state.payments : [],
     documentHistory: Array.isArray(state.documentHistory) ? state.documentHistory : [],
     letterheads: Array.isArray(state.letterheads) ? state.letterheads : [],
-    templates: Array.isArray(state.templates) ? state.templates : []
+    templates: Array.isArray(state.templates) ? state.templates : [],
+    firms: Array.isArray(state.firms) ? state.firms : [],
+    products: Array.isArray(state.products) ? state.products : [],
+    productCustomFields: Array.isArray(state.productCustomFields) ? state.productCustomFields : [],
+    receivables: Array.isArray(state.receivables) ? state.receivables : [],
+    purchases: Array.isArray(state.purchases) ? state.purchases : [],
+    vendors: Array.isArray(state.vendors) ? state.vendors : [],
   };
 }
 
@@ -2460,6 +3185,62 @@ function nextBusinessId(kind) {
   const id = stateService.nextId(kind);
   bizState.counters = { ...stateService.getState().counters };
   return id;
+}
+
+// ── Financial Year Utilities ──
+// Indian FY: April 1 to March 31. "2026-27" means April 2026 → March 2027.
+function getFY(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const month = d.getMonth();
+  const year = d.getFullYear();
+  const fyStart = month >= 3 ? year : year - 1;
+  return `${fyStart}-${String(fyStart + 1).slice(-2)}`;
+}
+
+function getFYRange(fy) {
+  if (!fy || !fy.includes('-')) return null;
+  const startYear = parseInt(fy.split('-')[0], 10);
+  return {
+    start: `${startYear}-04-01`,
+    end: `${startYear + 1}-03-31`,
+    label: `FY ${fy}`,
+  };
+}
+
+function getFYList() {
+  const dates = [];
+  (bizState.invoices || []).forEach(i => { if (i.invoiceDate) dates.push(i.invoiceDate); });
+  (bizState.quotations || []).forEach(q => { if (q.quotationDate) dates.push(q.quotationDate); });
+  (bizState.payments || []).forEach(p => { if (p.paymentDate) dates.push(p.paymentDate); });
+  (bizState.receivables || []).forEach(r => { if (r.invoiceDate) dates.push(r.invoiceDate); });
+  (bizState.purchases || []).forEach(p => { if (p.billDate) dates.push(p.billDate); });
+  const fys = new Set(dates.map(d => getFY(d)).filter(Boolean));
+  fys.add(getFY(todayIsoDate()));
+  return [...fys].sort().reverse();
+}
+
+let activeFY = 'all';
+
+function getActiveFY() { return activeFY; }
+
+function isInActiveFY(dateStr) {
+  if (activeFY === 'all' || !activeFY) return true;
+  const range = getFYRange(activeFY);
+  if (!range) return true;
+  if (!dateStr) return false;
+  return dateStr >= range.start && dateStr <= range.end;
+}
+
+function renderFYSelector() {
+  const sel = document.getElementById('fy-selector');
+  if (!sel) return;
+  const fys = getFYList();
+  const prev = sel.value || activeFY;
+  sel.innerHTML = '<option value="all">All Years</option>' +
+    fys.map(fy => `<option value="${fy}">FY ${fy}</option>`).join('');
+  if (prev && fys.includes(prev)) sel.value = prev;
+  else sel.value = activeFY;
 }
 
 function computeTotals(rows, gstEnabled) {
@@ -2679,6 +3460,9 @@ function saveQuotationRecordNow(firmId) {
   refreshBuilderRecordStatus();
   queuePersist();
   showToast(`Quotation ${quotation.quotationNumber} saved.`, 'success');
+  if (customer.customerName === 'Unnamed Customer') {
+    setTimeout(() => showToast('Customer name is missing. Please update customer details in the Customers section for future tracking.', 'error', 8000), 1500);
+  }
   return quotation;
 }
 
@@ -2788,6 +3572,9 @@ function saveInvoiceRecordNow(firmId) {
   refreshBuilderRecordStatus();
   queuePersist();
   showToast(`Invoice ${invoice.invoiceNumber} saved.`, 'success');
+  if (customer.customerName === 'Unnamed Customer') {
+    setTimeout(() => showToast('Customer name is missing. Please update customer details in the Customers section for future tracking.', 'error', 8000), 1500);
+  }
   return invoice;
 }
 
@@ -3471,7 +4258,7 @@ function renderQuotationsView() {
   const body = document.getElementById('quotations-tbody');
   if (!body) return;
   const rows = active(bizState.quotations)
-    .filter(item => matchesFirmFilter(item) && matchesSearch('search-quotations', [item.quotationNumber, item.customerName, item.companyName, item.status]))
+    .filter(item => matchesFirmFilter(item) && isInActiveFY(item.quotationDate) && matchesSearch('search-quotations', [item.quotationNumber, item.customerName, item.companyName, item.status]))
     .sort(newestFirst('quotationDate'));
   const { shown, more } = pageRows('quotations', rows, 7);
 
@@ -3495,6 +4282,8 @@ function renderQuotationsView() {
         ${rowMenu(item.quotationNumber || item.id, [
           rowMenuItem('quotation', item.id, 'edit', 'Edit'),
           rowMenuItem('quotation', item.id, 'duplicate', 'Duplicate'),
+          rowMenuItem('quotation', item.id, 'export-excel', 'Export Excel'),
+          rowMenuItem('quotation', item.id, 'export-word', 'Export Word'),
           item.driveFileUrl ? rowMenuItem('quotation', item.id, 'upload-pdf', 'Upload PDF again') : '',
           rowMenuItem('quotation', item.id, 'delete', 'Delete quotation', true)
         ])}
@@ -3511,7 +4300,7 @@ function renderInvoicesView() {
 
   active(bizState.invoices).forEach(invoice => recalcInvoiceFinancials(invoice));
   const rows = active(bizState.invoices)
-    .filter(item => matchesFirmFilter(item) && matchesSearch('search-invoices', [item.invoiceNumber, item.manualInvoiceNumber, item.customerName, item.paymentStatus, item.quotationNumber]))
+    .filter(item => matchesFirmFilter(item) && isInActiveFY(item.invoiceDate) && matchesSearch('search-invoices', [item.invoiceNumber, item.manualInvoiceNumber, item.customerName, item.paymentStatus, item.quotationNumber]))
     .sort(newestFirst('invoiceDate'));
   const { shown, more } = pageRows('invoices', rows, 9);
 
@@ -3534,6 +4323,8 @@ function renderInvoicesView() {
         ${rowMenu(item.invoiceNumber || item.id, [
           rowMenuItem('invoice', item.id, 'edit', 'Edit'),
           rowMenuItem('invoice', item.id, 'duplicate', 'Duplicate'),
+          rowMenuItem('invoice', item.id, 'export-excel', 'Export Excel'),
+          rowMenuItem('invoice', item.id, 'export-word', 'Export Word'),
           item.driveFileUrl ? rowMenuItem('invoice', item.id, 'upload-pdf', 'Upload PDF again') : '',
           cancelled
             ? rowMenuItem('invoice', item.id, 'restore', 'Undo cancel')
@@ -3551,7 +4342,7 @@ function renderPaymentsView() {
   if (!body) return;
   const selectedInvoiceId = document.getElementById('p-invoice-id')?.value || '';
   const rows = active(bizState.payments)
-    .filter(item => matchesFirmFilter(item) && matchesSearch('search-payments', [item.id, item.invoiceNumber, item.customerName, item.transactionReference, item.creditedTo, item.transferredTo, item.paymentDetails]))
+    .filter(item => matchesFirmFilter(item) && isInActiveFY(item.paymentDate) && matchesSearch('search-payments', [item.id, item.invoiceNumber, item.customerName, item.transactionReference, item.creditedTo, item.transferredTo, item.paymentDetails]))
     .sort(newestFirst('paymentDate'));
   const { shown, more } = pageRows('payments', rows, 10);
 
@@ -3580,9 +4371,9 @@ function renderPaymentsView() {
 }
 
 function renderDashboardView() {
-  const invoices = active(bizState.invoices).filter(matchesFirmFilter);
+  const invoices = active(bizState.invoices).filter(matchesFirmFilter).filter(i => isInActiveFY(i.invoiceDate));
   const liveInvoices = invoices.filter(inv => inv.status !== 'Cancelled');
-  const quotations = active(bizState.quotations).filter(matchesFirmFilter);
+  const quotations = active(bizState.quotations).filter(matchesFirmFilter).filter(q => isInActiveFY(q.quotationDate));
   const customerCount = active(bizState.customers).length;
   const quotationCount = quotations.length;
   const invoiceCount = liveInvoices.length;
@@ -3678,7 +4469,12 @@ const VIEW_RENDERERS = {
   payments: () => renderPaymentsView(),
   documents: () => renderDocumentHistoryView(),
   firms: () => renderFirmsView(),
-  templates: () => renderTemplatesView()
+  templates: () => renderTemplatesView(),
+  products: () => renderProducts(document.getElementById('search-products')?.value, document.getElementById('filter-product-category')?.value),
+  analytics: () => renderAnalytics(),
+  receivables: () => renderReceivablesView(),
+  purchases: () => renderPurchasesView(),
+  gstreturns: () => renderGstReturnsView()
 };
 const staleViews = new Set(Object.keys(VIEW_RENDERERS));
 
@@ -3810,6 +4606,7 @@ function renderDocumentHistoryView() {
   const q = (document.getElementById('search-documents')?.value || '').toLowerCase().trim();
   const rows = bizState.documentHistory.filter(item => {
     if (!matchesFirmFilter(item)) return false;
+    if (!isInActiveFY(item.documentDate)) return false;
     if (!q) return true;
     return [item.id, item.documentType, item.documentNumber, item.customerName, item.status]
       .some(v => String(v || '').toLowerCase().includes(q));
@@ -4414,7 +5211,13 @@ function renderFirmPickers() {
       ? `<strong>${escapeHtml(firm.name)}</strong> (${escapeHtml(firm.id)})${firm.gstin ? `<br>GSTIN ${escapeHtml(firm.gstin)}` : ''}<br><span class="muted-text">Change the firm at the top ("Working as").</span>`
       : 'No firm yet. Create your firm in <strong>Firms</strong> first.';
   }
+  const entryOptions = firms.map(f => `<option value="${escapeHtml(f.id)}">${escapeHtml(f.name)}</option>`).join('');
+  document.querySelectorAll('.firm-entry-select').forEach(sel => {
+    sel.innerHTML = entryOptions;
+    sel.value = activeFirmId;
+  });
   renderCustomerPickers();
+  renderFYSelector();
 }
 
 // Switches the firm new documents are created for. A document already open for another firm is
@@ -4477,6 +5280,62 @@ function applyFirmToBuilder(firm, { newDocument = false } = {}) {
     set('f-q-body', firm.quotationIntro);
     set('f-q-closing', firm.quotationClosing);
     set('f-inv-terms', firm.defaultTerms);
+  }
+
+  // Apply firm document style to the preview
+  applyFirmDocStyle(firm);
+}
+
+function applyFirmDocStyle(firm) {
+  const sheet = document.getElementById('doc-sheet');
+  if (!sheet) return;
+  const primaryColor = (firm && firm.docPrimaryColor) || '#F5A800';
+  const accentColor = (firm && firm.docAccentColor) || '#0a2d6e';
+  const font = String((firm && firm.docFont) || 'Inter').replace(/'/g, '');
+  const headerStyle = (firm && firm.docHeaderStyle) || 'default';
+
+  sheet.style.setProperty('--firm-primary', primaryColor);
+  sheet.style.setProperty('--firm-accent', accentColor);
+  sheet.style.setProperty('--firm-font', `'${font}', sans-serif`);
+  sheet.style.fontFamily = `'${font}', sans-serif`;
+
+  // Gold left bar uses primary color
+  sheet.style.setProperty('--gold', primaryColor);
+
+  // Company name uses accent color
+  const companyName = sheet.querySelector('.lh-brand .cursive');
+  if (companyName) companyName.style.color = accentColor;
+
+  // Divider color adapts to primary
+  const divider = sheet.querySelector('.lh-divider');
+  if (divider) divider.style.borderTopColor = primaryColor;
+
+  // Header layout
+  const lhTop = sheet.querySelector('.lh-top');
+  const lhBrand = sheet.querySelector('.lh-brand');
+  const lhAddress = sheet.querySelector('.lh-address');
+  if (lhTop) {
+    lhTop.style.flexDirection = '';
+    lhTop.style.justifyContent = '';
+    lhTop.style.textAlign = '';
+  }
+  if (lhBrand) lhBrand.style.textAlign = '';
+  if (lhAddress) lhAddress.style.textAlign = '';
+
+  if (headerStyle === 'centered') {
+    if (lhTop) {
+      lhTop.style.flexDirection = 'column';
+      lhTop.style.alignItems = 'center';
+      lhTop.style.textAlign = 'center';
+    }
+    if (lhBrand) lhBrand.style.textAlign = 'center';
+    if (lhAddress) lhAddress.style.textAlign = 'center';
+  } else if (headerStyle === 'minimal') {
+    const logoEl = sheet.querySelector('.lh-logo');
+    if (logoEl) logoEl.style.display = 'none';
+  } else {
+    const logoEl = sheet.querySelector('.lh-logo');
+    if (logoEl) logoEl.style.display = '';
   }
 }
 
@@ -4542,6 +5401,28 @@ function hydrateFirmForm(firm) {
   const logoInput = document.getElementById('firm-logo');
   if (logoInput) logoInput.value = '';
   showFirmLogoPreview();
+
+  // Document style fields
+  const primaryColor = document.getElementById('firm-doc-primary-color');
+  if (primaryColor) primaryColor.value = (firm && firm.docPrimaryColor) || '#F5A800';
+  const accentColor = document.getElementById('firm-doc-accent-color');
+  if (accentColor) accentColor.value = (firm && firm.docAccentColor) || '#0a2d6e';
+  set('firm-doc-font', (firm && firm.docFont) || 'Inter');
+  set('firm-doc-header-style', (firm && firm.docHeaderStyle) || 'default');
+
+  // Letterhead upload status
+  const lhSizes = ['a4', 'a3', 'legal'];
+  for (const sz of lhSizes) {
+    const fileInput = document.getElementById(`firm-lh-${sz}`);
+    if (fileInput) fileInput.value = '';
+    const status = document.getElementById(`firm-lh-${sz}-status`);
+    if (status) {
+      const hasLh = firm && firm.letterheads && firm.letterheads[sz];
+      status.textContent = hasLh ? 'Letterhead uploaded (re-upload to replace)' : '';
+      status.style.color = hasLh ? 'green' : 'var(--muted)';
+    }
+  }
+
   setText('firm-form-title', firm ? `Edit firm ${firm.name} (${firm.id})` : 'New firm');
 }
 
@@ -4578,7 +5459,7 @@ async function handleFirmLogoUpload(input) {
   showFirmLogoPreview();
 }
 
-function saveFirmEntry(event) {
+async function saveFirmEntry(event) {
   if (event) event.preventDefault();
   const value = id => (document.getElementById(id)?.value || '').trim();
   const code = value('firm-code').toUpperCase();
@@ -4619,6 +5500,10 @@ function saveFirmEntry(event) {
     quotationIntro: value('firm-intro'),
     quotationClosing: value('firm-closing'),
     logo: editingFirmLogo,
+    docPrimaryColor: document.getElementById('firm-doc-primary-color')?.value || '#F5A800',
+    docAccentColor: document.getElementById('firm-doc-accent-color')?.value || '#0a2d6e',
+    docFont: document.getElementById('firm-doc-font')?.value || 'Inter',
+    docHeaderStyle: document.getElementById('firm-doc-header-style')?.value || 'default',
     isDefault: makeDefault,
     status: 'Active',
     lastUpdated: now
@@ -4638,6 +5523,25 @@ function saveFirmEntry(event) {
     firm = { id: code, createdDate: now, ...fields };
     bizState.firms.push(firm);
   }
+  // Read letterhead files (PDF/image) as base64 data URLs
+  const lhSizes = ['a4', 'a3', 'legal'];
+  for (const sz of lhSizes) {
+    const fileInput = document.getElementById(`firm-lh-${sz}`);
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+      const file = fileInput.files[0];
+      const dataUrl = await new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = () => resolve('');
+        reader.readAsDataURL(file);
+      });
+      if (dataUrl) {
+        if (!firm.letterheads) firm.letterheads = {};
+        firm.letterheads[sz] = dataUrl;
+      }
+    }
+  }
+
   saveBusinessState();
 
   if (!activeFirmId || activeFirmId === firm.id) {
@@ -5246,6 +6150,23 @@ function bindBusinessEvents() {
   const menuBtn = document.getElementById('btn-mgmt-menu');
   if (menuBtn) menuBtn.addEventListener('click', () => toggleMobileNav());
 
+  // Sidebar collapse toggle (desktop)
+  const collapseBtn = document.getElementById('btn-collapse-sidebar');
+  if (collapseBtn) {
+    const shell = document.getElementById('mgmt-shell');
+    if (localStorage.getItem('sidebar_collapsed') === '1') shell.classList.add('sidebar-collapsed');
+    collapseBtn.addEventListener('click', () => {
+      const collapsed = shell.classList.toggle('sidebar-collapsed');
+      collapseBtn.innerHTML = collapsed ? '&raquo;' : '&laquo;';
+      collapseBtn.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+      localStorage.setItem('sidebar_collapsed', collapsed ? '1' : '0');
+    });
+    if (shell.classList.contains('sidebar-collapsed')) {
+      collapseBtn.innerHTML = '&raquo;';
+      collapseBtn.title = 'Expand sidebar';
+    }
+  }
+
   const toBuilderQuote = document.getElementById('btn-new-quotation');
   const toBuilderInvoice = document.getElementById('btn-new-invoice');
   if (toBuilderQuote) {
@@ -5381,6 +6302,14 @@ function bindBusinessEvents() {
       }
       if (btn.dataset.quotationAction === 'create-invoice') {
         loadQuotationIntoInvoiceBuilder(quotationId);
+        return;
+      }
+      if (btn.dataset.quotationAction === 'export-excel') {
+        exportQuotationAsExcel(quotationId);
+        return;
+      }
+      if (btn.dataset.quotationAction === 'export-word') {
+        exportQuotationAsWord(quotationId);
       }
     });
     quotationsBody.addEventListener('change', e => {
@@ -5423,6 +6352,14 @@ function bindBusinessEvents() {
       }
       if (btn.dataset.invoiceAction === 'record-payment') {
         recordPaymentAgainstInvoice(invoiceId);
+        return;
+      }
+      if (btn.dataset.invoiceAction === 'export-excel') {
+        exportInvoiceAsExcel(invoiceId);
+        return;
+      }
+      if (btn.dataset.invoiceAction === 'export-word') {
+        exportInvoiceAsWord(invoiceId);
       }
     });
   });
@@ -5942,6 +6879,302 @@ function bindStaticEvents() {
   const clearLogoBtn = document.getElementById('btn-clear-logo');
   if (clearLogoBtn) clearLogoBtn.addEventListener('click', clearLogo);
 
+  // ── Excel import / export toolbar buttons ──
+  document.getElementById('btn-download-q-template')?.addEventListener('click', async () => {
+    try { await loadXlsx(); excelService.downloadQuotationTemplate(); showToast('Template downloaded.', 'success'); }
+    catch (e) { showToast(e.message, 'error'); }
+  });
+  document.getElementById('btn-download-i-template')?.addEventListener('click', async () => {
+    try { await loadXlsx(); excelService.downloadInvoiceTemplate(); showToast('Template downloaded.', 'success'); }
+    catch (e) { showToast(e.message, 'error'); }
+  });
+  document.getElementById('file-import-quotation')?.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) handleExcelImportQuotation(file);
+    e.target.value = '';
+  });
+  document.getElementById('file-import-invoice')?.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) handleExcelImportInvoice(file);
+    e.target.value = '';
+  });
+  document.getElementById('file-append-quotation')?.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) handleExcelAppendItems(file, 'q');
+    e.target.value = '';
+  });
+  document.getElementById('file-append-invoice')?.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) handleExcelAppendItems(file, 'i');
+    e.target.value = '';
+  });
+  document.getElementById('btn-export-all-quotations')?.addEventListener('click', async () => {
+    try {
+      await loadXlsx();
+      const firms = stateService.getState().firms || [];
+      excelService.exportAllQuotationsToExcel(active(bizState.quotations), firms);
+      showToast('All quotations exported.', 'success');
+    } catch (e) { showToast(e.message, 'error'); }
+  });
+  document.getElementById('btn-export-all-invoices')?.addEventListener('click', async () => {
+    try {
+      await loadXlsx();
+      const firms = stateService.getState().firms || [];
+      excelService.exportAllInvoicesToExcel(active(bizState.invoices), firms);
+      showToast('All invoices exported.', 'success');
+    } catch (e) { showToast(e.message, 'error'); }
+  });
+
+  // ── Builder export dropdown ──
+  const exportDropdownBtn = document.getElementById('btn-export-dropdown');
+  const exportDropdownMenu = document.getElementById('export-dropdown-menu');
+  if (exportDropdownBtn && exportDropdownMenu) {
+    exportDropdownBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = exportDropdownMenu.style.display !== 'none';
+      exportDropdownMenu.style.display = open ? 'none' : 'block';
+    });
+    document.addEventListener('click', () => { exportDropdownMenu.style.display = 'none'; });
+
+    document.getElementById('btn-export-pdf')?.addEventListener('click', async () => {
+      exportDropdownMenu.style.display = 'none';
+      setExportSpinner(true, 'Generating PDF...');
+      try {
+        await loadHtml2Pdf();
+        const fileName = mode === 'quotation'
+          ? (currentQuotationEditId || 'Quotation') + '.pdf'
+          : (currentInvoiceEditId || 'Invoice') + '.pdf';
+        const pageSize = getSelectedPageSize();
+        const firm = getActiveFirmForDoc();
+        const letterheadDataUrl = (firm && firm.letterheads && firm.letterheads[pageSize]) || '';
+        await excelService.exportToPdf(() => buildExportSheet(), fileName, { pageSize, letterheadDataUrl });
+        showToast('PDF downloaded.', 'success');
+      } catch (e) { showToast(e.message, 'error'); }
+      finally { setExportSpinner(false); }
+    });
+
+    document.getElementById('btn-export-excel')?.addEventListener('click', async () => {
+      exportDropdownMenu.style.display = 'none';
+      if (mode === 'quotation') {
+        if (currentQuotationEditId) {
+          await exportQuotationAsExcel(currentQuotationEditId);
+        } else {
+          setExportSpinner(true, 'Exporting to Excel...');
+          try {
+            await loadXlsx();
+            const gst = isGstEnabled();
+            const rows = mode === 'quotation' ? qRows : iRows;
+            const totals = computeTotals(rows, gst);
+            const tempRecord = {
+              quotationNumber: 'Draft', quotationDate: todayIsoDate(), items: rows,
+              gstApplicable: gst, customerName: document.getElementById('f-q-to')?.value || '', form: collectDocForm('quotation'),
+            };
+            excelService.exportQuotationToExcel(tempRecord, getActiveFirm());
+            showToast('Excel downloaded.', 'success');
+          } catch (e) { showToast(e.message, 'error'); }
+          finally { setExportSpinner(false); }
+        }
+      } else {
+        if (currentInvoiceEditId) {
+          await exportInvoiceAsExcel(currentInvoiceEditId);
+        } else {
+          setExportSpinner(true, 'Exporting to Excel...');
+          try {
+            await loadXlsx();
+            const gst = isGstEnabled();
+            const tempRecord = {
+              invoiceNumber: 'Draft', invoiceDate: document.getElementById('f-inv-date')?.value || '', items: iRows,
+              gstApplicable: gst, customerName: document.getElementById('f-inv-bname')?.value || '', form: collectDocForm('invoice'),
+            };
+            excelService.exportInvoiceToExcel(tempRecord, getActiveFirm());
+            showToast('Excel downloaded.', 'success');
+          } catch (e) { showToast(e.message, 'error'); }
+          finally { setExportSpinner(false); }
+        }
+      }
+    });
+
+    document.getElementById('btn-export-word')?.addEventListener('click', async () => {
+      exportDropdownMenu.style.display = 'none';
+      if (mode === 'quotation') {
+        if (currentQuotationEditId) {
+          await exportQuotationAsWord(currentQuotationEditId);
+        } else {
+          setExportSpinner(true, 'Exporting to Word...');
+          try {
+            await loadDocx();
+            const gst = isGstEnabled();
+            const tempRecord = {
+              quotationNumber: 'Draft', quotationDate: todayIsoDate(), items: qRows,
+              gstApplicable: gst, customerName: document.getElementById('f-q-to')?.value || '', form: collectDocForm('quotation'),
+            };
+            await excelService.exportQuotationToWord(tempRecord, getActiveFirm());
+            showToast('Word document downloaded.', 'success');
+          } catch (e) { showToast(e.message, 'error'); }
+          finally { setExportSpinner(false); }
+        }
+      } else {
+        if (currentInvoiceEditId) {
+          await exportInvoiceAsWord(currentInvoiceEditId);
+        } else {
+          setExportSpinner(true, 'Exporting to Word...');
+          try {
+            await loadDocx();
+            const gst = isGstEnabled();
+            const tempRecord = {
+              invoiceNumber: 'Draft', invoiceDate: document.getElementById('f-inv-date')?.value || '', items: iRows,
+              gstApplicable: gst, customerName: document.getElementById('f-inv-bname')?.value || '', form: collectDocForm('invoice'),
+            };
+            await excelService.exportInvoiceToWord(tempRecord, getActiveFirm());
+            showToast('Word document downloaded.', 'success');
+          } catch (e) { showToast(e.message, 'error'); }
+          finally { setExportSpinner(false); }
+        }
+      }
+    });
+
+    document.getElementById('btn-share-doc')?.addEventListener('click', async () => {
+      exportDropdownMenu.style.display = 'none';
+      await shareDocument();
+    });
+  }
+
+  // ── Product catalog events ──
+  document.getElementById('btn-add-product')?.addEventListener('click', () => openProductModal());
+  document.getElementById('btn-manage-custom-fields')?.addEventListener('click', openCustomFieldsModal);
+  document.getElementById('product-form')?.addEventListener('submit', saveProduct);
+  document.getElementById('btn-close-product-modal')?.addEventListener('click', closeProductModal);
+  document.getElementById('btn-cancel-product')?.addEventListener('click', closeProductModal);
+  document.getElementById('btn-close-cf-modal')?.addEventListener('click', closeCustomFieldsModal);
+  document.getElementById('search-products')?.addEventListener('input', e => {
+    renderProducts(e.target.value, document.getElementById('filter-product-category')?.value);
+  });
+  document.getElementById('filter-product-category')?.addEventListener('change', e => {
+    renderProducts(document.getElementById('search-products')?.value, e.target.value);
+  });
+
+  const productsBody = document.getElementById('products-tbody');
+  if (productsBody) {
+    productsBody.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-product-action]');
+      if (!btn) return;
+      const id = btn.dataset.productId;
+      if (btn.dataset.productAction === 'edit') openProductModal(id);
+      if (btn.dataset.productAction === 'delete') {
+        if (confirm('Delete this product?')) {
+          productCatalog.remove(id);
+          renderProducts(document.getElementById('search-products')?.value, document.getElementById('filter-product-category')?.value);
+          showToast('Product deleted.', 'success');
+        }
+      }
+    });
+  }
+
+  // Custom fields modal
+  document.getElementById('cf-add-form')?.addEventListener('submit', e => {
+    e.preventDefault();
+    const nameInput = document.getElementById('cf-new-name');
+    const name = nameInput?.value.trim();
+    if (!name) return;
+    productCatalog.addCustomField({ name });
+    nameInput.value = '';
+    renderCustomFieldsList();
+    showToast('Custom field added.', 'success');
+  });
+  document.getElementById('cf-list')?.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-remove-cf]');
+    if (!btn) return;
+    productCatalog.removeCustomField(btn.dataset.removeCf);
+    renderCustomFieldsList();
+    showToast('Custom field removed.', 'success');
+  });
+
+  // ── Description autocomplete ──
+  document.addEventListener('input', e => {
+    if (e.target.matches('textarea.desc-textarea')) {
+      showProductAutocomplete(e.target);
+    }
+  });
+  document.addEventListener('focusout', e => {
+    if (e.target.matches('textarea.desc-textarea')) {
+      setTimeout(hideProductAutocomplete, 200);
+    }
+  });
+
+  // ── Analytics events ──
+  document.querySelectorAll('.analytics-period').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.analytics-period').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('analytics-from').value = '';
+      document.getElementById('analytics-to').value = '';
+      renderAnalytics();
+    });
+  });
+  document.getElementById('btn-analytics-apply')?.addEventListener('click', () => {
+    document.querySelectorAll('.analytics-period').forEach(b => b.classList.remove('active'));
+    renderAnalytics();
+  });
+
+  // ── Receivables events ──
+  document.getElementById('btn-add-receivable')?.addEventListener('click', () => openReceivableForm());
+  document.getElementById('btn-cancel-receivable')?.addEventListener('click', () => {
+    document.getElementById('receivable-form-card').style.display = 'none'; editingReceivableId = null;
+  });
+  document.getElementById('receivable-entry-form')?.addEventListener('submit', saveReceivable);
+  document.getElementById('btn-download-receivables-template')?.addEventListener('click', async () => {
+    await loadXlsx(); excelService.downloadReceivablesTemplate();
+  });
+  document.getElementById('file-import-receivables')?.addEventListener('change', e => {
+    const file = e.target.files[0]; if (file) importReceivablesFromExcel(file); e.target.value = '';
+  });
+  document.getElementById('btn-export-receivables')?.addEventListener('click', async () => {
+    await loadXlsx(); excelService.exportReceivablesToExcel(getReceivables().filter(r => isInActiveFY(r.invoiceDate)));
+  });
+  document.getElementById('search-receivables')?.addEventListener('input', () => { staleViews.add('receivables'); renderView('receivables'); });
+  document.getElementById('firm-filter-receivables')?.addEventListener('change', () => { staleViews.add('receivables'); renderView('receivables'); });
+  document.getElementById('receivables-tbody')?.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-recv-action]');
+    if (!btn) return;
+    const id = btn.dataset.recvId;
+    if (btn.dataset.recvAction === 'edit') openReceivableForm(id);
+    if (btn.dataset.recvAction === 'delete') { if (confirm('Delete this entry?')) deleteReceivable(id); }
+  });
+
+  // ── Purchases events ──
+  document.getElementById('btn-add-purchase')?.addEventListener('click', () => openPurchaseForm());
+  document.getElementById('btn-cancel-purchase')?.addEventListener('click', () => {
+    document.getElementById('purchase-form-card').style.display = 'none'; editingPurchaseId = null;
+  });
+  document.getElementById('purchase-entry-form')?.addEventListener('submit', savePurchase);
+  document.getElementById('btn-download-purchases-template')?.addEventListener('click', async () => {
+    await loadXlsx(); excelService.downloadPurchasesTemplate();
+  });
+  document.getElementById('file-import-purchases')?.addEventListener('change', e => {
+    const file = e.target.files[0]; if (file) importPurchasesFromExcel(file); e.target.value = '';
+  });
+  document.getElementById('btn-export-purchases')?.addEventListener('click', async () => {
+    await loadXlsx(); excelService.exportPurchasesToExcel(getPurchases().filter(p => isInActiveFY(p.billDate)));
+  });
+  document.getElementById('search-purchases')?.addEventListener('input', () => { staleViews.add('purchases'); renderView('purchases'); });
+  document.getElementById('firm-filter-purchases')?.addEventListener('change', () => { staleViews.add('purchases'); renderView('purchases'); });
+  document.getElementById('purchases-tbody')?.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-purch-action]');
+    if (!btn) return;
+    const id = btn.dataset.purchId;
+    if (btn.dataset.purchAction === 'edit') openPurchaseForm(id);
+    if (btn.dataset.purchAction === 'delete') { if (confirm('Delete this entry?')) deletePurchase(id); }
+  });
+
+  // ── GST Returns events ──
+  document.getElementById('gst-returns-period')?.addEventListener('change', () => { staleViews.add('gstreturns'); renderView('gstreturns'); });
+  document.getElementById('btn-export-gst-returns')?.addEventListener('click', async () => {
+    await loadXlsx();
+    const data = computeGstReturnsData();
+    const period = document.getElementById('gst-returns-period')?.value || 'monthly';
+    excelService.exportGstReturns(data, activeFY || 'all', period);
+  });
+
   window.addEventListener('beforeunload', persistAppState);
 }
 
@@ -6047,10 +7280,11 @@ function bindRowTableEvents() {
 
     tbody.addEventListener('input', e => {
       const target = e.target;
-      if (!(target instanceof HTMLInputElement)) return;
+      if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLTextAreaElement)) return;
       const rowId = target.dataset.rowId;
       const field = target.dataset.field;
       if (!rowId || !field) return;
+      if (target instanceof HTMLTextAreaElement) autoResizeTextarea(target);
       updateRowField(tbl, rowId, field, target.value);
     });
 
@@ -6068,7 +7302,8 @@ function updateRowField(tbl, id, field, val) {
   const rows = tbl === 'q' ? qRows : iRows;
   const row = rows.find(r => r.id === id);
   if (!row) return;
-  row[field] = (field === 'desc' || field === 'hsn') ? val : (parseFloat(val) || 0);
+  const num = parseFloat(val) || 0;
+  row[field] = (field === 'desc' || field === 'hsn') ? val : (field === 'gstPct' ? Math.max(0, num) : num);
   updateRowCalc(tbl, id);
   updateTotals(tbl);
   queuePersist();
@@ -6088,6 +7323,11 @@ function updateRowCalc(tbl, id) {
   setText(prefix + id + '-total', fmt(total));
 }
 
+function autoResizeTextarea(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
 function renderRows(tbl) {
   const rows = tbl === 'q' ? qRows : iRows;
   const tbody = document.getElementById(tbl + '-tbody');
@@ -6103,18 +7343,19 @@ function renderRows(tbl) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="center" data-label="${labels[0]}">${idx + 1}</td>
-      <td data-label="${labels[1]}"><input value="${escapeHtml(row.desc)}" placeholder="Description" data-row-id="${row.id}" data-field="desc" aria-label="Description row ${idx + 1}"></td>
-      <td data-label="${labels[2]}"><input value="${escapeHtml(row.hsn)}" placeholder="HSN" style="width:50px;" data-row-id="${row.id}" data-field="hsn" aria-label="HSN row ${idx + 1}"></td>
-      <td data-label="${labels[3]}"><input type="number" value="${row.price || ''}" placeholder="0.00" step="0.01" style="width:70px;" data-row-id="${row.id}" data-field="price" aria-label="Unit price row ${idx + 1}"></td>
-      <td data-label="${labels[4]}"><input type="number" value="${row.qty}" placeholder="1" step="0.01" style="width:42px;" data-row-id="${row.id}" data-field="qty" aria-label="Quantity row ${idx + 1}"></td>
+      <td data-label="${labels[1]}"><textarea rows="1" placeholder="Description" data-row-id="${row.id}" data-field="desc" aria-label="Description row ${idx + 1}" class="desc-textarea">${escapeHtml(row.desc)}</textarea></td>
+      <td data-label="${labels[2]}"><input value="${escapeHtml(row.hsn)}" placeholder="HSN" data-row-id="${row.id}" data-field="hsn" aria-label="HSN row ${idx + 1}"></td>
+      <td data-label="${labels[3]}"><input type="number" value="${row.price || ''}" placeholder="0" step="0.01" data-row-id="${row.id}" data-field="price" aria-label="Unit price row ${idx + 1}"></td>
+      <td data-label="${labels[4]}"><input type="number" value="${row.qty}" placeholder="1" step="0.01" data-row-id="${row.id}" data-field="qty" aria-label="Quantity row ${idx + 1}"></td>
       <td class="right" data-label="${labels[5]}" id="${tbl}-row-${row.id}-sub">${fmt(sub)}</td>
-      <td class="gst-only" data-label="${labels[6]}"><input type="number" value="${resolveGstPct(row.gstPct)}" min="0" step="0.01" style="width:44px;" data-row-id="${row.id}" data-field="gstPct" aria-label="GST percent row ${idx + 1}"></td>
+      <td class="gst-only" data-label="${labels[6]}"><input type="number" value="${resolveGstPct(row.gstPct)}" min="0" step="0.01" data-row-id="${row.id}" data-field="gstPct" aria-label="GST percent row ${idx + 1}"></td>
       <td class="right gst-only" data-label="${labels[7]}" id="${tbl}-row-${row.id}-gst">${fmt(gst)}</td>
       <td class="right bold" data-label="${labels[8]}" id="${tbl}-row-${row.id}-total">${fmt(total)}</td>
       <td data-label="${labels[9]}"><button class="rm-btn" type="button" data-row-id="${row.id}" aria-label="Remove row ${idx + 1}">x</button></td>
     `;
     tbody.appendChild(tr);
   });
+  tbody.querySelectorAll('textarea.desc-textarea').forEach(autoResizeTextarea);
   updateTotals(tbl);
 }
 
@@ -6163,6 +7404,7 @@ function escapeHtml(value) {
 // NUMBER TO WORDS (Indian system)
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function toWords(n) {
+  if (n < 0) return 'Minus ' + toWords(-n).replace(/ only\.$/, '') + ' only.';
   if (n === 0) return 'Zero rupees only.';
   const ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine',
     'Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
@@ -6190,6 +7432,234 @@ function toWords(n) {
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // PDF SAVE â€” exports ONLY the active tab section
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═════════════════════════════════════════════
+// EXCEL / WORD / PDF IMPORT & EXPORT HELPERS
+// ═════════════════════════════════════════════
+
+async function exportQuotationAsExcel(quotationId) {
+  const q = bizState.quotations.find(r => r.id === quotationId);
+  if (!q) return showToast('Quotation not found.', 'error');
+  setExportSpinner(true, 'Exporting to Excel...');
+  try {
+    await loadXlsx();
+    excelService.exportQuotationToExcel(q, getFirm(recordFirmId(q)));
+    showToast('Excel downloaded.', 'success');
+  } catch (e) { showToast(e.message, 'error'); }
+  finally { setExportSpinner(false); }
+}
+
+async function exportInvoiceAsExcel(invoiceId) {
+  const inv = bizState.invoices.find(r => r.id === invoiceId);
+  if (!inv) return showToast('Invoice not found.', 'error');
+  setExportSpinner(true, 'Exporting to Excel...');
+  try {
+    await loadXlsx();
+    excelService.exportInvoiceToExcel(inv, getFirm(recordFirmId(inv)));
+    showToast('Excel downloaded.', 'success');
+  } catch (e) { showToast(e.message, 'error'); }
+  finally { setExportSpinner(false); }
+}
+
+async function exportQuotationAsWord(quotationId) {
+  const q = bizState.quotations.find(r => r.id === quotationId);
+  if (!q) return showToast('Quotation not found.', 'error');
+  setExportSpinner(true, 'Exporting to Word...');
+  try {
+    await loadDocx();
+    await excelService.exportQuotationToWord(q, getFirm(recordFirmId(q)));
+    showToast('Word document downloaded.', 'success');
+  } catch (e) { showToast(e.message, 'error'); }
+  finally { setExportSpinner(false); }
+}
+
+async function exportInvoiceAsWord(invoiceId) {
+  const inv = bizState.invoices.find(r => r.id === invoiceId);
+  if (!inv) return showToast('Invoice not found.', 'error');
+  setExportSpinner(true, 'Exporting to Word...');
+  try {
+    await loadDocx();
+    await excelService.exportInvoiceToWord(inv, getFirm(recordFirmId(inv)));
+    showToast('Word document downloaded.', 'success');
+  } catch (e) { showToast(e.message, 'error'); }
+  finally { setExportSpinner(false); }
+}
+
+async function handleExcelImportQuotation(file) {
+  setExportSpinner(true, 'Reading Excel...');
+  try {
+    await loadXlsx();
+    const data = await excelService.parseQuotationExcel(file);
+    currentQuotationEditId = null;
+    currentInvoiceEditId = null;
+    currentInvoiceSource = null;
+    setMode('quotation');
+    switchView('builder');
+    clearDocForm('quotation');
+    if (data.customerName) setInputValue('f-q-to', data.customerName);
+    if (data.customerGstin) setInputValue('f-q-cgst', data.customerGstin);
+    if (data.subject) setInputValue('f-q-subject', data.subject);
+    if (data.notes) setInputValue('f-q-closing', data.notes);
+    if (data.paymentTerms) setInputValue('f-inv-terms', data.paymentTerms);
+    setInputValue('f-gst-enabled', data.items.some(i => i.gstPct > 0) ? 'true' : 'false');
+    qRows = data.items.map(item => normalizeRow({
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+      desc: item.desc, hsn: item.hsn, price: item.price, qty: item.qty, gstPct: item.gstPct
+    }));
+    if (!qRows.length) qRows = [blankRow()];
+    applyGstMode();
+    renderRows('q');
+    // Apply active firm details to the builder (firm info isn't in the Excel)
+    const firm = getActiveFirm();
+    if (firm) applyFirmToBuilder(firm, { newDocument: true });
+    queuePersist();
+    const warnings = [];
+    if (!data.customerName) warnings.push('Customer Name is empty');
+    if (!data.items.length) warnings.push('No line items found');
+    if (warnings.length) {
+      showToast(`Imported with warnings: ${warnings.join(', ')}. Please fill missing fields before saving.`, 'error', 8000);
+    } else {
+      showToast(`Imported ${data.items.length} item(s) from Excel.`, 'success');
+    }
+  } catch (e) { showToast(e.message, 'error'); }
+  finally { setExportSpinner(false); }
+}
+
+async function handleExcelImportInvoice(file) {
+  setExportSpinner(true, 'Reading Excel...');
+  try {
+    await loadXlsx();
+    const data = await excelService.parseInvoiceExcel(file);
+    currentInvoiceEditId = null;
+    currentQuotationEditId = null;
+    currentInvoiceSource = null;
+    setMode('invoice');
+    switchView('builder');
+    clearDocForm('invoice');
+    if (data.buyerName) setInputValue('f-inv-bname', data.buyerName);
+    if (data.buyerAddress) setInputValue('f-inv-baddr', data.buyerAddress);
+    if (data.buyerGstin) setInputValue('f-inv-bgst', data.buyerGstin);
+    if (data.consigneeName) setInputValue('f-inv-cname', data.consigneeName);
+    if (data.consigneeAddress) setInputValue('f-inv-caddr', data.consigneeAddress);
+    if (data.consigneeGstin) setInputValue('f-inv-cgst', data.consigneeGstin);
+    if (data.invoiceDate) setInputValue('f-inv-date', data.invoiceDate);
+    if (data.placeOfSupply) setInputValue('f-inv-pos', data.placeOfSupply);
+    if (data.paymentTerms) setInputValue('f-inv-terms', data.paymentTerms);
+    if (data.reference) setInputValue('f-inv-ref', data.reference);
+    if (data.buyerOrderNo) setInputValue('f-inv-bon', data.buyerOrderNo);
+    setInputValue('f-gst-enabled', data.items.some(i => i.gstPct > 0) ? 'true' : 'false');
+    iRows = data.items.map(item => normalizeRow({
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+      desc: item.desc, hsn: item.hsn, price: item.price, qty: item.qty, gstPct: item.gstPct
+    }));
+    if (!iRows.length) iRows = [blankRow()];
+    applyGstMode();
+    renderRows('i');
+    // Apply active firm details to the builder (firm info isn't in the Excel)
+    const firm = getActiveFirm();
+    if (firm) applyFirmToBuilder(firm, { newDocument: true });
+    queuePersist();
+    const warnings = [];
+    if (!data.buyerName) warnings.push('Buyer Name is empty');
+    if (!data.items.length) warnings.push('No line items found');
+    if (warnings.length) {
+      showToast(`Imported with warnings: ${warnings.join(', ')}. Please fill missing fields before saving.`, 'error', 8000);
+    } else {
+      showToast(`Imported ${data.items.length} item(s) from Excel.`, 'success');
+    }
+  } catch (e) { showToast(e.message, 'error'); }
+  finally { setExportSpinner(false); }
+}
+
+// Append items from Excel to existing rows in the builder (no form reset)
+async function handleExcelAppendItems(file, tbl) {
+  setExportSpinner(true, 'Reading Excel...');
+  try {
+    await loadXlsx();
+    const data = tbl === 'q'
+      ? await excelService.parseQuotationExcel(file)
+      : await excelService.parseInvoiceExcel(file);
+    if (!data.items.length) {
+      showToast('No line items found in the uploaded file.', 'error');
+      return;
+    }
+    switchView('builder');
+    setMode(tbl === 'q' ? 'quotation' : 'invoice');
+    const rows = tbl === 'q' ? qRows : iRows;
+    // Remove trailing blank rows before appending
+    while (rows.length && !rows[rows.length - 1].desc && !rows[rows.length - 1].price) rows.pop();
+    const newRows = data.items.map(item => normalizeRow({
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+      desc: item.desc, hsn: item.hsn, price: item.price, qty: item.qty, gstPct: item.gstPct
+    }));
+    if (tbl === 'q') { qRows = [...rows, ...newRows]; }
+    else { iRows = [...rows, ...newRows]; }
+    applyGstMode();
+    renderRows(tbl);
+    queuePersist();
+    // If Excel had customer/payment info and current fields are empty, fill them
+    if (tbl === 'q') {
+      if (data.customerName && !(document.getElementById('f-q-to')?.value || '').trim()) {
+        setInputValue('f-q-to', data.customerName);
+      }
+      if (data.paymentTerms && !(document.getElementById('f-inv-terms')?.value || '').trim()) {
+        setInputValue('f-inv-terms', data.paymentTerms);
+      }
+    } else {
+      if (data.buyerName && !(document.getElementById('f-inv-bname')?.value || '').trim()) {
+        setInputValue('f-inv-bname', data.buyerName);
+      }
+      if (data.paymentTerms && !(document.getElementById('f-inv-terms')?.value || '').trim()) {
+        setInputValue('f-inv-terms', data.paymentTerms);
+      }
+    }
+    showToast(`Appended ${newRows.length} item(s) from Excel. Total rows: ${(tbl === 'q' ? qRows : iRows).length}`, 'success');
+  } catch (e) { showToast(e.message, 'error'); }
+  finally { setExportSpinner(false); }
+}
+
+// Share document as file (Web Share API)
+async function shareDocument() {
+  try {
+    await loadHtml2Pdf();
+    setExportSpinner(true, 'Preparing document for sharing...');
+    const base64 = await renderActiveDocumentPdf();
+    const kind = mode === 'quotation' ? 'Quotation' : 'Invoice';
+    const editId = mode === 'quotation' ? currentQuotationEditId : currentInvoiceEditId;
+    const fileName = `${editId || kind}.pdf`;
+    const byteString = atob(base64);
+    const ab = new Uint8Array(byteString.length);
+    for (let i = 0; i < byteString.length; i++) ab[i] = byteString.charCodeAt(i);
+    const blob = new Blob([ab], { type: 'application/pdf' });
+    const file = new File([blob], fileName, { type: 'application/pdf' });
+
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        title: fileName,
+        text: `${kind} document`,
+        files: [file]
+      });
+      showToast('Document shared.', 'success');
+    } else {
+      // Fallback: generate a downloadable link and copy it or open mail
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = `mailto:?subject=${encodeURIComponent(kind + ' - ' + (editId || 'Draft'))}&body=${encodeURIComponent('Please find the attached ' + kind + '.')}`;
+      link.click();
+      // Also offer download
+      const dl = document.createElement('a');
+      dl.href = url;
+      dl.download = fileName;
+      dl.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      showToast('Share not supported on this browser. Document downloaded and email opened.', 'success', 5000);
+    }
+  } catch (e) {
+    if (e.name !== 'AbortError') showToast(e.message || 'Share failed.', 'error');
+  } finally {
+    setExportSpinner(false);
+  }
+}
+
 // A clean copy of the active document (letterhead + quotation or invoice) for the Drive PDF:
 // editing controls removed, table inputs turned into text, the remove-button column dropped.
 // options.invoiceNumber: number shown on the copy instead of the auto number (printed Manual No.).
@@ -6214,9 +7684,10 @@ function buildExportSheet(options = {}) {
 
   exportSheet.querySelectorAll('.add-row-btn, .rm-btn, .add-row-area, .edit-hint').forEach(el => el.remove());
   exportSheet.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
-  exportSheet.querySelectorAll('td input').forEach(inp => {
+  exportSheet.querySelectorAll('td input, td textarea').forEach(inp => {
     const span = document.createElement('span');
     span.textContent = inp.dataset.field === 'gstPct' ? `${inp.value}%` : inp.value;
+    span.style.whiteSpace = 'pre-wrap';
     inp.replaceWith(span);
   });
   exportSheet.querySelectorAll('.items-tbl tr').forEach(tr => {
@@ -6230,8 +7701,43 @@ function buildExportSheet(options = {}) {
     const number = exportSheet.querySelector('#d-inv-no');
     if (number) number.textContent = options.invoiceNumber;
   }
+  if (!isGstEnabled()) {
+    exportSheet.querySelectorAll('.gst-only').forEach(el => { el.style.display = 'none'; });
+  }
   // Cloned IDs would clash with the live document.
   exportSheet.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+
+  // Apply firm document style to export sheet
+  const firm = getActiveFirmForDoc();
+  if (firm) {
+    const primaryColor = firm.docPrimaryColor || '#F5A800';
+    const accentColor = firm.docAccentColor || '#0a2d6e';
+    const font = String(firm.docFont || 'Inter').replace(/'/g, '');
+    const headerStyle = firm.docHeaderStyle || 'default';
+
+    exportSheet.style.setProperty('--firm-primary', primaryColor);
+    exportSheet.style.setProperty('--gold', primaryColor);
+    exportSheet.style.fontFamily = `'${font}', sans-serif`;
+
+    const companyName = exportSheet.querySelector('.lh-brand .cursive');
+    if (companyName) companyName.style.color = accentColor;
+
+    const divider = exportSheet.querySelector('.lh-divider');
+    if (divider) divider.style.borderTopColor = primaryColor;
+
+    if (headerStyle === 'centered') {
+      const lhTop = exportSheet.querySelector('.lh-top');
+      if (lhTop) { lhTop.style.flexDirection = 'column'; lhTop.style.alignItems = 'center'; lhTop.style.textAlign = 'center'; }
+      const lhBrand = exportSheet.querySelector('.lh-brand');
+      if (lhBrand) lhBrand.style.textAlign = 'center';
+      const lhAddr = exportSheet.querySelector('.lh-address');
+      if (lhAddr) lhAddr.style.textAlign = 'center';
+    } else if (headerStyle === 'minimal') {
+      const logoEl = exportSheet.querySelector('.lh-logo');
+      if (logoEl) logoEl.style.display = 'none';
+    }
+  }
+
   return exportSheet;
 }
 
@@ -6239,7 +7745,41 @@ function buildExportSheet(options = {}) {
 // PDF FILE → GOOGLE DRIVE
 // ═════════════════════════════════════════════
 const HTML2PDF_URL = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+const XLSX_CDN = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+const DOCX_CDN = 'https://unpkg.com/docx@9.0.2/build/index.umd.js';
+const FILESAVER_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js';
 let html2pdfLoading = null;
+let xlsxLoading = null;
+let docxLoading = null;
+let fileSaverLoading = null;
+
+function loadScript(url) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = url;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Could not load ' + url));
+    document.head.appendChild(s);
+  });
+}
+
+function loadXlsx() {
+  if (window.XLSX) return Promise.resolve();
+  if (!xlsxLoading) xlsxLoading = loadScript(XLSX_CDN).catch(e => { xlsxLoading = null; throw e; });
+  return xlsxLoading;
+}
+
+function loadFileSaver() {
+  if (window.saveAs) return Promise.resolve();
+  if (!fileSaverLoading) fileSaverLoading = loadScript(FILESAVER_CDN).catch(e => { fileSaverLoading = null; throw e; });
+  return fileSaverLoading;
+}
+
+function loadDocx() {
+  if (window.docx) return Promise.resolve();
+  if (!docxLoading) docxLoading = loadFileSaver().then(() => loadScript(DOCX_CDN)).catch(e => { docxLoading = null; throw e; });
+  return docxLoading;
+}
 
 function loadHtml2Pdf() {
   if (window.html2pdf) return Promise.resolve(window.html2pdf);
@@ -6255,19 +7795,56 @@ function loadHtml2Pdf() {
   return html2pdfLoading;
 }
 
-// Renders the active document to an A4 PDF that looks exactly like the preview. Returns base64.
-async function renderActiveDocumentPdf() {
+const PAGE_SIZE_CONFIG = {
+  a4:    { format: 'a4',    width: 780, minHeight: 1103 },
+  a3:    { format: 'a3',    width: 1100, minHeight: 1556 },
+  legal: { format: 'legal', width: 780, minHeight: 1405 },
+};
+
+function getSelectedPageSize() {
+  const sel = document.getElementById('export-page-size');
+  return (sel && sel.value) || 'a4';
+}
+
+function getActiveFirmForDoc() {
+  const firmId = activeFirmId;
+  if (!firmId) return null;
+  return (bizState.firms || []).find(f => f.id === firmId && !f.deleted) || null;
+}
+
+// Renders the active document to a PDF. Returns base64.
+async function renderActiveDocumentPdf(overridePageSize) {
   const html2pdf = await loadHtml2Pdf();
   const sheet = buildExportSheet();
   if (!sheet) throw new Error('Nothing to save: the document is not ready.');
 
-  // Render a copy at the print width (780px) so the layout matches the printed copy. It sits at the
-  // top-left corner behind the app: placing it off-screen makes the renderer crop the page.
+  const pageSize = overridePageSize || getSelectedPageSize();
+  const cfg = PAGE_SIZE_CONFIG[pageSize] || PAGE_SIZE_CONFIG.a4;
+
   const host = document.createElement('div');
-  host.style.cssText = 'position:fixed;left:0;top:0;width:780px;background:#fff;z-index:-100;pointer-events:none;';
+  host.style.cssText = `position:fixed;left:0;top:0;width:${cfg.width}px;background:#fff;z-index:-100;pointer-events:none;`;
   sheet.style.boxShadow = 'none';
-  sheet.style.width = '780px';
-  sheet.style.minHeight = '1103px'; // A4 proportions, so the gold side bar runs the full page
+  sheet.style.width = cfg.width + 'px';
+  sheet.style.minHeight = cfg.minHeight + 'px';
+
+  // Apply letterhead as background if firm has one for this page size
+  const firm = getActiveFirmForDoc();
+  if (firm && firm.letterheads && firm.letterheads[pageSize]) {
+    const lhData = firm.letterheads[pageSize];
+    if (lhData.startsWith('data:image/')) {
+      sheet.style.backgroundImage = `url(${lhData})`;
+      sheet.style.backgroundSize = '100% 100%';
+      sheet.style.backgroundRepeat = 'no-repeat';
+    } else if (lhData.startsWith('data:application/pdf')) {
+      // For PDF letterheads, render as background image via an overlay div
+      // html2pdf can't composite PDFs, so we note it for the user
+      const notice = document.createElement('div');
+      notice.style.cssText = 'position:absolute;bottom:4px;right:8px;font-size:8px;color:#999;';
+      notice.textContent = 'PDF letterhead applied on print';
+      sheet.appendChild(notice);
+    }
+  }
+
   host.appendChild(sheet);
   document.body.appendChild(host);
   try {
@@ -6276,7 +7853,7 @@ async function renderActiveDocumentPdf() {
       margin: 0,
       image: { type: 'jpeg', quality: 0.95 },
       html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0 },
-      jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
+      jsPDF: { unit: 'pt', format: cfg.format, orientation: 'portrait' },
       pagebreak: { mode: ['css', 'legacy'] }
     }).from(sheet).outputPdf('datauristring');
     return dataUri.split(',')[1];
@@ -6371,6 +7948,993 @@ async function uploadPdfForRecord(kind, recordId) {
 }
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+
+// ==============================================
+// PRODUCT CATALOG UI
+// ==============================================
+
+function renderProducts(query, category) {
+  const tbody = document.getElementById('products-tbody');
+  if (!tbody) return;
+  let items = productCatalog.list();
+  if (query) {
+    const q = query.toLowerCase();
+    items = items.filter(p =>
+      (p.name || '').toLowerCase().includes(q) ||
+      (p.specification || '').toLowerCase().includes(q) ||
+      (p.hsn || '').toLowerCase().includes(q) ||
+      (p.category || '').toLowerCase().includes(q)
+    );
+  }
+  if (category) items = items.filter(p => p.category === category);
+
+  tbody.innerHTML = items.length ? items.map(p => {
+    const spec = p.specification ? `<div style="color:var(--muted);font-size:0.75rem;">${escapeHtml(p.specification)}</div>` : '';
+    return `<tr>
+      <td><strong>${escapeHtml(p.name)}</strong>${spec}</td>
+      <td>${escapeHtml(p.specification || '')}</td>
+      <td>${escapeHtml(p.hsn || '')}</td>
+      <td class="right-text">${formatMoney(p.price || 0)}</td>
+      <td>${p.gstPct || 0}%</td>
+      <td>${escapeHtml(p.unit || '')}</td>
+      <td>${escapeHtml(p.category || '')}</td>
+      <td class="row-actions" style="white-space:nowrap;">
+        <button class="btn btn-outline btn-sm" data-product-action="edit" data-product-id="${p.id}">Edit</button>
+        <button class="btn btn-outline btn-sm" data-product-action="delete" data-product-id="${p.id}" style="color:var(--red);">Del</button>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted);">No products yet. Click Add Product to start.</td></tr>';
+
+  const catSelect = document.getElementById('filter-product-category');
+  if (catSelect) {
+    const cats = productCatalog.listCategories();
+    const cur = catSelect.value;
+    catSelect.innerHTML = '<option value="">All categories</option>' + cats.map(c => `<option${c === cur ? ' selected' : ''}>${escapeHtml(c)}</option>`).join('');
+  }
+}
+
+function openProductModal(productId) {
+  const modal = document.getElementById('product-modal');
+  const title = document.getElementById('product-modal-title');
+  const form = document.getElementById('product-form');
+  form.reset();
+  document.getElementById('pf-edit-id').value = '';
+  document.getElementById('pf-gst').value = '18';
+
+  const dl = document.getElementById('pf-category-list');
+  if (dl) dl.innerHTML = productCatalog.listCategories().map(c => `<option value="${escapeHtml(c)}">`).join('');
+
+  renderCustomFieldInputs();
+
+  if (productId) {
+    const p = productCatalog.getById(productId);
+    if (!p) return;
+    title.textContent = 'Edit Product';
+    document.getElementById('pf-edit-id').value = p.id;
+    document.getElementById('pf-name').value = p.name || '';
+    document.getElementById('pf-spec').value = p.specification || '';
+    document.getElementById('pf-price').value = p.price || '';
+    document.getElementById('pf-hsn').value = p.hsn || '';
+    document.getElementById('pf-gst').value = p.gstPct !== undefined ? p.gstPct : 18;
+    document.getElementById('pf-unit').value = p.unit || 'pcs';
+    document.getElementById('pf-size').value = p.size || '';
+    document.getElementById('pf-color').value = p.color || '';
+    document.getElementById('pf-material').value = p.material || '';
+    document.getElementById('pf-category').value = p.category || '';
+    const custom = p.custom || {};
+    productCatalog.listCustomFields().forEach(cf => {
+      const el = document.getElementById('pf-cf-' + cf.id);
+      if (el) el.value = custom[cf.id] || '';
+    });
+  } else {
+    title.textContent = 'Add Product';
+  }
+  modal.style.display = 'flex';
+}
+
+function closeProductModal() {
+  document.getElementById('product-modal').style.display = 'none';
+}
+
+function renderCustomFieldInputs() {
+  const container = document.getElementById('pf-custom-fields');
+  if (!container) return;
+  const fields = productCatalog.listCustomFields();
+  container.innerHTML = fields.length ? fields.map(cf =>
+    `<div class="field"><label>${escapeHtml(cf.name)}</label><input type="text" id="pf-cf-${cf.id}" placeholder="${escapeHtml(cf.name)}"></div>`
+  ).join('') : '';
+}
+
+function saveProduct(e) {
+  e.preventDefault();
+  const editId = document.getElementById('pf-edit-id').value;
+  const data = {
+    name: document.getElementById('pf-name').value.trim(),
+    specification: document.getElementById('pf-spec').value.trim(),
+    price: parseFloat(document.getElementById('pf-price').value) || 0,
+    hsn: document.getElementById('pf-hsn').value.trim(),
+    gstPct: parseFloat(document.getElementById('pf-gst').value) || 0,
+    unit: document.getElementById('pf-unit').value,
+    size: document.getElementById('pf-size').value.trim(),
+    color: document.getElementById('pf-color').value.trim(),
+    material: document.getElementById('pf-material').value.trim(),
+    category: document.getElementById('pf-category').value.trim(),
+    custom: {},
+  };
+  productCatalog.listCustomFields().forEach(cf => {
+    const el = document.getElementById('pf-cf-' + cf.id);
+    if (el) data.custom[cf.id] = el.value.trim();
+  });
+
+  if (!data.name) { showToast('Product name is required.', 'error'); return; }
+
+  if (editId) {
+    productCatalog.update(editId, data);
+    showToast('Product updated.', 'success');
+  } else {
+    productCatalog.create(data);
+    showToast('Product added.', 'success');
+  }
+  closeProductModal();
+  renderProducts(document.getElementById('search-products')?.value, document.getElementById('filter-product-category')?.value);
+}
+
+function openCustomFieldsModal() {
+  document.getElementById('custom-fields-modal').style.display = 'flex';
+  renderCustomFieldsList();
+}
+
+function closeCustomFieldsModal() {
+  document.getElementById('custom-fields-modal').style.display = 'none';
+}
+
+function renderCustomFieldsList() {
+  const container = document.getElementById('cf-list');
+  if (!container) return;
+  const fields = productCatalog.listCustomFields();
+  container.innerHTML = fields.length ? fields.map(cf =>
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;">
+      <span>${escapeHtml(cf.name)}</span>
+      <button class="btn btn-outline btn-sm" style="color:var(--red);" data-remove-cf="${cf.id}">Remove</button>
+    </div>`
+  ).join('') : '<div style="color:var(--muted);padding:8px 0;">No custom fields yet.</div>';
+}
+
+// ==============================================
+// PRODUCT AUTOCOMPLETE IN DESCRIPTION FIELD
+// ==============================================
+
+let activeAutocomplete = null;
+
+function showProductAutocomplete(textarea) {
+  hideProductAutocomplete();
+  const products = productCatalog.list();
+  if (!products.length) return;
+
+  const query = textarea.value.toLowerCase().trim();
+  const matches = query
+    ? products.filter(p => (p.name || '').toLowerCase().includes(query) || (p.specification || '').toLowerCase().includes(query))
+    : products.slice(0, 15);
+  if (!matches.length) return;
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'product-autocomplete';
+  matches.forEach((p, i) => {
+    const item = document.createElement('div');
+    item.className = 'product-autocomplete-item' + (i === 0 ? ' active' : '');
+    item.dataset.productId = p.id;
+    const spec = p.specification ? ` - ${p.specification}` : '';
+    item.innerHTML = `<div class="pac-name">${escapeHtml(p.name)}${escapeHtml(spec)}</div><div class="pac-detail">${formatMoney(p.price)} | HSN: ${escapeHtml(p.hsn || '-')} | GST: ${p.gstPct || 0}%</div>`;
+    item.addEventListener('mousedown', e => {
+      e.preventDefault();
+      applyProductToRow(textarea, p);
+    });
+    dropdown.appendChild(item);
+  });
+
+  const rect = textarea.getBoundingClientRect();
+  dropdown.style.position = 'fixed';
+  dropdown.style.top = (rect.bottom + 2) + 'px';
+  const left = Math.min(rect.left, window.innerWidth - 328);
+  dropdown.style.left = Math.max(8, left) + 'px';
+  document.body.appendChild(dropdown);
+  activeAutocomplete = { dropdown, textarea };
+}
+
+function hideProductAutocomplete() {
+  if (activeAutocomplete) {
+    activeAutocomplete.dropdown.remove();
+    activeAutocomplete = null;
+  }
+}
+
+function applyProductToRow(textarea, product) {
+  hideProductAutocomplete();
+  const rowId = textarea.dataset.rowId;
+  if (!rowId) return;
+  const tbl = textarea.closest('#q-tbody') ? 'q' : 'i';
+  const rows = tbl === 'q' ? qRows : iRows;
+  const row = rows.find(r => r.id === rowId);
+  if (!row) return;
+
+  const desc = product.specification
+    ? product.name + ' - ' + product.specification
+    : product.name;
+  row.desc = desc;
+  row.hsn = product.hsn || row.hsn;
+  row.price = product.price || row.price;
+  row.gstPct = product.gstPct !== undefined ? product.gstPct : row.gstPct;
+
+  const tr = textarea.closest('tr');
+  if (tr) {
+    textarea.value = desc;
+    autoResizeTextarea(textarea);
+    const hsnInput = tr.querySelector('[data-field="hsn"]');
+    const priceInput = tr.querySelector('[data-field="price"]');
+    const gstInput = tr.querySelector('[data-field="gstPct"]');
+    if (hsnInput) hsnInput.value = product.hsn || '';
+    if (priceInput) priceInput.value = product.price || '';
+    if (gstInput) gstInput.value = product.gstPct !== undefined ? product.gstPct : 18;
+  }
+  updateRowCalc(tbl, rowId);
+  updateTotals(tbl);
+  queuePersist();
+}
+
+// ==============================================
+// ANALYTICS
+// ==============================================
+
+const CHART_JS_CDN = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js';
+let chartJsLoading = null;
+const chartInstances = {};
+
+function loadChartJs() {
+  if (window.Chart) return Promise.resolve();
+  if (!chartJsLoading) chartJsLoading = loadScript(CHART_JS_CDN).catch(e => { chartJsLoading = null; throw e; });
+  return chartJsLoading;
+}
+
+function destroyChart(id) {
+  if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+}
+
+function getAnalyticsPeriod() {
+  const fromEl = document.getElementById('analytics-from');
+  const toEl = document.getElementById('analytics-to');
+  if (fromEl && fromEl.value && toEl && toEl.value) {
+    return { from: new Date(fromEl.value), to: new Date(toEl.value + 'T23:59:59') };
+  }
+  const activeBtn = document.querySelector('.analytics-period.active');
+  const days = activeBtn ? Number(activeBtn.dataset.period) : 365;
+  const to = new Date();
+  const from = new Date();
+  from.setDate(from.getDate() - days);
+  return { from, to };
+}
+
+function filterByDate(list, dateField, period) {
+  return (list || []).filter(item => {
+    if (!item || item.deleted) return false;
+    const d = new Date(item[dateField]);
+    return d >= period.from && d <= period.to;
+  });
+}
+
+async function renderAnalytics() {
+  try { await loadChartJs(); } catch (e) { showToast('Could not load chart library.', 'error'); return; }
+  const Chart = window.Chart;
+  const period = getAnalyticsPeriod();
+  const allInvoices = filterByDate(bizState.invoices, 'invoiceDate', period);
+  const invoices = allInvoices.filter(inv => inv.status !== 'Cancelled');
+  const quotations = filterByDate(bizState.quotations, 'quotationDate', period);
+  const firms = stateService.getState().firms || [];
+
+  const totalRevenue = invoices.reduce((s, i) => s + Number(i.grandTotal || 0), 0);
+  const totalPaid = invoices.reduce((s, i) => s + Number(i.amountPaid || 0), 0);
+  const totalOutstanding = invoices.reduce((s, i) => s + Number(i.balanceDue || 0), 0);
+  const avgInvoice = invoices.length ? totalRevenue / invoices.length : 0;
+  const kpiEl = document.getElementById('analytics-kpis');
+  if (kpiEl) {
+    kpiEl.innerHTML = [
+      ['Total Revenue', formatMoney(totalRevenue)],
+      ['Total Collected', formatMoney(totalPaid)],
+      ['Outstanding', formatMoney(totalOutstanding)],
+      ['Invoices', invoices.length],
+      ['Quotations', quotations.length],
+      ['Avg Invoice', formatMoney(avgInvoice)],
+    ].map(([label, val]) => `<div class="kpi-card"><div class="kpi-label">${label}</div><div class="kpi-value">${val}</div></div>`).join('');
+  }
+
+  const COLORS = ['#F5A800','#0a2d6e','#1F6E39','#cc0000','#8B5CF6','#EC4899','#06B6D4','#F97316','#84CC16','#6366F1'];
+
+  // Monthly revenue
+  const monthlyMap = {};
+  invoices.forEach(inv => {
+    const m = (inv.invoiceDate || '').slice(0, 7);
+    if (m) monthlyMap[m] = (monthlyMap[m] || 0) + Number(inv.grandTotal || 0);
+  });
+  const months = Object.keys(monthlyMap).sort();
+  destroyChart('monthly');
+  const monthlyCtx = document.getElementById('chart-monthly-revenue')?.getContext('2d');
+  if (monthlyCtx) {
+    chartInstances['monthly'] = new Chart(monthlyCtx, {
+      type: 'bar',
+      data: { labels: months, datasets: [{ label: 'Revenue', data: months.map(m => monthlyMap[m]), backgroundColor: '#F5A800' }] },
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+  }
+
+  // Revenue by customer (top 10)
+  const custMap = {};
+  invoices.forEach(inv => {
+    const n = inv.customerName || 'Unknown';
+    custMap[n] = (custMap[n] || 0) + Number(inv.grandTotal || 0);
+  });
+  const topCust = Object.entries(custMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  destroyChart('custRevenue');
+  const custCtx = document.getElementById('chart-revenue-by-customer')?.getContext('2d');
+  if (custCtx) {
+    chartInstances['custRevenue'] = new Chart(custCtx, {
+      type: 'bar',
+      data: { labels: topCust.map(c => c[0]), datasets: [{ label: 'Revenue', data: topCust.map(c => c[1]), backgroundColor: COLORS.slice(0, topCust.length) }] },
+      options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } } }
+    });
+  }
+
+  // Revenue by firm
+  const firmMap = {};
+  invoices.forEach(inv => {
+    const fid = inv.firmId || 'AVP';
+    const firm = firms.find(f => f.id === fid);
+    const name = firm ? firm.name : fid;
+    firmMap[name] = (firmMap[name] || 0) + Number(inv.grandTotal || 0);
+  });
+  destroyChart('firmRevenue');
+  const firmCtx = document.getElementById('chart-revenue-by-firm')?.getContext('2d');
+  if (firmCtx) {
+    const firmEntries = Object.entries(firmMap);
+    chartInstances['firmRevenue'] = new Chart(firmCtx, {
+      type: 'doughnut',
+      data: { labels: firmEntries.map(f => f[0]), datasets: [{ data: firmEntries.map(f => f[1]), backgroundColor: COLORS.slice(0, firmEntries.length) }] },
+      options: { responsive: true }
+    });
+  }
+
+  // Payment status breakdown (includes cancelled for visibility)
+  const statusMap = { Paid: 0, 'Partially Paid': 0, Unpaid: 0, Overdue: 0, Cancelled: 0 };
+  allInvoices.forEach(inv => {
+    const st = inv.status === 'Cancelled' ? 'Cancelled' : (inv.paymentStatus || 'Unpaid');
+    statusMap[st] = (statusMap[st] || 0) + 1;
+  });
+  destroyChart('paymentStatus');
+  const statusCtx = document.getElementById('chart-payment-status')?.getContext('2d');
+  if (statusCtx) {
+    const statusEntries = Object.entries(statusMap).filter(e => e[1] > 0);
+    const statusColors = { Paid: '#1F6E39', 'Partially Paid': '#F5A800', Unpaid: '#666', Overdue: '#cc0000', Cancelled: '#999' };
+    chartInstances['paymentStatus'] = new Chart(statusCtx, {
+      type: 'pie',
+      data: { labels: statusEntries.map(e => e[0]), datasets: [{ data: statusEntries.map(e => e[1]), backgroundColor: statusEntries.map(e => statusColors[e[0]] || '#ccc') }] },
+      options: { responsive: true }
+    });
+  }
+
+  // Quotation conversion rate
+  const converted = quotations.filter(q => q.status === 'Converted').length;
+  const notConverted = quotations.length - converted;
+  destroyChart('conversion');
+  const convCtx = document.getElementById('chart-conversion-rate')?.getContext('2d');
+  if (convCtx) {
+    chartInstances['conversion'] = new Chart(convCtx, {
+      type: 'doughnut',
+      data: { labels: ['Converted', 'Not Converted'], datasets: [{ data: [converted, notConverted], backgroundColor: ['#1F6E39', '#ddd'] }] },
+      options: { responsive: true, plugins: { title: { display: true, text: quotations.length ? Math.round(converted / quotations.length * 100) + '% conversion' : 'No data' } } }
+    });
+  }
+
+  // Overdue aging
+  const agingBuckets = { '0-30 days': 0, '31-60 days': 0, '61-90 days': 0, '90+ days': 0 };
+  const today = new Date();
+  invoices.filter(inv => inv.paymentStatus === 'Overdue' && inv.dueDate).forEach(inv => {
+    const diff = Math.floor((today - new Date(inv.dueDate)) / 86400000);
+    if (diff <= 30) agingBuckets['0-30 days'] += Number(inv.balanceDue || 0);
+    else if (diff <= 60) agingBuckets['31-60 days'] += Number(inv.balanceDue || 0);
+    else if (diff <= 90) agingBuckets['61-90 days'] += Number(inv.balanceDue || 0);
+    else agingBuckets['90+ days'] += Number(inv.balanceDue || 0);
+  });
+  destroyChart('aging');
+  const agingCtx = document.getElementById('chart-overdue-aging')?.getContext('2d');
+  if (agingCtx) {
+    chartInstances['aging'] = new Chart(agingCtx, {
+      type: 'bar',
+      data: { labels: Object.keys(agingBuckets), datasets: [{ label: 'Overdue Amount', data: Object.values(agingBuckets), backgroundColor: ['#F5A800', '#F97316', '#cc0000', '#7F1D1D'] }] },
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+  }
+
+  // Top customers table
+  const topCustEl = document.getElementById('analytics-top-customers');
+  if (topCustEl) {
+    const custStats = {};
+    invoices.forEach(inv => {
+      const n = inv.customerName || 'Unknown';
+      if (!custStats[n]) custStats[n] = { name: n, revenue: 0, count: 0, firstDate: inv.invoiceDate, lastDate: inv.invoiceDate };
+      custStats[n].revenue += Number(inv.grandTotal || 0);
+      custStats[n].count++;
+      if (inv.invoiceDate < custStats[n].firstDate) custStats[n].firstDate = inv.invoiceDate;
+      if (inv.invoiceDate > custStats[n].lastDate) custStats[n].lastDate = inv.invoiceDate;
+    });
+    const sorted = Object.values(custStats).sort((a, b) => b.revenue - a.revenue).slice(0, 15);
+    topCustEl.innerHTML = sorted.length
+      ? `<table class="register-table" style="width:100%;"><thead><tr><th>Customer</th><th>Invoices</th><th>Total Revenue</th><th>First Invoice</th><th>Last Invoice</th></tr></thead><tbody>${sorted.map(c =>
+        `<tr><td>${escapeHtml(c.name)}</td><td>${c.count}</td><td class="right-text">${formatMoney(c.revenue)}</td><td>${c.firstDate || ''}</td><td>${c.lastDate || ''}</td></tr>`
+      ).join('')}</tbody></table>`
+      : '<div style="color:var(--muted);padding:16px;text-align:center;">No invoice data in this period.</div>';
+  }
+}
+
+// ═══════════════════════════════════════
+// RECEIVABLES
+// ═══════════════════════════════════════
+let editingReceivableId = null;
+
+function generateReceivableId() {
+  return 'RCV-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+}
+
+function getReceivables() {
+  return (bizState.receivables || []).filter(r => !r.deleted);
+}
+
+function autoPopulateReceivables() {
+  const existing = new Set(getReceivables().filter(r => r.source === 'system').map(r => r.linkedInvoiceId));
+  let added = false;
+  active(bizState.invoices || []).forEach(inv => {
+    if (existing.has(inv.id)) return;
+    recalcInvoiceFinancials(inv);
+    const total = Number(inv.grandTotal || 0);
+    const paid = Number(inv.amountPaid || 0);
+    if (total <= 0 || paid >= total) return;
+    if (inv.status === 'Cancelled') return;
+    const gstAmt = Number(inv.gst || 0);
+    const baseAmt = total - gstAmt;
+    bizState.receivables.push({
+      id: generateReceivableId(),
+      customerName: inv.customerName || '',
+      customerGstin: inv.form ? (inv.form['f-inv-bgst'] || '') : '',
+      invoiceRef: inv.invoiceNumber || inv.id,
+      invoiceDate: inv.invoiceDate || '',
+      dueDate: inv.dueDate || '',
+      amount: baseAmt,
+      gstAmount: gstAmt,
+      amountReceived: paid,
+      status: inv.paymentStatus || 'Unpaid',
+      source: 'system',
+      linkedInvoiceId: inv.id,
+      firmId: inv.firmId || '',
+      fy: getFY(inv.invoiceDate),
+      notes: '',
+      createdDate: new Date().toISOString(),
+    });
+    added = true;
+  });
+  // Sync existing system receivables with current invoice state
+  getReceivables().filter(r => r.source === 'system').forEach(r => {
+    const inv = active(bizState.invoices || []).find(i => i.id === r.linkedInvoiceId);
+    if (!inv) return;
+    recalcInvoiceFinancials(inv);
+    const newPaid = Number(inv.amountPaid || 0);
+    const newStatus = inv.paymentStatus || 'Unpaid';
+    if (r.amountReceived !== newPaid || r.status !== newStatus) {
+      r.amountReceived = newPaid;
+      r.status = newStatus;
+      r.dueDate = inv.dueDate || r.dueDate;
+      added = true;
+    }
+  });
+  if (added) saveBusinessState();
+}
+
+function agingDays(dueDateStr) {
+  if (!dueDateStr) return 0;
+  const diff = Math.floor((Date.now() - new Date(dueDateStr).getTime()) / 86400000);
+  return diff > 0 ? diff : 0;
+}
+
+function agingLabel(days) {
+  if (days <= 0) return 'Current';
+  if (days <= 30) return '1-30d';
+  if (days <= 60) return '31-60d';
+  if (days <= 90) return '61-90d';
+  if (days <= 180) return '91-180d';
+  if (days <= 365) return '181-365d';
+  return '365d+';
+}
+
+function renderReceivablesView() {
+  autoPopulateReceivables();
+  const receivablesFirmFilter = document.getElementById('firm-filter-receivables')?.value || 'all';
+  const search = (document.getElementById('search-receivables')?.value || '').toLowerCase();
+  let records = getReceivables().filter(r => {
+    if (!isInActiveFY(r.invoiceDate)) return false;
+    if (receivablesFirmFilter !== 'all' && r.firmId !== receivablesFirmFilter) return false;
+    if (search && !(r.customerName || '').toLowerCase().includes(search) &&
+        !(r.invoiceRef || '').toLowerCase().includes(search) &&
+        !(r.status || '').toLowerCase().includes(search)) return false;
+    return true;
+  });
+  records.sort((a, b) => (b.invoiceDate || '').localeCompare(a.invoiceDate || ''));
+
+  let totalReceivable = 0, totalReceived = 0, totalOutstanding = 0, totalOverdue = 0;
+  records.forEach(r => {
+    const total = r.amount + (r.gstAmount || 0);
+    const bal = total - (r.amountReceived || 0);
+    totalReceivable += total;
+    totalReceived += r.amountReceived || 0;
+    totalOutstanding += Math.max(0, bal);
+    if (r.dueDate && new Date(r.dueDate) < new Date() && bal > 0) totalOverdue += bal;
+  });
+
+  setText('kpi-total-receivable', fmt(totalReceivable));
+  setText('kpi-total-received', fmt(totalReceived));
+  setText('kpi-receivable-outstanding', fmt(totalOutstanding));
+  setText('kpi-receivable-overdue', fmt(totalOverdue));
+
+  const tbody = document.getElementById('receivables-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = records.map(r => {
+    const total = r.amount + (r.gstAmount || 0);
+    const bal = Math.max(0, total - (r.amountReceived || 0));
+    const aging = agingDays(r.dueDate);
+    const statusClass = r.status === 'Paid' ? 'badge-paid' : r.status === 'Overdue' ? 'badge-overdue' : r.status === 'Partially Paid' ? 'badge-partially-paid' : 'badge-unpaid';
+    return `<tr>
+      <td>${escapeHtml(r.customerName)}</td>
+      <td>${escapeHtml(r.invoiceRef)}</td>
+      <td>${r.invoiceDate || ''}</td>
+      <td>${r.dueDate || ''}</td>
+      <td class=”right-text”>${fmt(r.amount)}</td>
+      <td class=”right-text”>${fmt(r.gstAmount || 0)}</td>
+      <td class=”right-text”>${fmt(total)}</td>
+      <td class=”right-text”>${fmt(r.amountReceived || 0)}</td>
+      <td class=”right-text” style=”font-weight:700;”>${fmt(bal)}</td>
+      <td><span class=”badge ${statusClass}”>${escapeHtml(r.status)}</span></td>
+      <td>${aging > 0 ? agingLabel(aging) : '-'}</td>
+      <td class=”row-actions”>
+        <button class=”btn btn-outline btn-sm” data-recv-action=”edit” data-recv-id=”${r.id}”>Edit</button>
+        ${r.source !== 'system' ? `<button class=”btn btn-outline btn-sm” data-recv-action=”delete” data-recv-id=”${r.id}”>Del</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openReceivableForm(receivableId) {
+  const card = document.getElementById('receivable-form-card');
+  if (!card) return;
+  card.style.display = 'block';
+  const title = document.getElementById('receivable-form-title');
+  if (receivableId) {
+    editingReceivableId = receivableId;
+    const r = getReceivables().find(x => x.id === receivableId);
+    if (!r) return;
+    if (title) title.textContent = 'Edit Receivable Entry';
+    document.getElementById('r-customer-name').value = r.customerName || '';
+    document.getElementById('r-customer-gstin').value = r.customerGstin || '';
+    document.getElementById('r-invoice-ref').value = r.invoiceRef || '';
+    document.getElementById('r-invoice-date').value = r.invoiceDate || '';
+    document.getElementById('r-due-date').value = r.dueDate || '';
+    document.getElementById('r-amount').value = r.amount || '';
+    document.getElementById('r-gst-amount').value = r.gstAmount || '';
+    document.getElementById('r-amount-received').value = r.amountReceived || 0;
+    document.getElementById('r-status').value = r.status || 'Unpaid';
+    document.getElementById('r-firm-id').value = r.firmId || '';
+    document.getElementById('r-notes').value = r.notes || '';
+  } else {
+    editingReceivableId = null;
+    if (title) title.textContent = 'Add Receivable Entry';
+    document.getElementById('receivable-entry-form')?.reset();
+    const dateEl = document.getElementById('r-invoice-date');
+    if (dateEl) dateEl.value = todayIsoDate();
+  }
+  document.getElementById('r-customer-name')?.focus();
+}
+
+function saveReceivable(e) {
+  e.preventDefault();
+  const entry = {
+    customerName: document.getElementById('r-customer-name')?.value.trim() || '',
+    customerGstin: document.getElementById('r-customer-gstin')?.value.trim() || '',
+    invoiceRef: document.getElementById('r-invoice-ref')?.value.trim() || '',
+    invoiceDate: document.getElementById('r-invoice-date')?.value || '',
+    dueDate: document.getElementById('r-due-date')?.value || '',
+    amount: Number(document.getElementById('r-amount')?.value || 0),
+    gstAmount: Number(document.getElementById('r-gst-amount')?.value || 0),
+    amountReceived: Number(document.getElementById('r-amount-received')?.value || 0),
+    status: document.getElementById('r-status')?.value || 'Unpaid',
+    firmId: document.getElementById('r-firm-id')?.value || activeFirmId,
+    notes: document.getElementById('r-notes')?.value.trim() || '',
+    fy: getFY(document.getElementById('r-invoice-date')?.value),
+  };
+  if (!entry.customerName) { showToast('Customer name is required.', 'error'); return; }
+  if (!entry.invoiceRef) { showToast('Invoice reference is required.', 'error'); return; }
+
+  if (editingReceivableId) {
+    const existing = bizState.receivables.find(r => r.id === editingReceivableId);
+    if (existing) Object.assign(existing, entry, { lastUpdated: new Date().toISOString() });
+  } else {
+    bizState.receivables.push({
+      ...entry,
+      id: generateReceivableId(),
+      source: 'manual',
+      createdDate: new Date().toISOString(),
+    });
+  }
+  saveBusinessState();
+  document.getElementById('receivable-form-card').style.display = 'none';
+  editingReceivableId = null;
+  staleViews.add('receivables');
+  renderView('receivables');
+  showToast('Receivable entry saved.', 'success');
+}
+
+function deleteReceivable(id) {
+  const r = bizState.receivables.find(x => x.id === id);
+  if (r) { r.deleted = true; saveBusinessState(); staleViews.add('receivables'); renderView('receivables'); showToast('Entry removed.', 'success'); }
+}
+
+async function importReceivablesFromExcel(file) {
+  setExportSpinner(true, 'Importing receivables...');
+  try {
+    await loadXlsx();
+    const entries = await excelService.parseReceivablesExcel(file);
+    entries.forEach(e => {
+      bizState.receivables.push({
+        ...e,
+        id: generateReceivableId(),
+        source: 'manual',
+        firmId: activeFirmId,
+        fy: getFY(e.invoiceDate),
+        createdDate: new Date().toISOString(),
+      });
+    });
+    saveBusinessState();
+    staleViews.add('receivables');
+    renderView('receivables');
+    showToast(`Imported ${entries.length} receivable(s).`, 'success');
+  } catch (e) { showToast(e.message, 'error'); }
+  finally { setExportSpinner(false); }
+}
+
+// ═══════════════════════════════════════
+// PURCHASES
+// ═══════════════════════════════════════
+let editingPurchaseId = null;
+
+function generatePurchaseId() {
+  return 'PUR-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+}
+
+function getPurchases() {
+  return (bizState.purchases || []).filter(p => !p.deleted);
+}
+
+function renderPurchasesView() {
+  const purchasesFirmFilter = document.getElementById('firm-filter-purchases')?.value || 'all';
+  const search = (document.getElementById('search-purchases')?.value || '').toLowerCase();
+  let records = getPurchases().filter(p => {
+    if (!isInActiveFY(p.billDate)) return false;
+    if (purchasesFirmFilter !== 'all' && p.firmId !== purchasesFirmFilter) return false;
+    if (search && !(p.vendorName || '').toLowerCase().includes(search) &&
+        !(p.billNumber || '').toLowerCase().includes(search) &&
+        !(p.category || '').toLowerCase().includes(search)) return false;
+    return true;
+  });
+  records.sort((a, b) => (b.billDate || '').localeCompare(a.billDate || ''));
+
+  let totalPurchases = 0, gstInput = 0, totalPaid = 0, totalPayable = 0;
+  records.forEach(p => {
+    const gst = (p.cgst || 0) + (p.sgst || 0) + (p.igst || 0);
+    const total = p.totalAmount || (p.amount + gst);
+    totalPurchases += total;
+    gstInput += gst;
+    if (p.paymentStatus === 'Paid') totalPaid += total;
+    else totalPayable += total;
+  });
+
+  setText('kpi-total-purchases', fmt(totalPurchases));
+  setText('kpi-gst-input', fmt(gstInput));
+  setText('kpi-purchases-paid', fmt(totalPaid));
+  setText('kpi-purchases-payable', fmt(totalPayable));
+
+  const tbody = document.getElementById('purchases-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = records.map(p => {
+    const gst = (p.cgst || 0) + (p.sgst || 0) + (p.igst || 0);
+    const total = p.totalAmount || (p.amount + gst);
+    const statusClass = p.paymentStatus === 'Paid' ? 'badge-paid' : p.paymentStatus === 'Partially Paid' ? 'badge-partially-paid' : 'badge-unpaid';
+    return `<tr>
+      <td>${escapeHtml(p.vendorName)}</td>
+      <td>${escapeHtml(p.billNumber)}</td>
+      <td>${p.billDate || ''}</td>
+      <td class=”right-text”>${fmt(p.amount)}</td>
+      <td class=”right-text”>${fmt(gst)}</td>
+      <td class=”right-text” style=”font-weight:700;”>${fmt(total)}</td>
+      <td>${escapeHtml(p.category || '-')}</td>
+      <td>${escapeHtml(p.billType || '-')}</td>
+      <td><span class=”badge ${statusClass}”>${escapeHtml(p.paymentStatus || 'Unpaid')}</span></td>
+      <td class=”row-actions”>
+        <button class=”btn btn-outline btn-sm” data-purch-action=”edit” data-purch-id=”${p.id}”>Edit</button>
+        <button class=”btn btn-outline btn-sm” data-purch-action=”delete” data-purch-id=”${p.id}”>Del</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openPurchaseForm(purchaseId) {
+  const card = document.getElementById('purchase-form-card');
+  if (!card) return;
+  card.style.display = 'block';
+  const title = document.getElementById('purchase-form-title');
+  if (purchaseId) {
+    editingPurchaseId = purchaseId;
+    const p = getPurchases().find(x => x.id === purchaseId);
+    if (!p) return;
+    if (title) title.textContent = 'Edit Purchase Entry';
+    document.getElementById('pu-vendor-name').value = p.vendorName || '';
+    document.getElementById('pu-vendor-gstin').value = p.vendorGstin || '';
+    document.getElementById('pu-bill-number').value = p.billNumber || '';
+    document.getElementById('pu-bill-date').value = p.billDate || '';
+    document.getElementById('pu-amount').value = p.amount || '';
+    document.getElementById('pu-cgst').value = p.cgst || 0;
+    document.getElementById('pu-sgst').value = p.sgst || 0;
+    document.getElementById('pu-igst').value = p.igst || 0;
+    document.getElementById('pu-category').value = p.category || '';
+    document.getElementById('pu-bill-type').value = p.billType || 'GST Invoice';
+    document.getElementById('pu-payment-status').value = p.paymentStatus || 'Unpaid';
+    document.getElementById('pu-payment-date').value = p.paymentDate || '';
+    document.getElementById('pu-payment-mode').value = p.paymentMode || '';
+    document.getElementById('pu-firm-id').value = p.firmId || '';
+    document.getElementById('pu-notes').value = p.notes || '';
+  } else {
+    editingPurchaseId = null;
+    if (title) title.textContent = 'Add Purchase Entry';
+    document.getElementById('purchase-entry-form')?.reset();
+    const dateEl = document.getElementById('pu-bill-date');
+    if (dateEl) dateEl.value = todayIsoDate();
+  }
+  document.getElementById('pu-vendor-name')?.focus();
+}
+
+function savePurchase(e) {
+  e.preventDefault();
+  const entry = {
+    vendorName: document.getElementById('pu-vendor-name')?.value.trim() || '',
+    vendorGstin: document.getElementById('pu-vendor-gstin')?.value.trim() || '',
+    billNumber: document.getElementById('pu-bill-number')?.value.trim() || '',
+    billDate: document.getElementById('pu-bill-date')?.value || '',
+    amount: Number(document.getElementById('pu-amount')?.value || 0),
+    cgst: Number(document.getElementById('pu-cgst')?.value || 0),
+    sgst: Number(document.getElementById('pu-sgst')?.value || 0),
+    igst: Number(document.getElementById('pu-igst')?.value || 0),
+    category: document.getElementById('pu-category')?.value || '',
+    billType: document.getElementById('pu-bill-type')?.value || 'GST Invoice',
+    paymentStatus: document.getElementById('pu-payment-status')?.value || 'Unpaid',
+    paymentDate: document.getElementById('pu-payment-date')?.value || '',
+    paymentMode: document.getElementById('pu-payment-mode')?.value || '',
+    firmId: document.getElementById('pu-firm-id')?.value || activeFirmId,
+    notes: document.getElementById('pu-notes')?.value.trim() || '',
+    fy: getFY(document.getElementById('pu-bill-date')?.value),
+  };
+  entry.totalAmount = entry.amount + entry.cgst + entry.sgst + entry.igst;
+  if (!entry.vendorName) { showToast('Vendor name is required.', 'error'); return; }
+  if (!entry.billNumber) { showToast('Bill number is required.', 'error'); return; }
+
+  if (editingPurchaseId) {
+    const existing = bizState.purchases.find(p => p.id === editingPurchaseId);
+    if (existing) Object.assign(existing, entry, { lastUpdated: new Date().toISOString() });
+  } else {
+    bizState.purchases.push({
+      ...entry,
+      id: generatePurchaseId(),
+      createdDate: new Date().toISOString(),
+    });
+  }
+  saveBusinessState();
+  document.getElementById('purchase-form-card').style.display = 'none';
+  editingPurchaseId = null;
+  staleViews.add('purchases');
+  staleViews.add('gstreturns');
+  renderView('purchases');
+  showToast('Purchase entry saved.', 'success');
+}
+
+function deletePurchase(id) {
+  const p = bizState.purchases.find(x => x.id === id);
+  if (p) { p.deleted = true; saveBusinessState(); staleViews.add('purchases'); staleViews.add('gstreturns'); renderView('purchases'); showToast('Entry removed.', 'success'); }
+}
+
+async function importPurchasesFromExcel(file) {
+  setExportSpinner(true, 'Importing purchases...');
+  try {
+    await loadXlsx();
+    const entries = await excelService.parsePurchasesExcel(file);
+    entries.forEach(e => {
+      bizState.purchases.push({
+        ...e,
+        id: generatePurchaseId(),
+        totalAmount: e.totalAmount || (e.amount + (e.cgst || 0) + (e.sgst || 0) + (e.igst || 0)),
+        firmId: activeFirmId,
+        fy: getFY(e.billDate),
+        createdDate: new Date().toISOString(),
+      });
+    });
+    saveBusinessState();
+    staleViews.add('purchases');
+    staleViews.add('gstreturns');
+    renderView('purchases');
+    showToast(`Imported ${entries.length} purchase(s).`, 'success');
+  } catch (e) { showToast(e.message, 'error'); }
+  finally { setExportSpinner(false); }
+}
+
+// ═══════════════════════════════════════
+// GST RETURNS
+// ═══════════════════════════════════════
+
+function computeGstReturnsData() {
+  const range = activeFY !== 'all' ? getFYRange(activeFY) : null;
+  const months = {};
+
+  function monthKey(dateStr) {
+    if (!dateStr) return null;
+    return dateStr.slice(0, 7);
+  }
+
+  function ensureMonth(key) {
+    if (!months[key]) months[key] = {
+      month: key, taxableSales: 0, outputCgst: 0, outputSgst: 0, outputIgst: 0, totalOutput: 0,
+      taxablePurchases: 0, inputCgst: 0, inputSgst: 0, inputIgst: 0, totalInput: 0, netPayable: 0,
+    };
+    return months[key];
+  }
+
+  const salesDetails = [];
+  const purchaseDetails = [];
+
+  (bizState.invoices || []).forEach(inv => {
+    if (inv.deleted || inv.status === 'Cancelled') return;
+    if (!inv.gstApplicable) return;
+    const d = inv.invoiceDate || '';
+    if (range && (d < range.start || d > range.end)) return;
+    const mk = monthKey(d);
+    if (!mk) return;
+    const m = ensureMonth(mk);
+    const items = inv.items || [];
+    let taxable = 0, gstTotal = 0;
+    items.forEach(item => {
+      const sub = Number(item.price || 0) * Number(item.qty || 0);
+      const gstPct = Number(item.gstPct || 0);
+      taxable += sub;
+      gstTotal += sub * (gstPct / 100);
+    });
+    const halfGst = gstTotal / 2;
+    const custGstin = inv.form ? (inv.form['f-inv-bgst'] || '') : '';
+    const isInterState = custGstin && custGstin.slice(0, 2) !== (getActiveFirm()?.gstin || '').slice(0, 2);
+    if (isInterState) {
+      m.outputIgst += gstTotal;
+    } else {
+      m.outputCgst += halfGst;
+      m.outputSgst += halfGst;
+    }
+    m.taxableSales += taxable;
+    m.totalOutput += gstTotal;
+    salesDetails.push({
+      invoiceNo: inv.invoiceNumber || inv.id,
+      date: d,
+      customer: inv.customerName || '',
+      gstin: custGstin,
+      taxable, cgst: isInterState ? 0 : halfGst, sgst: isInterState ? 0 : halfGst, igst: isInterState ? gstTotal : 0,
+      total: taxable + gstTotal,
+    });
+  });
+
+  (bizState.purchases || []).forEach(p => {
+    if (p.deleted || p.billType === 'Non-GST Bill' || p.billType === 'Expense') return;
+    const d = p.billDate || '';
+    if (range && (d < range.start || d > range.end)) return;
+    const mk = monthKey(d);
+    if (!mk) return;
+    const m = ensureMonth(mk);
+    m.inputCgst += p.cgst || 0;
+    m.inputSgst += p.sgst || 0;
+    m.inputIgst += p.igst || 0;
+    const gst = (p.cgst || 0) + (p.sgst || 0) + (p.igst || 0);
+    m.totalInput += gst;
+    m.taxablePurchases += p.amount || 0;
+    purchaseDetails.push({
+      billNo: p.billNumber, date: d, vendor: p.vendorName || '', gstin: p.vendorGstin || '',
+      taxable: p.amount || 0, cgst: p.cgst || 0, sgst: p.sgst || 0, igst: p.igst || 0,
+      total: p.totalAmount || (p.amount + gst),
+    });
+  });
+
+  Object.values(months).forEach(m => {
+    m.netPayable = m.totalOutput - m.totalInput;
+  });
+
+  const monthly = Object.values(months).sort((a, b) => a.month.localeCompare(b.month));
+  return { monthly, salesDetails, purchaseDetails };
+}
+
+function renderGstReturnsView() {
+  const data = computeGstReturnsData();
+  const periodType = document.getElementById('gst-returns-period')?.value || 'monthly';
+
+  let totalOutput = 0, totalInput = 0, totalTaxableSales = 0, totalTaxablePurchases = 0;
+  data.monthly.forEach(m => { totalOutput += m.totalOutput; totalInput += m.totalInput; totalTaxableSales += m.taxableSales; totalTaxablePurchases += m.taxablePurchases; });
+
+  setText('kpi-gst-output-tax', fmt(totalOutput));
+  setText('kpi-gst-input-tax', fmt(totalInput));
+  setText('kpi-gst-net-payable', fmt(totalOutput - totalInput));
+  setText('kpi-gst-taxable-sales', fmt(totalTaxableSales));
+  setText('kpi-gst-taxable-purchases', fmt(totalTaxablePurchases));
+
+  let grouped = data.monthly;
+  if (periodType === 'quarterly') {
+    const quarters = {};
+    grouped.forEach(m => {
+      const [y, mo] = m.month.split('-').map(Number);
+      const qIdx = Math.floor((mo - 1) / 3);
+      const qLabel = `Q${qIdx + 1} ${y}`;
+      if (!quarters[qLabel]) quarters[qLabel] = { month: qLabel, taxableSales: 0, outputCgst: 0, outputSgst: 0, outputIgst: 0, totalOutput: 0, taxablePurchases: 0, inputCgst: 0, inputSgst: 0, inputIgst: 0, totalInput: 0, netPayable: 0 };
+      const q = quarters[qLabel];
+      Object.keys(m).forEach(k => { if (k !== 'month' && typeof m[k] === 'number') q[k] += m[k]; });
+    });
+    grouped = Object.values(quarters);
+  } else if (periodType === 'annual') {
+    const totals = { month: activeFY || 'All', taxableSales: 0, outputCgst: 0, outputSgst: 0, outputIgst: 0, totalOutput: 0, taxablePurchases: 0, inputCgst: 0, inputSgst: 0, inputIgst: 0, totalInput: 0, netPayable: 0 };
+    grouped.forEach(m => { Object.keys(m).forEach(k => { if (k !== 'month' && typeof m[k] === 'number') totals[k] += m[k]; }); });
+    grouped = [totals];
+  }
+
+  const summaryTbody = document.getElementById('gst-summary-tbody');
+  if (summaryTbody) {
+    summaryTbody.innerHTML = grouped.length ? grouped.map(m => `<tr>
+      <td style=”font-weight:600;”>${m.month}</td>
+      <td class=”right-text”>${fmt(m.taxableSales)}</td>
+      <td class=”right-text”>${fmt(m.outputCgst)}</td>
+      <td class=”right-text”>${fmt(m.outputSgst)}</td>
+      <td class=”right-text”>${fmt(m.outputIgst)}</td>
+      <td class=”right-text” style=”font-weight:700;”>${fmt(m.totalOutput)}</td>
+      <td class=”right-text”>${fmt(m.taxablePurchases)}</td>
+      <td class=”right-text”>${fmt(m.inputCgst)}</td>
+      <td class=”right-text”>${fmt(m.inputSgst)}</td>
+      <td class=”right-text”>${fmt(m.inputIgst)}</td>
+      <td class=”right-text” style=”font-weight:700;”>${fmt(m.totalInput)}</td>
+      <td class=”right-text” style=”font-weight:700;color:${m.netPayable >= 0 ? '#cc0000' : '#006600'};”>${fmt(m.netPayable)}</td>
+    </tr>`).join('') : '<tr><td colspan=”12” style=”text-align:center;color:var(--muted);padding:16px;”>No GST data for this period.</td></tr>';
+  }
+
+  const salesTbody = document.getElementById('gst-sales-tbody');
+  if (salesTbody) {
+    salesTbody.innerHTML = data.salesDetails.length ? data.salesDetails.map(s => `<tr>
+      <td>${escapeHtml(s.invoiceNo)}</td><td>${s.date}</td><td>${escapeHtml(s.customer)}</td>
+      <td>${escapeHtml(s.gstin)}</td><td class=”right-text”>${fmt(s.taxable)}</td>
+      <td class=”right-text”>${fmt(s.cgst + s.sgst + s.igst)}</td><td class=”right-text”>${fmt(s.total)}</td>
+    </tr>`).join('') : '<tr><td colspan=”7” style=”text-align:center;color:var(--muted);padding:16px;”>No sales data.</td></tr>';
+  }
+
+  const purchTbody = document.getElementById('gst-purchases-tbody');
+  if (purchTbody) {
+    purchTbody.innerHTML = data.purchaseDetails.length ? data.purchaseDetails.map(p => `<tr>
+      <td>${escapeHtml(p.billNo)}</td><td>${p.date}</td><td>${escapeHtml(p.vendor)}</td>
+      <td>${escapeHtml(p.gstin)}</td><td class=”right-text”>${fmt(p.taxable)}</td>
+      <td class=”right-text”>${fmt(p.cgst + p.sgst + p.igst)}</td><td class=”right-text”>${fmt(p.total)}</td>
+    </tr>`).join('') : '<tr><td colspan=”7” style=”text-align:center;color:var(--muted);padding:16px;”>No purchase data.</td></tr>';
+  }
+}
+
+
 // INIT â€” seed sample rows
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 (function init() {
@@ -6397,6 +8961,11 @@ async function uploadPdfForRecord(kind, recordId) {
   };
   document.addEventListener('visibilitychange', syncOnReturn);
   window.addEventListener('focus', syncOnReturn);
+  // Financial Year selector
+  document.getElementById('fy-selector')?.addEventListener('change', e => {
+    activeFY = e.target.value;
+    renderBusinessViews();
+  });
   // Firms: switcher, filter, Firms screen, builder shortcut, customer pickers.
   document.getElementById('active-firm')?.addEventListener('change', e => setActiveFirm(e.target.value));
   document.querySelectorAll('.firm-filter-select').forEach(select => select.addEventListener('change', e => {

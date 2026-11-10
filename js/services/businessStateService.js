@@ -37,8 +37,9 @@ const firmNumbered = kind => kind !== 'customer';
 
 export class BusinessStateService {
   constructor() {
+    const defaults = JSON.parse(JSON.stringify(DEFAULT_STATE));
     this.state = {
-      ...DEFAULT_STATE,
+      ...defaults,
       ...(readJson(APP_KEYS.businessState, DEFAULT_STATE) || {})
     };
     if (!Array.isArray(this.state.firms)) this.state.firms = [];
